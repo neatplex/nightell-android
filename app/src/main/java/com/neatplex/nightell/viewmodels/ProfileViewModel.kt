@@ -24,42 +24,21 @@ class ProfileViewModel @Inject constructor(private val profileRepository: Profil
         viewModelScope.launch {
             _showUserInfoResult.value = Result.Loading
             val result = profileRepository.showUserProfile(userId)
-            when (result) {
-                is Result.Success -> {
-                    _showUserInfoResult.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _showUserInfoResult.value = result
-                }
-                is Result.Loading -> {
-                }
-            }
+            _showUserInfoResult.value = result
         }
     }
 
     fun followUser(userId: Int, friendId: Int){
         viewModelScope.launch {
             val result = profileRepository.follow(userId, friendId)
-            if(result is Result.Success){
-                _followResult.value = result
-            }else {
-                _followResult.value = result
-            }
+            _followResult.value = result
         }
     }
 
     fun unfollowUser(userId: Int, friendId: Int){
         viewModelScope.launch {
             val result = profileRepository.unfollow(userId, friendId)
-            if(result is Result.Success){
-                _followResult.value = result
-            }else {
-                _followResult.value = result
-            }
+            _followResult.value = result
         }
     }
-
 }

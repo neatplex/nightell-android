@@ -34,14 +34,14 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
             val result = postRepository.showFeed(lastId)
 
             if (result is Result.Success) {
-                val newFeed = result.data.posts
+                val newFeed = result.data!!.posts
                 if(newFeed.isNotEmpty()){
                     val allPosts = (_posts.value ?: emptyList()) + newFeed
                     _posts.value = allPosts
                     lastId = newFeed.lastOrNull()?.id
                 }
             } else {
-                // Handle error
+                _posts.value = result as List<Post>
             }
 
             _isLoading.value = false
@@ -50,21 +50,10 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
 
     fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?) {
         viewModelScope.launch {
-            _storePostResult.value = Result.Loading
+            _isLoading.value = true
             val result = postRepository.uploadPost(title, description, audioId, imageId)
-            when (result) {
-                is Result.Success -> {
-                    _storePostResult.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _storePostResult.value = result
-                }
-                is Result.Loading -> {
-                }
-            }
+            _storePostResult.value = result
+            _isLoading.value = false
         }
     }
 
@@ -84,12 +73,12 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
         viewModelScope.launch {
             val result = postRepository.deletePost(postId)
             if (result is Result.Success) {
-                    _postDeleteResult.value = result
-                    loadMorePosts()
-                }
-                else {
-                    _postDeleteResult.value = result
-                }
+                _postDeleteResult.value = result
+                loadMorePosts()
+            }
+            else {
+                _postDeleteResult.value = result
+            }
         }
     }
 
@@ -107,7 +96,7 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
                     lastId = newPosts.lastOrNull()?.id
                 }
             } else {
-                // Handle error
+                _posts.value = result as List<Post>
             }
 
             _isLoading.value = false

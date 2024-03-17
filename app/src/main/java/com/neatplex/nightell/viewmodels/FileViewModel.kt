@@ -15,28 +15,16 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 @HiltViewModel
 class FileViewModel @Inject constructor(private val fileRepository: FileRepository) : ViewModel() {
 
-    private val _uploadState = MutableLiveData<Result<FileUploadResponse>>()
-    val uploadState: LiveData<Result<FileUploadResponse>> get() = _uploadState
-
+    private val _uploadState = MutableLiveData<Result<FileUploadResponse?>>()
+    val uploadState: LiveData<Result<FileUploadResponse?>> get() = _uploadState
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> get() = _isLoading
     fun uploadFile(file: File, extension: String) {
         viewModelScope.launch {
-            _uploadState.value = Result.Loading
-
+            _isLoading.value = true
             val result = fileRepository.uploadFile(file, extension)
-            when (result) {
-                is Result.Success -> {
-                    _uploadState.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _uploadState.value = result
-                }
-                is Result.Loading -> {
-                }
-            }
+            _uploadState.value = result
+            _isLoading.value = false
         }
     }
-
 }

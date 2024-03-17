@@ -22,7 +22,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
@@ -34,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -51,7 +49,6 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.theme.NightellTheme
 import com.neatplex.nightell.util.Result
 import com.neatplex.nightell.util.Validation
-import com.neatplex.nightell.viewmodels.SharedViewModel
 import com.neatplex.nightell.viewmodels.UserAuthViewModel
 
 
@@ -245,7 +242,7 @@ fun SignUpScreen(navController: NavController, userAuthViewModel: UserAuthViewMo
                         }
                     },
                     modifier = Modifier.clickable {
-                        navController.navigate("signIn")
+                        navController.popBackStack()
                     }
                 )
 
@@ -253,10 +250,7 @@ fun SignUpScreen(navController: NavController, userAuthViewModel: UserAuthViewMo
                 // Check the authentication result and navigate accordingly
                 when (val result = authResultState) {
                     is Result.Success -> {
-                        result.data?.let {
-                            // Successful login, navigate to HomeScreen
-                            navController.navigate("home")
-                        }
+                        navController.navigate("home")
                     }
                     is Result.Error -> {
                         val errorMessage = result.message
@@ -265,7 +259,9 @@ fun SignUpScreen(navController: NavController, userAuthViewModel: UserAuthViewMo
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
-                    else -> {}
+                    else -> {
+
+                    }
                 }
 
             }

@@ -6,19 +6,16 @@ import com.neatplex.nightell.dto.PostUploadRequest
 import com.neatplex.nightell.dto.PostStoreResponse
 import com.neatplex.nightell.network.ApiService
 import com.neatplex.nightell.util.Result
+import com.neatplex.nightell.util.handleApiResponse
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(private val apiService: ApiService) {
 
 
-    suspend fun showFeed(lastId: Int?) : Result<PostCollection> {
+    suspend fun showFeed(lastId: Int?) : Result<PostCollection?> {
         return try {
             val response = apiService.showFeed(lastId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body()!!)
-            } else {
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error("Error fetching posts", null)
         }
@@ -30,26 +27,18 @@ class PostRepository @Inject constructor(private val apiService: ApiService) {
 
         return try {
             val response = apiService.uploadPost(request)
-            if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body())
-            } else {
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Error("Error uploading post", null)
         }
     }
 
     suspend fun showUserPosts(userId: Int, lastId: Int?) : Result<PostCollection?> {
         return try {
             val response = apiService.showUserPosts(userId,lastId)
-            if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body())
-            } else {
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         }catch (e: Exception){
-            Result.Error(e.message ?: "An error occurred")
+            Result.Error("Error fetching posts", null)
 
         }
     }
@@ -58,13 +47,9 @@ class PostRepository @Inject constructor(private val apiService: ApiService) {
         val request = PostUpdateRequest(title,description)
         return try {
             val response = apiService.updatePost(postId, request)
-            if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body())
-            } else{
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Error("Error editing post", null)
         }
 
     }
@@ -72,13 +57,9 @@ class PostRepository @Inject constructor(private val apiService: ApiService) {
     suspend fun deletePost(postId: Int) : Result<Any?>{
         return try {
             val response = apiService.deletePost(postId)
-            if (response.isSuccessful) {
-                Result.Success("Post Deleted", response.code())
-            } else{
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Error("Error deleting post", null)
         }
     }
 }

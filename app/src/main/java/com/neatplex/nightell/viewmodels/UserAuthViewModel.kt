@@ -22,9 +22,7 @@ class UserAuthViewModel @Inject constructor(private val userAuthRepository: User
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
             _authResult.value = Result.Loading
-
             val result = userAuthRepository.register(username, email, password)
-
             handleLoginResult(result)
         }
     }
@@ -55,20 +53,14 @@ class UserAuthViewModel @Inject constructor(private val userAuthRepository: User
     }
 
     private fun handleLoginResult(result: Result<AuthResponse?>) {
-        when (result) {
-            is Result.Success -> {
-                result.data?.let {
-                    saveInfo(it.token, it.user.id, it.user.email)
-                    _authResult.value = result // Set the value to trigger UI update
-                }
+        if (result is Result.Success) {
+            result.data?.let {
+                saveInfo(it.token, it.user.id, it.user.email)
             }
-            is Result.Error -> {
-                    _authResult.value = result // Set the value to trigger UI update
-            }
-            else -> {
-                // Handle loading or other states
-                _authResult.value = result // Set the value to trigger UI update
-            }
+            _authResult.value = result // Set the value to trigger UI update
+        }
+        else{
+            _authResult.value = result // Set the value to trigger UI update
         }
     }
 

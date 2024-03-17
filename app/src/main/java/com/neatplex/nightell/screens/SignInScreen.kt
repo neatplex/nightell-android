@@ -1,6 +1,5 @@
 package com.neatplex.nightell.screens
 
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -49,7 +48,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import com.neatplex.nightell.util.Result
-import com.neatplex.nightell.viewmodels.SharedViewModel
 
 
 @Composable
@@ -153,18 +151,10 @@ fun SignInScreen(navController: NavController, viewModel: UserAuthViewModel = hi
                         }
                     }
                     is Result.Error -> {
-                        if (result.code == 401){
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(text = "Username or password is wrong!", color = Color.Red)
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                        }else if(result.code == 500){
-                            Toast.makeText(
-                                LocalContext.current,
-                                "Server Internal error, Try again later",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+                        val errorMessage = result.message
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(text = errorMessage, color = Color.Red)
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
 
                     else -> {}

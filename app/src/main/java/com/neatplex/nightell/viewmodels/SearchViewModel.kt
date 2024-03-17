@@ -34,7 +34,7 @@ class SearchViewModel @Inject constructor(private val searchRepository : SearchR
                 val posts = result.data?.posts
                 _searchResult.value = posts!!
             } else {
-                // Handle error
+                _searchResult.value = result as List<Post>
             }
 
             _isLoading.value = false

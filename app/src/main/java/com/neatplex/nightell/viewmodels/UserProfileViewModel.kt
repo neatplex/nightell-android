@@ -33,126 +33,42 @@ class UserProfileViewModel @Inject constructor(private val userProfileRepository
         viewModelScope.launch {
             _profileData.value = Result.Loading
             val result = userProfileRepository.profile()
-            when (result) {
-                is Result.Success -> {
-                    _profileData.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _profileData.value = result
-                }
-                is Result.Loading -> {
-                }
-
-                else -> {}
-            }
+            _profileData.value = result
         }
     }
 
     fun changeProfileName(name: String){
         viewModelScope.launch {
             val result = userProfileRepository.changeProfileName(name)
-            when (result) {
-                is Result.Success -> {
-                    _userUpdatedData.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _userUpdatedData.value = result
-                }
-                is Result.Loading -> {
-                }
-
-                else -> {}
-            }
+            _userUpdatedData.value = result
         }
     }
 
     fun updateBioOfUser(bio: String){
         viewModelScope.launch {
             val result = userProfileRepository.changeProfileBio(bio)
-            when (result) {
-                is Result.Success -> {
-                    _userUpdatedData.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _userUpdatedData.value = result
-                }
-                is Result.Loading -> {
-                }
-
-                else -> {}
-            }
+            _userUpdatedData.value = result
         }
     }
 
     fun updateUsernameOfUser(username: String){
         viewModelScope.launch {
             val result = userProfileRepository.changeProfileUsername(username)
-            when (result) {
-                is Result.Success -> {
-                    _userUpdatedData.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _userUpdatedData.value = result
-                }
-                is Result.Loading -> {
-                }
-
-                else -> {}
-            }
+            _userUpdatedData.value = result
         }
     }
 
     fun fetchUserFollowers(userId: Int) {
         viewModelScope.launch {
             val result = userProfileRepository.followers(userId)
-            when (result) {
-                is Result.Success -> {
-                    _userData.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _userData.value = result
-                }
-                is Result.Loading -> {
-                }
-
-                else -> {}
-            }
+            _userData.value = result
         }
     }
 
     fun fetchUserFollowings(userId: Int) {
         viewModelScope.launch {
             val result = userProfileRepository.followings(userId)
-            when (result) {
-                is Result.Success -> {
-                    _userData.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _userData.value = result
-                }
-                is Result.Loading -> {
-                }
-
-                else -> {}
-            }
+            _userData.value = result
         }
     }
 }

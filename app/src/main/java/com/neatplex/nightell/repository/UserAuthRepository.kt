@@ -7,6 +7,7 @@ import com.neatplex.nightell.dto.LoginEmailRequest
 import com.neatplex.nightell.dto.LoginUsernameRequest
 import com.neatplex.nightell.dto.RegistrationRequest
 import com.neatplex.nightell.network.ApiService
+import com.neatplex.nightell.util.handleApiResponse
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -16,18 +17,7 @@ class UserAuthRepository @Inject constructor(private val apiService: ApiService)
         return try {
             val request = RegistrationRequest(username, email, password)
             val response = apiService.register(request)
-
-            if (response.isSuccessful) {
-                Result.Success(response.body())
-            } else {
-                if(response.code() in 401..499){
-                    val errorBody = response.errorBody()?.string()
-                    val message = JSONObject(errorBody).getString("message")
-                    Result.Error(message, response.code())
-                }else{
-                    Result.Error("Internal server error. Try later!", response.code())
-                }
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error(e.message ?: "An error occurred")
         }
@@ -37,12 +27,7 @@ class UserAuthRepository @Inject constructor(private val apiService: ApiService)
         return try {
             val request = LoginEmailRequest(email, password)
             val response = apiService.loginWithEmail(request)
-
-            if (response.isSuccessful) {
-                Result.Success(response.body())
-            } else {
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error(e.message ?: "An error occurred")
         }
@@ -52,12 +37,7 @@ class UserAuthRepository @Inject constructor(private val apiService: ApiService)
         return try {
             val request = LoginUsernameRequest(username, password)
             val response = apiService.loginWithUsername(request)
-
-            if (response.isSuccessful) {
-                Result.Success(response.body())
-            } else {
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error(e.message ?: "An error occurred")
         }

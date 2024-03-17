@@ -23,63 +23,22 @@ class LikeViewModel @Inject constructor(private val likeRepository: LikeReposito
 
     fun like(postId: Int){
         viewModelScope.launch {
-
             val result = likeRepository.like(postId)
-            when (result) {
-                is Result.Success -> {
-                    _likeResult.value = result
-                }
-
-                is Result.Error -> {
-                    if (result.code in 400..499) {
-                        // TODO
-                    }
-                    _likeResult.value = result
-                }
-
-                is Result.Loading -> {
-                }
-            }
+            _likeResult.value = result
         }
     }
 
     fun showLikes(postId: Int){
         viewModelScope.launch {
-            _showLikesResult.value = Result.Loading
             val result = likeRepository.showLikes(postId)
-            when (result) {
-                is Result.Success -> {
-                    _showLikesResult.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _showLikesResult.value = result
-                }
-                is Result.Loading -> {
-                }
-            }
+            _showLikesResult.value = result
         }
     }
 
     fun deleteLike(likeId : Int){
         viewModelScope.launch {
-
             val result = likeRepository.deleteLike(likeId)
-            when (result) {
-                is Result.Success -> {
-                    _likeResult.value = result
-                }
-                is Result.Error -> {
-                    if(result.code in 400..499){
-                        // TODO
-                    }
-                    _likeResult.value = result
-                }
-                is Result.Loading -> {
-                }
-            }
+            _likeResult.value = result
         }
     }
 }

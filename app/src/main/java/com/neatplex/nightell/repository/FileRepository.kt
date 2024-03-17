@@ -9,6 +9,7 @@ import java.io.File
 import com.neatplex.nightell.util.Result
 import com.neatplex.nightell.dto.FileUploadResponse
 import com.neatplex.nightell.network.ApiService
+import com.neatplex.nightell.util.handleApiResponse
 import javax.inject.Inject
 
 class FileRepository @Inject constructor(private val apiService: ApiService) {
@@ -16,21 +17,16 @@ class FileRepository @Inject constructor(private val apiService: ApiService) {
     suspend fun uploadFile(
         file: File,
         extension: String
-    ): Result<FileUploadResponse> {
+    ): Result<FileUploadResponse?> {
         val requestBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
         val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
         val extensionPart = extension.toRequestBody("text/plain".toMediaTypeOrNull())
 
         return try {
             val response = apiService.uploadFile(filePart, extensionPart)
-            if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body()!!)
-            } else {
-                Result.Error(response.message(), response.code())
-            }
+            handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error("Error uploading file", null)
         }
     }
-
 }
