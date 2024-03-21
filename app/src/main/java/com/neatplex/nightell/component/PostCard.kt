@@ -64,8 +64,7 @@ fun PostCard(post: Post, onPostClicked: (Post) -> Unit) {
         ) {
 
             Column(modifier = Modifier
-                .weight(1f)
-                .padding(8.dp)) {
+                .weight(1f)) {
 
                 val imageResource = if (post.image != null) {
                     rememberImagePainter(data = Constant.Files_URL + post.image.path)
@@ -76,8 +75,7 @@ fun PostCard(post: Post, onPostClicked: (Post) -> Unit) {
                     painter = imageResource,
                     contentDescription = "Story Image",
                     modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .size(95.dp),
                     contentScale = ContentScale.Crop
                 )
             }
