@@ -1,12 +1,12 @@
 package com.neatplex.nightell.repository
 
-import com.neatplex.nightell.dto.PostCollection
-import com.neatplex.nightell.dto.PostUpdateRequest
-import com.neatplex.nightell.dto.PostUploadRequest
-import com.neatplex.nightell.dto.PostStoreResponse
-import com.neatplex.nightell.network.ApiService
-import com.neatplex.nightell.util.Result
-import com.neatplex.nightell.util.handleApiResponse
+import com.neatplex.nightell.data.dto.PostCollection
+import com.neatplex.nightell.data.dto.PostUpdateRequest
+import com.neatplex.nightell.data.dto.PostUploadRequest
+import com.neatplex.nightell.data.dto.PostStoreResponse
+import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
 class PostRepository @Inject constructor(private val apiService: ApiService) {

@@ -8,13 +8,10 @@ import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.neatplex.nightell.model.Post
-import com.neatplex.nightell.model.User
-import com.neatplex.nightell.util.TokenManager
-import com.neatplex.nightell.viewmodels.SharedViewModel
+import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 @Composable
 fun ShowUsers(users: List<User?>?, navController: NavController, viewModel: SharedViewModel) {
@@ -35,7 +32,7 @@ fun ShowUsers(users: List<User?>?, navController: NavController, viewModel: Shar
 }
 
 @Composable
-fun UserCard(user: User,  onUserClicked: (User) -> Unit) {
+fun UserCard(user: User, onUserClicked: (User) -> Unit) {
 
     Card(
         modifier = Modifier

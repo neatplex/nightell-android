@@ -6,10 +6,10 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import com.neatplex.nightell.util.Result
-import com.neatplex.nightell.dto.FileUploadResponse
-import com.neatplex.nightell.network.ApiService
-import com.neatplex.nightell.util.handleApiResponse
+import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.data.dto.FileUploadResponse
+import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
 class FileRepository @Inject constructor(private val apiService: ApiService) {

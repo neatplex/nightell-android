@@ -15,20 +15,20 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.neatplex.nightell.screens.AddPostScreen
-import com.neatplex.nightell.screens.EditProfileScreen
-import com.neatplex.nightell.screens.FollowerScreen
-import com.neatplex.nightell.screens.FollowingScreen
-import com.neatplex.nightell.screens.HomeScreen
-import com.neatplex.nightell.screens.SignInScreen
-import com.neatplex.nightell.screens.ProfileScreen
-import com.neatplex.nightell.screens.SignUpScreen
-import com.neatplex.nightell.screens.SplashScreen
-import com.neatplex.nightell.screens.PostScreen
-import com.neatplex.nightell.screens.SearchScreen
-import com.neatplex.nightell.screens.UserScreen
-import com.neatplex.nightell.util.TokenManager
-import com.neatplex.nightell.viewmodels.SharedViewModel
+import com.neatplex.nightell.ui.screens.AddPostScreen
+import com.neatplex.nightell.ui.screens.EditProfileScreen
+import com.neatplex.nightell.ui.screens.FollowerScreen
+import com.neatplex.nightell.ui.screens.FollowingScreen
+import com.neatplex.nightell.ui.screens.HomeScreen
+import com.neatplex.nightell.ui.screens.SignInScreen
+import com.neatplex.nightell.ui.screens.ProfileScreen
+import com.neatplex.nightell.ui.screens.SignUpScreen
+import com.neatplex.nightell.ui.screens.SplashScreen
+import com.neatplex.nightell.ui.screens.PostScreen
+import com.neatplex.nightell.ui.screens.SearchScreen
+import com.neatplex.nightell.ui.screens.UserScreen
+import com.neatplex.nightell.utils.TokenManager
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 
 @Composable

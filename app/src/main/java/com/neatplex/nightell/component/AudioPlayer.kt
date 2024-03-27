@@ -14,14 +14,17 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 
 @Composable
-fun AudioPlayer(navController: NavController, audioPath: String) {
+fun AudioPlayer(navController: NavController
+                , audioPath: String) {
 
 
     val context = LocalContext.current
@@ -30,6 +33,11 @@ fun AudioPlayer(navController: NavController, audioPath: String) {
     var currentPosition by remember { mutableStateOf(0) }
     var musicDuration by remember { mutableStateOf(0) }
     val handler = remember { Handler() }
+    val endAnchor = LocalConfiguration.current.screenHeightDp * LocalDensity.current.density
+    val anchors = mapOf(
+        0f to 0, endAnchor to 1
+    )
+
 
     LaunchedEffect(audioPath) {
         if (audioPath.isNotEmpty() && audioPath.length > 40) {

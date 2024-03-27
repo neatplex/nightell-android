@@ -1,10 +1,10 @@
 package com.neatplex.nightell.di
 
 import android.content.Context
-import com.neatplex.nightell.network.ApiService
+import com.neatplex.nightell.data.api.ApiService
 import com.neatplex.nightell.repository.UserAuthRepository
-import com.neatplex.nightell.util.Constant
-import com.neatplex.nightell.util.TokenManager
+import com.neatplex.nightell.utils.Constant
+import com.neatplex.nightell.utils.TokenManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

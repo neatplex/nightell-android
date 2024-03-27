@@ -10,8 +10,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavigationBar
 import com.neatplex.nightell.navigation.Navigation
-import com.neatplex.nightell.util.TokenManager
-import com.neatplex.nightell.viewmodels.SharedViewModel
+import com.neatplex.nightell.utils.TokenManager
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

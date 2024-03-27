@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -20,7 +19,6 @@ import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -31,9 +29,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.model.Post
-import com.neatplex.nightell.util.Constant
-import com.neatplex.nightell.viewmodels.SharedViewModel
+import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.utils.Constant
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 @Composable
 fun ShowPosts(posts: List<Post>?, navController: NavController, viewModel: SharedViewModel) {

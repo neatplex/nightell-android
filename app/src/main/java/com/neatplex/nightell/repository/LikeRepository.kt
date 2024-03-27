@@ -1,10 +1,10 @@
 package com.neatplex.nightell.repository
 
-import com.neatplex.nightell.dto.Likes
-import com.neatplex.nightell.dto.StoreLike
-import com.neatplex.nightell.util.Result
-import com.neatplex.nightell.network.ApiService
-import com.neatplex.nightell.util.handleApiResponse
+import com.neatplex.nightell.data.dto.Likes
+import com.neatplex.nightell.data.dto.StoreLike
+import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
 class LikeRepository @Inject constructor(private val apiService: ApiService) {

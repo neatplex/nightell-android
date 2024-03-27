@@ -1,11 +1,11 @@
 package com.neatplex.nightell.repository
 
-import com.neatplex.nightell.dto.ShowProfileResponse
-import com.neatplex.nightell.dto.UserUpdated
-import com.neatplex.nightell.dto.Users
-import com.neatplex.nightell.util.Result
-import com.neatplex.nightell.network.ApiService
-import com.neatplex.nightell.util.handleApiResponse
+import com.neatplex.nightell.data.dto.ShowProfileResponse
+import com.neatplex.nightell.data.dto.UserUpdated
+import com.neatplex.nightell.data.dto.Users
+import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.utils.handleApiResponse
 
 import javax.inject.Inject
 
