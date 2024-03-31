@@ -6,16 +6,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
@@ -37,12 +34,12 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(R.color.primary)),
+            .background(colorResource(R.color.blue)),
             contentAlignment = Alignment.Center
     ) {
         // You can customize the splash screen UI here
         Image(
-            painter = painterResource(id = R.drawable.nightell_logo),
+            painter = painterResource(id = R.drawable.nightell_white),
             contentDescription = null,
             modifier = Modifier
                 .size(150.dp)
