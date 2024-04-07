@@ -2,6 +2,7 @@ package com.neatplex.nightell.ui.screens
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -45,11 +46,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import com.neatplex.nightell.component.CustomPinkButton
+import com.neatplex.nightell.ui.theme.MyVerticalGradiant
 import com.neatplex.nightell.ui.viewmodel.UserAuthViewModel
 import com.neatplex.nightell.utils.Validation.isValidEmail
 import com.neatplex.nightell.utils.Validation.isValidPassword
@@ -68,15 +68,7 @@ fun SignUpScreen(
     var isPasswordVisible by remember { mutableStateOf(false) }
 
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Background Image
-        val backgroundPainter = painterResource(id = R.drawable.sign_bg)
-        Image(
-            painter = backgroundPainter,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.FillBounds
-        )
+    Box(modifier = Modifier.fillMaxSize().background(brush = MyVerticalGradiant())) {
 
         Column(
             modifier = Modifier

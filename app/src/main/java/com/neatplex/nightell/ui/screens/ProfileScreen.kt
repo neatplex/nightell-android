@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
@@ -43,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.PostCard
 import com.neatplex.nightell.component.ShowPosts
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
@@ -56,9 +59,9 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
 
     val profileResult by userProfileViewModel.profileData.observeAsState()
     val userId = sharedViewModel.user.value!!.id
-    val posts by postViewModel.posts.observeAsState(emptyList())
+    val posts by postViewModel.userPosts.observeAsState(emptyList())
     val isLoading by postViewModel.isLoading.observeAsState(false)
-
+    val bottomBarHeight = BottomNavigationHeight()
 
     // trigger the profile loading
     LaunchedEffect(Unit) {
@@ -94,10 +97,7 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp)
-                    .verticalScroll(rememberScrollState())
             ){
-
-
 
                 when (val result = profileResult) {
 
@@ -107,7 +107,6 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
                         val followings = result.data?.followings_count
                         if (user != null) {
                             ShowProfile(navController ,user, followers!!, followings!!)
-                            ShowPosts(posts, navController, sharedViewModel)
                         }
                     }
 
@@ -126,12 +125,33 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                // Show loading indicator if loading
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
-                }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(bottom = bottomBarHeight),
+                    content = {
+                        itemsIndexed(posts) { index, post ->
+                            if (post != null) {
+                                PostCard(post = post) { selectedPost ->
+                                    sharedViewModel.setPost(selectedPost)
+                                    navController.navigate("postScreen")
+                                }
+                            }
+                            if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
+                                postViewModel.loadUserPosts(userId)
+                            }
+                        }
+
+                        if (isLoading && posts.isNotEmpty()) {
+                            item {
+                                // Load more indicator
+                                CircularProgressIndicator(
+                                    modifier = Modifier
+                                        .padding(vertical = 16.dp)
+                                        .align(Alignment.CenterHorizontally)
+                                )
+                            }
+                        }
+                    }
+                )
             }
         }
     })

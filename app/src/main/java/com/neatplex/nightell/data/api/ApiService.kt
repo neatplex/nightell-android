@@ -97,7 +97,8 @@ interface ApiService {
 
     // Search
     @GET("search")
-    suspend fun search(@Query("q") query: String): Response<PostCollection>
+    suspend fun search(@Query("q") query: String,
+                       @Query("lastId") lastId: Int?): Response<PostCollection>
 
     // Show Followers
     @GET("users/{user_id}/followers")

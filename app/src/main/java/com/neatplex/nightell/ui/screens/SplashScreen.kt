@@ -34,7 +34,7 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(colorResource(R.color.blue)),
+            .background(colorResource(R.color.blue_dark)),
             contentAlignment = Alignment.Center
     ) {
         // You can customize the splash screen UI here

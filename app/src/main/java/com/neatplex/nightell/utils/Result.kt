@@ -14,33 +14,3 @@ sealed class Result<out T> {
     object Loading : Result<Nothing>()
     }
 
-
-@Composable
-fun ErrorHandler(
-    resultState: LiveData<Result<Any?>>,
-    navController: NavController
-) {
-    val result by resultState.observeAsState()
-
-    when (val result = result) {
-        is Result.Success -> {
-            result.data.let {
-                navController.navigate("dashboard")
-            }
-        }
-        is Result.Error -> {
-            if (result.code == 401) {
-                // Handle specific error for sign-in screen
-                // Assuming you've defined some error handling logic here
-            } else if (result.code == 500) {
-                // Handle specific error for sign-up screen
-                Toast.makeText(
-                    LocalContext.current,
-                    "Server Internal error, Try again later",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-        else -> {}
-    }
-}

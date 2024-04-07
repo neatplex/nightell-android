@@ -8,9 +8,9 @@ import com.neatplex.nightell.utils.handleApiResponse
 
 
 class SearchRepository @Inject constructor(private val apiService: ApiService) {
-    suspend fun search(query: String) : Result<PostCollection?>{
+    suspend fun search(query: String, lastId: Int?) : Result<PostCollection?>{
         return try {
-            val response = apiService.search(query)
+            val response = apiService.search(query, lastId)
             handleApiResponse(response)
         }
         catch (e: Exception){

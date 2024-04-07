@@ -24,27 +24,47 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> get() = _posts
 
+    private val _userPosts = MutableLiveData<List<Post>>()
+    val userPosts: LiveData<List<Post>> get() = _userPosts
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
-    private var lastId: Int? = null
+    private var lastPostId: Int? = null
+    private var lastUserPostId: Int? = null
+    private var allPosts = emptyList<Post>()
+    private var allUserPosts = emptyList<Post>()
 
-    fun loadMorePosts() {
+    fun loadFeed() {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = postRepository.showFeed(lastId)
+            val result = postRepository.showFeed(lastPostId)
 
             if (result is Result.Success) {
-                val newFeed = result.data!!.posts
-                if(newFeed.isNotEmpty()){
-                    val allPosts = (_posts.value ?: emptyList()) + newFeed
-                    _posts.value = allPosts
-                    lastId = newFeed.lastOrNull()?.id
+                val newFeed = result.data?.posts ?: emptyList()
+                if (newFeed.isNotEmpty()) {
+                    lastPostId = newFeed.last().id
+                    allPosts = (_posts.value ?: emptyList()) + newFeed
                 }
-            } else {
-                _posts.value = result as List<Post>
             }
 
-            _isLoading.value = false
+            _posts.value = allPosts
+        }
+    }
+
+    fun loadUserPosts(userId: Int) {
+        viewModelScope.launch {
+
+            val result = postRepository.showUserPosts(userId, lastUserPostId)
+
+            if (result is Result.Success) {
+                val newFeed = result.data?.posts ?: emptyList()
+                if (newFeed.isNotEmpty()) {
+                    lastUserPostId = newFeed.last().id
+                    allUserPosts = (_userPosts.value ?: emptyList()) + newFeed
+                }
+            }
+
+            _userPosts.value = allUserPosts
+
         }
     }
 
@@ -62,7 +82,7 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
             val result = postRepository.editPost(newTitle, newDescription, postId)
             if (result is Result.Success) {
                 _storePostResult.value = result
-                loadMorePosts()
+                loadFeed()
             } else {
                 _storePostResult.value = result
             }
@@ -74,32 +94,11 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
             val result = postRepository.deletePost(postId)
             if (result is Result.Success) {
                 _postDeleteResult.value = result
-                loadMorePosts()
+                loadFeed()
             }
             else {
                 _postDeleteResult.value = result
             }
-        }
-    }
-
-
-    fun loadUserPosts(userId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = postRepository.showUserPosts(userId, lastId)
-
-            if (result is Result.Success) {
-                val newPosts = result.data?.posts ?: emptyList()
-                if (newPosts.isNotEmpty()) {
-                    val allPosts = (_posts.value ?: emptyList()) + newPosts
-                    _posts.value = allPosts
-                    lastId = newPosts.lastOrNull()?.id
-                }
-            } else {
-                _posts.value = result as List<Post>
-            }
-
-            _isLoading.value = false
         }
     }
 

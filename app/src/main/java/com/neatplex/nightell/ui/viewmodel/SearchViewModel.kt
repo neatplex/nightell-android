@@ -12,7 +12,31 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(private val searchRepository : SearchRepository) : ViewModel() {
+class SearchViewModel @Inject constructor(private val searchRepository: SearchRepository) :
+    ViewModel() {
+
+    private var lastPostId: Int? = null
+    private var allSearchPosts = emptyList<Post>()
+
+
+//    fun search(q: String){
+//
+//        viewModelScope.launch {
+//
+//            val result = searchRepository.search(q, lastPostId)
+//
+//            if (result is Result.Success) {
+//                val newFeed = result.data?.posts ?: emptyList()
+//                if (newFeed.isNotEmpty()) {
+//                    lastPostId = newFeed.last().id
+//                    allSearchPosts = (allSearchPosts + newFeed).distinctBy { it.id }
+//                }
+//            }
+//
+//            _searchResult.value = allSearchPosts
+//        }
+//    }
+//}
 
     private val _searchResult = MutableLiveData<List<Post>>()
     val searchResult: LiveData<List<Post>> get() = _searchResult
@@ -28,7 +52,7 @@ class SearchViewModel @Inject constructor(private val searchRepository : SearchR
     fun search(q: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = searchRepository.search(q)
+            val result = searchRepository.search(q, lastPostId)
 
             if (result is Result.Success) {
                 val posts = result.data?.posts

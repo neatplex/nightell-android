@@ -1,35 +1,41 @@
 package com.neatplex.nightell.component
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.neatplex.nightell.R
+import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
 
 @Composable
-fun CustomPinkButton(
+fun CustomSimpleButton(
     text: String,
     onClick: () -> Unit
 ) {
-    Button(
-        onClick = onClick,
+    Box(
         modifier = Modifier
-            .fillMaxWidth(), // Modify the button's width to fill its parent
-        shape = RoundedCornerShape(4.dp), // Apply rounded corners to the button
-        colors = ButtonDefaults.buttonColors(backgroundColor = colorResource(id = R.color.purple_light).copy(alpha = 0.3f), contentColor = Color.White), // Customize button colors
-        content = {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.button // Apply button text style
-            )
-        }
-    )
+            .clip(RoundedCornerShape(4.dp)) // Set rounded corners to the Box
+            .background(brush = MyHorizontalGradiant())
+            .clickable(onClick = onClick) // Make the whole Box clickable
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.button,
+            color = Color.White,
+            textAlign = TextAlign.Center, // Center text within the Box
+            modifier = Modifier
+                .padding(16.dp) // Add padding to the Text
+                .align(Alignment.Center) // Align the Text to the center of the Box
+        )
+    }
 }

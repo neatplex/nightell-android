@@ -10,6 +10,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavigationBar
 import com.neatplex.nightell.navigation.Navigation
+import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.TokenManager
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,15 +32,18 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     @Composable
     fun MyApp() {
-        val navController = rememberNavController()
-        val sharedViewModel: SharedViewModel = hiltViewModel()
 
-        Scaffold(
-            bottomBar = {
-                BottomNavigationBar(navController = navController)
+        AppTheme {
+            val navController = rememberNavController()
+            val sharedViewModel: SharedViewModel = hiltViewModel()
+
+            Scaffold(
+                bottomBar = {
+                    BottomNavigationBar(navController = navController)
+                }
+            ) {
+                Navigation(navController = navController, tokenManager = tokenManager, sharedViewModel = sharedViewModel)
             }
-        ) {
-            Navigation(navController = navController, tokenManager = tokenManager, sharedViewModel = sharedViewModel)
         }
     }
 
