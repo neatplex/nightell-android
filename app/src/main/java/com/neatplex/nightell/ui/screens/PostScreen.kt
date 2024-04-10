@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Button
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -21,6 +24,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -40,12 +44,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.AudioPlayer
+import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.LikeViewModel
@@ -85,6 +92,8 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
     val likeResult by likeViewModel.likeResult.observeAsState()
     val userInfoResult by profileViewModel.showUserInfoResult.observeAsState()
     val postUpdateResult by postViewModel.storePostResult.observeAsState()
+    val bottomBarHeight = BottomNavigationHeight()
+
 
     // Update UI based on likes result
     likesCountResult?.let { result ->
@@ -120,7 +129,10 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
     var editedDescription by remember { mutableStateOf(post.description ?: "") }
     var isEditing by remember { mutableStateOf(false) }
 
+    val audioPath = Constant.Files_URL + post.audio.path
+
     Column(modifier = Modifier.fillMaxSize()) {
+
         Row(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
@@ -160,6 +172,7 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
                         DropdownMenuItem(onClick = {
                             postViewModel.deletePost(post.id)
                             menuExpanded.value = false
+                            navController.previousBackStackEntry?.savedStateHandle?.set("postDeleted", true)
                             navController.popBackStack()
                         }) {
                             Text(text = stringResource(id = R.string.delet))
@@ -169,123 +182,154 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
             }
         }
 
-        val imageResource = rememberImagePainter(
-            data = post.image?.path?.let { Constant.Files_URL + it }
-                ?: R.drawable.ic_launcher_background
-        )
+        val scrollState = rememberScrollState()
 
-        Image(
-            painter = imageResource,
-            contentDescription = "Story Image",
-            modifier = Modifier
+        Column( modifier = Modifier
+            .verticalScroll(scrollState).fillMaxSize().padding(bottom = bottomBarHeight)) {
+            val imageResource = rememberImagePainter(
+                data = post.image?.path?.let { Constant.Files_URL + it }
+                    ?: R.drawable.ic_launcher_background
+            )
+
+            Image(
+                painter = imageResource,
+                contentDescription = "Story Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                contentScale = ContentScale.Crop
+            )
+
+            Row(modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp),
-            contentScale = ContentScale.Crop
-        )
+                .padding(all = 5.dp),
+                verticalAlignment = Alignment.CenterVertically) {
 
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(all = 5.dp),
-            verticalAlignment = Alignment.CenterVertically) {
+                userInfoResult?.let { userResult ->
+                    when (userResult) {
+                        is Result.Success -> {
+                            Spacer(modifier = Modifier.width(16.dp))
+                            userResult.data?.user?.let {
+                                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image,)
 
-            userInfoResult?.let { userResult ->
-                when (userResult) {
-                    is Result.Success -> {
-                        Spacer(modifier = Modifier.width(16.dp))
-                        userResult.data?.user?.let {
-                            val imageResource = rememberImagePainter(data = R.drawable.default_profile_image,)
-
-                            Image(
-                                painter = imageResource,
-                                contentDescription = "Profile Image",
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                            Text(
-                                text = it.username,
-                                modifier = Modifier
-                                    .padding(start = 8.dp)
-                                    .clickable {
-                                        // Navigate to another page when "Followers" is clicked
-                                        if (sharedViewModel.user.value?.id == it.id) {
-                                            navController.navigate("profile")
-                                        } else {
-                                            navController.navigate("userScreen/${it.id}")
+                                Image(
+                                    painter = imageResource,
+                                    contentDescription = "Profile Image",
+                                    modifier = Modifier
+                                        .size(40.dp)
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                                Text(
+                                    text = it.username,
+                                    modifier = Modifier
+                                        .padding(start = 8.dp)
+                                        .clickable {
+                                            // Navigate to another page when "Followers" is clicked
+                                            if (sharedViewModel.user.value?.id == it.id) {
+                                                navController.navigate("profile")
+                                            } else {
+                                                navController.navigate("userScreen/${it.id}")
+                                            }
                                         }
-                                    }
-                            )
+                                )
+                            }
+                        }
+                        else -> {
                         }
                     }
-                    else -> {
+                }
+
+                Spacer(Modifier.weight(1f))
+
+                Text(text = likesCount.toString())
+                IconButton(onClick = {
+                    if (isLiked) {
+                        likeId?.let { id ->
+                            likeViewModel.deleteLike(id)
+                        }
+                    } else if (!isLiked) {
+                        likeViewModel.like(post.id)
                     }
+                }) {
+                    Icon(icon, contentDescription = "Like",
+                        modifier = Modifier.size(35.dp))
                 }
             }
 
-            Spacer(Modifier.weight(1f))
-
-            Text(text = likesCount.toString())
-            IconButton(onClick = {
-                if (isLiked) {
-                    likeId?.let { id ->
-                        likeViewModel.deleteLike(id)
-                    }
-                } else if (!isLiked) {
-                    likeViewModel.like(post.id)
-                }
-            }) {
-                Icon(icon, contentDescription = "Like",
-                    modifier = Modifier.size(35.dp))
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 8.dp)) {
+                AudioPlayer(audioPath)
             }
-        }
 
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(all = 8.dp)) {
-            AudioPlayer(navController = navController, Constant.Files_URL + post.audio.path)
-        }
+            if (isEditing) {
 
-        if (isEditing) {
-            TextField(
-                value = editedTitle,
-                onValueChange = { editedTitle = it },
-                label = { Text("Title") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
+                TextField(
+                    value = editedTitle,
+                    onValueChange = {
+                        editedTitle = it.take(25) // Limiting input to 250 characters
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text("Title", color = Color.Black) // Changing label color
+                    },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        backgroundColor = Color.White.copy(0.5f), // Changing background color
+                        textColor = Color.Black, // Changing text color
+                        focusedBorderColor = Color.White
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text
+                    )
+                )
 
-            TextField(
-                value = editedDescription,
-                onValueChange = { editedDescription = it },
-                label = { Text("Description") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Button(onClick = {
-                postViewModel.editPost(post.id, editedTitle, editedDescription)
-                postUpdateResult?.let {
-                    if (it is Result.Success) {
-                        isEditing = false
-                    }
+                TextField(
+                    value = editedDescription,
+                    onValueChange = {
+                        editedDescription = it.take(250) // Limiting input to 250 characters
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    label = {
+                        Text("Caption", color = Color.Black) // Changing label color
+                    },
+                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                        backgroundColor = Color.White.copy(0.5f), // Changing background color
+                        textColor = Color.Black, // Changing text color
+                        focusedBorderColor = Color.White
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text
+                    )
+                )
+                Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally).padding(16.dp)) {
+                    CustomSimpleButton(
+                        onClick = {
+                            postViewModel.editPost(post.id, editedTitle, editedDescription)
+                            postUpdateResult?.let {
+                                if (it is Result.Success) {
+                                    isEditing = false
+                                }
+                            }
+                        },
+                        text = "Save Changes"
+                    )
                 }
-            }) {
-                Text(text = "save")
+
+            } else {
+                Text(
+                    text = editedTitle,
+                    style = MaterialTheme.typography.h5,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = editedDescription,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
-        } else {
-            Text(
-                text = editedTitle,
-                style = MaterialTheme.typography.h5,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = editedDescription,
-                modifier = Modifier.padding(horizontal = 16.dp)
-            )
         }
     }
 }

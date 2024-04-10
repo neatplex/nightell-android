@@ -1,11 +1,11 @@
 package com.neatplex.nightell.ui.theme
 import androidx.compose.ui.graphics.Color
 
-val md_theme_light_primary = Color(0xFF825500)
+val md_theme_light_primary = Color(0xFF007E82)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFFFFDDB3)
 val md_theme_light_onPrimaryContainer = Color(0xFF291800)
-val md_theme_light_secondary = Color(0xFF6F5B40)
+val md_theme_light_secondary = Color(0xFF406F6F)
 val md_theme_light_onSecondary = Color(0xFFFFFFFF)
 val md_theme_light_secondaryContainer = Color(0xFFFBDEBC)
 val md_theme_light_onSecondaryContainer = Color(0xFF271904)
@@ -28,7 +28,7 @@ val md_theme_light_inverseOnSurface = Color(0xFFF9EFE7)
 val md_theme_light_inverseSurface = Color(0xFF34302A)
 val md_theme_light_inversePrimary = Color(0xFFFFB951)
 val md_theme_light_shadow = Color(0xFF000000)
-val md_theme_light_surfaceTint = Color(0xFF825500)
+val md_theme_light_surfaceTint = Color(0xFF006F82)
 val md_theme_light_outlineVariant = Color(0xFFD3C4B4)
 val md_theme_light_scrim = Color(0xFF000000)
 
@@ -64,4 +64,4 @@ val md_theme_dark_outlineVariant = Color(0xFF4F4539)
 val md_theme_dark_scrim = Color(0xFF000000)
 
 
-val seed = Color(0xFF825500)
+val seed = Color(0xFF008282)

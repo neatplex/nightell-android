@@ -1,120 +1,133 @@
 package com.neatplex.nightell.component
 
 import android.media.MediaPlayer
-import android.net.Uri
-import android.os.Handler
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.Slider
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import com.neatplex.nightell.R
+import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
+import com.neatplex.nightell.ui.theme.MySliderColors
+import kotlinx.coroutines.delay
 
 
 @Composable
-fun AudioPlayer(navController: NavController
-                , audioPath: String) {
+fun AudioPlayer(audioPath: String) {
 
-
-    val context = LocalContext.current
-    var player by remember { mutableStateOf<MediaPlayer?>(null) }
+    var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
-    var currentPosition by remember { mutableStateOf(0) }
-    var musicDuration by remember { mutableStateOf(0) }
-    val handler = remember { Handler() }
-    val endAnchor = LocalConfiguration.current.screenHeightDp * LocalDensity.current.density
-    val anchors = mapOf(
-        0f to 0, endAnchor to 1
-    )
-
+    var playbackPosition by remember { mutableStateOf(0L) }
+    var totalDuration by remember { mutableStateOf(0L) }
 
     LaunchedEffect(audioPath) {
-        if (audioPath.isNotEmpty() && audioPath.length > 40) {
-            val mediaPlayer = MediaPlayer()
-            mediaPlayer.setDataSource(context, Uri.parse(audioPath))
-            mediaPlayer.prepare()
-            musicDuration = mediaPlayer.duration
-            player = mediaPlayer
-        }
-    }
 
-    DisposableEffect(Unit) {
-        val runnable = object : Runnable {
-            override fun run() {
-                player?.let { mediaPlayer ->
-                    currentPosition = mediaPlayer.currentPosition
-                    if (isPlaying) {
-                        handler.postDelayed(this, 1000)
-                    }
-                }
+        mediaPlayer = MediaPlayer().apply {
+            setDataSource(audioPath)
+            prepare()
+            totalDuration = duration.toLong()
+
+            setOnCompletionListener {
+                isPlaying = false
+                playbackPosition = 0
             }
         }
-        player?.setOnCompletionListener {
-            // Handle audio completion
-        }
-        if (isPlaying) {
-            handler.post(runnable)
-        }
-        onDispose {
-            handler.removeCallbacks(runnable)
-            player?.release()
+
+        totalDuration = mediaPlayer?.duration?.toLong() ?: 0
+
+        while (true) {
+            if (isPlaying) {
+                mediaPlayer?.let { player ->
+                    playbackPosition = player.currentPosition.toLong()
+                }
+            }
+            delay(1000)
         }
     }
 
-    if (audioPath.isNotEmpty() && audioPath.length > 40) {
-        Column(
-            modifier = Modifier.heightIn(200.dp,300.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            // Display current position and duration
-            Text(
-                text = "${currentPosition / 1000} / ${musicDuration / 1000} seconds",
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(8.dp)
-            )
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = "${formatTime(playbackPosition)} / ${formatTime(totalDuration)}",
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
 
             // SeekBar
             Slider(
-                value = currentPosition.toFloat(),
+                value = playbackPosition.toFloat(),
                 onValueChange = {
-                    player?.seekTo(it.toInt())
-                    currentPosition = it.toInt()
+                    mediaPlayer?.seekTo(it.toInt())
+                    playbackPosition = it.toLong()
                 },
-                valueRange = 0f..musicDuration.toFloat(),
+                valueRange = 0f..totalDuration.toFloat(),
                 onValueChangeFinished = {
                     // Handle seek bar change finished
-                }
+                },
+                colors = MySliderColors()
             )
 
-            // Play/Pause button
-            Button(
-                onClick = {
-                    player?.let { mediaPlayer ->
-                        isPlaying = !isPlaying
-                        if (isPlaying) {
-                            mediaPlayer.start()
-                        } else {
-                            mediaPlayer.pause()
-                        }
-                    }
-                }
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Surface(
+                elevation = 4.dp,
+                shape = CircleShape
             ) {
-                Text(text = if (isPlaying) "Pause" else "Play")
+                IconButton(
+                    onClick = {
+                        mediaPlayer?.let { player ->
+                            isPlaying = !isPlaying
+                            if (isPlaying) {
+                                player.start()
+                            } else {
+                                player.pause()
+                            }
+                        }
+                    },
+                    modifier = Modifier.size(80.dp)
+                ) {
+                    val horizontalGradientBrush = MyHorizontalGradiant()
+
+                    Icon(
+                        modifier = Modifier
+                            .graphicsLayer(alpha = 0.99f)
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent()
+                                    drawRect(
+                                        horizontalGradientBrush,
+                                        blendMode = BlendMode.SrcAtop
+                                    )
+                                }
+                            },
+                        painter = painterResource(
+                            id = if (isPlaying) R.drawable.baseline_pause_24
+                            else R.drawable.baseline_play_arrow_24
+                        ),
+                        contentDescription = "Play Sound"
+                    )
+                }
             }
         }
-    } else {
-        Text("No audio file available")
     }
+}
+
+// Utility function to format time in HH:MM:SS format
+private fun formatTime(millis: Long): String {
+    val seconds = millis / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    return String.format("%02d:%02d:%02d", hours, minutes % 60, seconds % 60)
 }

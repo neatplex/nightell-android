@@ -34,15 +34,15 @@ class MainActivity : ComponentActivity() {
     fun MyApp() {
 
         AppTheme {
-            val navController = rememberNavController()
+            val rootNavController = rememberNavController()
             val sharedViewModel: SharedViewModel = hiltViewModel()
 
             Scaffold(
                 bottomBar = {
-                    BottomNavigationBar(navController = navController)
+                    BottomNavigationBar(navController = rootNavController)
                 }
             ) {
-                Navigation(navController = navController, tokenManager = tokenManager, sharedViewModel = sharedViewModel)
+                Navigation(navController = rootNavController, tokenManager = tokenManager, sharedViewModel = sharedViewModel)
             }
         }
     }

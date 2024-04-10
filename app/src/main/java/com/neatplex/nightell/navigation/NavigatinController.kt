@@ -5,9 +5,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.neatplex.nightell.ui.screens.AddPostScreen
 import com.neatplex.nightell.ui.screens.EditProfileScreen
+import com.neatplex.nightell.ui.screens.FeedScreen
 import com.neatplex.nightell.ui.screens.FollowerScreen
 import com.neatplex.nightell.ui.screens.FollowingScreen
 import com.neatplex.nightell.ui.screens.HomeScreen
@@ -44,13 +46,14 @@ fun Navigation(
         composable("signUp") {
             SignUpScreen(navController = navController)
         }
-        composable(NavigationItems.Home.route) {
+        composable(BottomNavigationItems.Home.route) {
             HomeScreen(navController = navController, sharedViewModel = sharedViewModel)
+            HomeNavHost()
         }
-        composable(NavigationItems.AddStory.route) {
+        composable(BottomNavigationItems.AddStory.route) {
             AddPostScreen()
         }
-        composable(NavigationItems.Profile.route) {
+        composable(BottomNavigationItems.Profile.route) {
             ProfileScreen(navController = navController, sharedViewModel = sharedViewModel)
         }
         composable("postScreen") {
@@ -92,3 +95,16 @@ fun Navigation(
     }
 }
 
+
+
+@Composable
+fun HomeNavHost(){
+    val homeNavController = rememberNavController()
+    NavHost(navController = homeNavController, startDestination = "feed") {
+
+        composable("feed") {
+            FeedScreen(navController = homeNavController)
+        }
+
+    }
+}

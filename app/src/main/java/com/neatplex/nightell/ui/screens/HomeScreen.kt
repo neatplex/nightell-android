@@ -16,9 +16,12 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -29,6 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
 import com.neatplex.nightell.ui.theme.AppTheme
@@ -40,6 +44,8 @@ import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
 
 @Composable
 fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
+    
+
 
     val posts by postViewModel.posts.observeAsState(emptyList())
     val isLoading by postViewModel.isLoading.observeAsState(false)
@@ -87,7 +93,9 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
                             .padding(16.dp)
                     ) {
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize().padding(bottom = bottomBarHeight),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(bottom = bottomBarHeight),
                             content = {
                                 itemsIndexed(posts) { index, post ->
                                     if (post != null) {
@@ -138,8 +146,11 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
 }
 
 @Composable
+fun FeedScreen(navController: NavController){
+
+}
+
+@Composable
 fun BottomNavigationHeight(): Dp {
-    // Calculate and return the height of bottom navigation bar
-    // You can implement your logic to get the height dynamically here
-    return 56.dp // Default height of bottom navigation bar
+    return 60.dp // Default height of bottom navigation bar
 }
