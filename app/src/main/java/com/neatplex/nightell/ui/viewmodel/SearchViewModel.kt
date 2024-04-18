@@ -19,25 +19,6 @@ class SearchViewModel @Inject constructor(private val searchRepository: SearchRe
     private var allSearchPosts = emptyList<Post>()
 
 
-//    fun search(q: String){
-//
-//        viewModelScope.launch {
-//
-//            val result = searchRepository.search(q, lastPostId)
-//
-//            if (result is Result.Success) {
-//                val newFeed = result.data?.posts ?: emptyList()
-//                if (newFeed.isNotEmpty()) {
-//                    lastPostId = newFeed.last().id
-//                    allSearchPosts = (allSearchPosts + newFeed).distinctBy { it.id }
-//                }
-//            }
-//
-//            _searchResult.value = allSearchPosts
-//        }
-//    }
-//}
-
     private val _searchResult = MutableLiveData<List<Post>>()
     val searchResult: LiveData<List<Post>> get() = _searchResult
 
@@ -57,8 +38,6 @@ class SearchViewModel @Inject constructor(private val searchRepository: SearchRe
             if (result is Result.Success) {
                 val posts = result.data?.posts
                 _searchResult.value = posts!!
-            } else {
-                _searchResult.value = result as List<Post>
             }
 
             _isLoading.value = false

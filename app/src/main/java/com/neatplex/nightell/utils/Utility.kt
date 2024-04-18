@@ -35,6 +35,7 @@ suspend fun <T> handleApiResponse(response: Response<T>): Result<T?> {
         }else {
             errorMessage = "Something is wrong, please try later!"
         }
+
         Result.Error(errorMessage, response.code())
 
     }

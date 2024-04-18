@@ -23,6 +23,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.LinearProgressIndicator
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
@@ -264,19 +266,16 @@ fun AddPostScreen(
                 }
 
                 is Result.Error -> {
-                        Toast.makeText(
-                            LocalContext.current,
-                            result.message,
-                            Toast.LENGTH_LONG
-                        ).show()
+                    errorMessage = result.message
                 }
 
                 else -> {}
             }
 
             if (uploadPostIsLoading || uploadFileIsLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                LinearProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = MaterialTheme.colors.surface
                 )
             }
 
@@ -322,19 +321,16 @@ fun AddPostScreen(
                         description = ""
                         audioId = 0
                         imageId = null
-
+                        // Reset error message
+                        errorMessage = ""
                     }
 
                     is Result.Error -> {
-                        Toast.makeText(
-                            LocalContext.current,
-                            result.message,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        errorMessage = result.message
                     }
 
                     Result.Loading -> {
-                        CircularProgressIndicator(
+                        LinearProgressIndicator(
                             modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
                     }

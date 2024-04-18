@@ -4,24 +4,27 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -32,7 +35,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
 import com.neatplex.nightell.ui.theme.AppTheme
@@ -43,8 +45,7 @@ import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
 
 
 @Composable
-fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
-    
+fun FeedScreen(navController: NavController, postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
 
 
     val posts by postViewModel.posts.observeAsState(emptyList())
@@ -103,9 +104,14 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
                                             sharedViewModel.setPost(selectedPost)
                                             navController.navigate("postScreen")
                                         }
-                                    }
-                                    if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
-                                        postViewModel.loadFeed()
+                                        if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
+                                            postViewModel.loadFeed()
+                                        }
+                                    }else {
+                                        Text(
+                                            text = "Something is wrong",
+                                            modifier = Modifier.fillMaxWidth().padding(top = 100.dp)
+                                        )
                                     }
                                 }
 
@@ -138,6 +144,7 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
                                     .align(Alignment.CenterHorizontally)
                             )
                         }
+
                     }
                 }
             }
@@ -145,10 +152,6 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
     }
 }
 
-@Composable
-fun FeedScreen(navController: NavController){
-
-}
 
 @Composable
 fun BottomNavigationHeight(): Dp {
