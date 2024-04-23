@@ -21,35 +21,47 @@ class UserAuthViewModel @Inject constructor(private val userAuthRepository: User
 
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
-            _authResult.value = Result.Loading
+            setLoadingState()
             val result = userAuthRepository.register(username, email, password)
             handleLoginResult(result)
         }
     }
 
+//    fun loginUser(emailOrUsername: String, password: String) {
+//        viewModelScope.launch {
+//            _authResult.value = Result.Loading
+//
+//            // Check whether the input is a valid email or a username
+//            val isEmail = Validation.isValidEmail(emailOrUsername)
+//            val isUsername = Validation.isValidUsername(emailOrUsername)
+//
+//            if (isEmail) {
+//                // If it's a valid email, call the loginWithEmail API
+//                val result = userAuthRepository.loginWithEmail(emailOrUsername, password)
+//                handleLoginResult(result)
+//
+//            } else if (isUsername) {
+//                // If it's a valid username, call the loginWithUsername API
+//                val result = userAuthRepository.loginWithUsername(emailOrUsername, password)
+//                handleLoginResult(result)
+//
+//            } else {
+//                // If it's neither a valid email nor a valid username, handle accordingly
+//                _authResult.value = Result.Error("Invalid email or username", 400)
+//            }
+//        }
+//    }
+
     fun loginUser(emailOrUsername: String, password: String) {
         viewModelScope.launch {
-            _authResult.value = Result.Loading
-
-            // Check whether the input is a valid email or a username
-            val isEmail = Validation.isValidEmail(emailOrUsername)
-            val isUsername = Validation.isValidUsername(emailOrUsername)
-
-            if (isEmail) {
-                // If it's a valid email, call the loginWithEmail API
-                val result = userAuthRepository.loginWithEmail(emailOrUsername, password)
-                handleLoginResult(result)
-
-            } else if (isUsername) {
-                // If it's a valid username, call the loginWithUsername API
-                val result = userAuthRepository.loginWithUsername(emailOrUsername, password)
-                handleLoginResult(result)
-
-            } else {
-                // If it's neither a valid email nor a valid username, handle accordingly
-                _authResult.value = Result.Error("Invalid email or username", 400)
-            }
+            setLoadingState()
+            val result = userAuthRepository.login(emailOrUsername, password)
+            handleLoginResult(result)
         }
+    }
+
+    private fun setLoadingState() {
+        _authResult.value = Result.Loading
     }
 
     private fun handleLoginResult(result: Result<AuthResponse?>) {

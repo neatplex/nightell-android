@@ -16,6 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
+import com.neatplex.nightell.navigation.Screens
 import kotlinx.coroutines.delay
 
 @SuppressLint("ResourceAsColor")
@@ -27,7 +28,7 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
 
         // Remove the splash screen from the back stack
         navController.popBackStack(route = "splash", inclusive = true)
-        navController.navigate(if (hasToken) "home" else "signIn")
+        navController.navigate(if (hasToken) Screens.Home.route else "signIn")
     }
 
     // Splash screen UI

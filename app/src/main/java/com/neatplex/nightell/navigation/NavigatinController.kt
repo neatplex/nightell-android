@@ -12,7 +12,7 @@ import com.neatplex.nightell.ui.screens.AddPostScreen
 import com.neatplex.nightell.ui.screens.EditProfileScreen
 import com.neatplex.nightell.ui.screens.FollowerScreen
 import com.neatplex.nightell.ui.screens.FollowingScreen
-import com.neatplex.nightell.ui.screens.FeedScreen
+import com.neatplex.nightell.ui.screens.HomeScreen
 import com.neatplex.nightell.ui.screens.SignInScreen
 import com.neatplex.nightell.ui.screens.ProfileScreen
 import com.neatplex.nightell.ui.screens.SignUpScreen
@@ -25,7 +25,7 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 
 @Composable
-fun Navigation(
+fun BottomNavHost(
     navController: NavHostController,
     tokenManager: TokenManager
 ) {
@@ -40,19 +40,24 @@ fun Navigation(
         composable("splash") {
             SplashScreen(navController = navController, hasToken)
         }
+
         composable("signIn") {
             SignInScreen(navController = navController)
         }
+
         composable("signUp") {
             SignUpScreen(navController = navController)
         }
-        composable("home") {
+
+        composable(Screens.Home.route) {
             HomeNavHost(sharedViewModel)
         }
-        composable("addPost") {
+
+        composable(Screens.AddPost.route) {
             AddPostScreen()
         }
-        composable("profile") {
+
+        composable(Screens.Profile.route) {
             ProfileNavHost(sharedViewModel)
         }
     }
@@ -66,7 +71,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel){
     NavHost(navController = homeNavController, startDestination = "feed"){
 
         composable("feed") {
-            FeedScreen(navController = homeNavController, sharedViewModel = sharedViewModel)
+            HomeScreen(navController = homeNavController, sharedViewModel = sharedViewModel)
         }
 
         composable("postScreen") {

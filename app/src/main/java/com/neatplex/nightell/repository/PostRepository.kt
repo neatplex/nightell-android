@@ -21,6 +21,16 @@ class PostRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
+    suspend fun showUserPosts(userId: Int, lastId: Int?) : Result<PostCollection?> {
+        return try {
+            val response = apiService.showUserPosts(userId,lastId)
+            handleApiResponse(response)
+        }catch (e: Exception){
+            Result.Error("Error fetching posts", null)
+
+        }
+    }
+
     suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse?> {
 
         val request = PostUploadRequest(title,description, audioId, imageId)
@@ -30,16 +40,6 @@ class PostRepository @Inject constructor(private val apiService: ApiService) {
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error("Error uploading post", null)
-        }
-    }
-
-    suspend fun showUserPosts(userId: Int, lastId: Int?) : Result<PostCollection?> {
-        return try {
-            val response = apiService.showUserPosts(userId,lastId)
-            handleApiResponse(response)
-        }catch (e: Exception){
-            Result.Error("Error fetching posts", null)
-
         }
     }
 

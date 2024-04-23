@@ -49,6 +49,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import com.neatplex.nightell.data.dto.AuthResponse
+import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.MyVerticalGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.delay
@@ -221,7 +222,7 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
         is Result.Success -> {
             result.data?.let {
                 // Successful login, navigate to HomeScreen
-                navController.navigate("home")
+                navController.navigate(Screens.Home.route)
             }
         }
 

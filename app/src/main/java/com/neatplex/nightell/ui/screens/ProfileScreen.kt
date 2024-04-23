@@ -46,7 +46,6 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
-import com.neatplex.nightell.component.ShowPosts
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
 import com.neatplex.nightell.utils.Result

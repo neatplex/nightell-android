@@ -50,7 +50,6 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
                 _posts.value = emptyList() // Clear previous posts
             }
 
-
         }
     }
 
@@ -63,7 +62,7 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
                 val newFeed = result.data?.posts ?: emptyList()
                 if (newFeed.isNotEmpty()) {
                     lastUserPostId = newFeed.last().id
-                    allUserPosts = (_userPosts.value ?: emptyList()) + newFeed
+                    allUserPosts = newFeed
                 }
                 _userPosts.value = allUserPosts
 

@@ -28,11 +28,11 @@ interface ApiService {
 
     // SignIn
     @POST("auth/sign-in/email")
-    suspend fun loginWithEmail(@Body request: LoginEmailRequest): Response<AuthResponse>
+    suspend fun loginWithEmail(@Body request: Any): Response<AuthResponse>
 
     // SignIn
     @POST("auth/sign-in/username")
-    suspend fun loginWithUsername(@Body request: LoginUsernameRequest): Response<AuthResponse>
+    suspend fun loginWithUsername(@Body request: Any): Response<AuthResponse>
 
     // Home Feed
     @GET("feed")

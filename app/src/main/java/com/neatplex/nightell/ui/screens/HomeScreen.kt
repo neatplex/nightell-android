@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -22,9 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -45,7 +41,7 @@ import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
 
 
 @Composable
-fun FeedScreen(navController: NavController, postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
+fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
 
 
     val posts by postViewModel.posts.observeAsState(emptyList())
@@ -107,11 +103,6 @@ fun FeedScreen(navController: NavController, postViewModel: PostViewModel = hilt
                                         if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
                                             postViewModel.loadFeed()
                                         }
-                                    }else {
-                                        Text(
-                                            text = "Something is wrong",
-                                            modifier = Modifier.fillMaxWidth().padding(top = 100.dp)
-                                        )
                                     }
                                 }
 
