@@ -1,5 +1,11 @@
 package com.neatplex.nightell.ui.screens
 
+import android.Manifest
+import android.net.Uri
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -16,7 +22,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Button
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
@@ -46,23 +51,26 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.core.os.bundleOf
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.component.AudioPlayer
+import com.neatplex.nightell.component.media.AudioPlayer
 import com.neatplex.nightell.component.CustomSimpleButton
+import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.LikeViewModel
 import com.neatplex.nightell.ui.viewmodel.PostViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.ProfileViewModel
+import com.neatplex.nightell.utils.fromJson
+import com.neatplex.nightell.utils.toJson
 
 
 @Composable
-fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
+fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel, data: Post?) {
 
     // Initialize ViewModels
     val profileViewModel: ProfileViewModel = hiltViewModel()
@@ -70,7 +78,7 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
     val likeViewModel: LikeViewModel = hiltViewModel()
 
     // Retrieve necessary data
-    val post = sharedViewModel.post.value ?: return
+    val post = data!!
     val userId = sharedViewModel.user.value!!.id
     val menuExpanded = remember { mutableStateOf(false) }
 
@@ -86,7 +94,7 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
         profileViewModel.getUserInfo(post.user_id)
     }
 
-    // Observe likes and user info results
+//     Observe likes and user info results
     val likesCountResult by likeViewModel.showLikesResult.observeAsState()
     val unlikeResult by likeViewModel.unlikeResult.observeAsState()
     val likeResult by likeViewModel.likeResult.observeAsState()
@@ -94,8 +102,7 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
     val postUpdateResult by postViewModel.storePostResult.observeAsState()
     val bottomBarHeight = BottomNavigationHeight()
 
-
-    // Update UI based on likes result
+//     Update UI based on likes result
     likesCountResult?.let { result ->
         when (result) {
             is Result.Success -> {
@@ -332,4 +339,5 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel) {
             }
         }
     }
+
 }

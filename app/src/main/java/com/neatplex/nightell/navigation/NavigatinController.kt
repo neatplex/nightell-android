@@ -1,5 +1,6 @@
 package com.neatplex.nightell.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -8,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.screens.AddPostScreen
 import com.neatplex.nightell.ui.screens.EditProfileScreen
 import com.neatplex.nightell.ui.screens.FollowerScreen
@@ -22,6 +24,7 @@ import com.neatplex.nightell.ui.screens.SearchScreen
 import com.neatplex.nightell.ui.screens.UserScreen
 import com.neatplex.nightell.utils.TokenManager
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.utils.fromJson
 
 
 @Composable
@@ -60,6 +63,7 @@ fun BottomNavHost(
         composable(Screens.Profile.route) {
             ProfileNavHost(sharedViewModel)
         }
+
     }
 }
 
@@ -74,8 +78,15 @@ fun HomeNavHost(sharedViewModel: SharedViewModel){
             HomeScreen(navController = homeNavController, sharedViewModel = sharedViewModel)
         }
 
-        composable("postScreen") {
-            PostScreen(navController = homeNavController, sharedViewModel)
+        composable(
+            route = "postScreen/{post}",
+            arguments = listOf(navArgument("post") {
+                type = NavType.StringType
+            })
+        ) { backStackEntry ->
+            val postString = backStackEntry.arguments?.getString("post") ?: ""
+            val post = postString.fromJson(Post::class.java)
+            PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, data = post)
         }
 
         composable("search") {
@@ -106,8 +117,15 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel){
             ProfileScreen(navController = profileNavController, sharedViewModel = sharedViewModel)
         }
 
-        composable("postScreen") {
-            PostScreen(navController = profileNavController, sharedViewModel)
+        composable(
+            route = "postScreen/{post}",
+            arguments = listOf(navArgument("post") {
+                type = NavType.StringType
+            })
+        ) { backStackEntry ->
+            val postString = backStackEntry.arguments?.getString("post") ?: ""
+            val post = postString.fromJson(Post::class.java)
+            PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, data = post)
         }
 
         composable(

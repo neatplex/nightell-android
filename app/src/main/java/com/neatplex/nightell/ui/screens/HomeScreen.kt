@@ -1,5 +1,6 @@
 package com.neatplex.nightell.ui.screens
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,11 +34,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
+import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.PostViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
+import com.neatplex.nightell.utils.toJson
 
 
 @Composable
@@ -97,8 +100,8 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
                                 itemsIndexed(posts) { index, post ->
                                     if (post != null) {
                                         PostCard(post = post) { selectedPost ->
-                                            sharedViewModel.setPost(selectedPost)
-                                            navController.navigate("postScreen")
+                                            val postJson = selectedPost.toJson()
+                                            navController.navigate("postScreen/${Uri.encode(postJson)}")
                                         }
                                         if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
                                             postViewModel.loadFeed()

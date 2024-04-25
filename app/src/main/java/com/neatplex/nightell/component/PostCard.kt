@@ -1,5 +1,6 @@
 package com.neatplex.nightell.component
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -33,13 +34,15 @@ import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.utils.toJson
 
 @Composable
 fun ShowPosts(posts: List<Post>?, navController: NavController, viewModel: SharedViewModel) {
     posts?.forEach { post ->
         PostCard(post = post) { selectedPost ->
             viewModel.setPost(selectedPost)
-            navController.navigate("postScreen")
+            //navController.navigate("postScreen")
+            navController.navigate("postScreen/" + selectedPost.toJson())
         }
     }
 }
