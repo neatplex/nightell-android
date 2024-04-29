@@ -1,11 +1,6 @@
 package com.neatplex.nightell.ui.screens
 
-import android.Manifest
-import android.net.Uri
-import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -37,6 +32,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -52,6 +48,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
@@ -62,6 +59,7 @@ import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.LikeViewModel
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.PostViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.ProfileViewModel
@@ -70,7 +68,12 @@ import com.neatplex.nightell.utils.toJson
 
 
 @Composable
-fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel, data: Post?) {
+fun PostScreen(navController: NavController,
+               sharedViewModel: SharedViewModel,
+               data: Post?,
+               mediaViewModel: MediaViewModel) {
+
+    val state = mediaViewModel.uiState.collectAsStateWithLifecycle()
 
     // Initialize ViewModels
     val profileViewModel: ProfileViewModel = hiltViewModel()
@@ -192,7 +195,9 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel, d
         val scrollState = rememberScrollState()
 
         Column( modifier = Modifier
-            .verticalScroll(scrollState).fillMaxSize().padding(bottom = bottomBarHeight)) {
+            .verticalScroll(scrollState)
+            .fillMaxSize()
+            .padding(bottom = bottomBarHeight)) {
             val imageResource = rememberImagePainter(
                 data = post.image?.path?.let { Constant.Files_URL + it }
                     ?: R.drawable.ic_launcher_background
@@ -267,7 +272,7 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel, d
             Row(modifier = Modifier
                 .fillMaxWidth()
                 .padding(all = 8.dp)) {
-                AudioPlayer(audioPath)
+                AudioPlayer(audioPath, mediaViewModel)
             }
 
             if (isEditing) {
@@ -311,7 +316,9 @@ fun PostScreen(navController: NavController, sharedViewModel: SharedViewModel, d
                         keyboardType = KeyboardType.Text
                     )
                 )
-                Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally).padding(16.dp)) {
+                Row(modifier = Modifier
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .padding(16.dp)) {
                     CustomSimpleButton(
                         onClick = {
                             postViewModel.editPost(post.id, editedTitle, editedDescription)

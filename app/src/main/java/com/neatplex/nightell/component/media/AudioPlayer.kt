@@ -23,11 +23,13 @@ import androidx.compose.ui.unit.dp
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
 import com.neatplex.nightell.ui.theme.MySliderColors
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.UIEvent
 import kotlinx.coroutines.delay
 
 
 @Composable
-fun AudioPlayer(audioPath: String) {
+fun AudioPlayer(audioPath: String, mediaViewModel: MediaViewModel) {
 
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }

@@ -1,6 +1,6 @@
 package com.neatplex.nightell.navigation
 
-import android.net.Uri
+
 import androidx.compose.runtime.Composable
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
@@ -22,6 +22,7 @@ import com.neatplex.nightell.ui.screens.SplashScreen
 import com.neatplex.nightell.ui.screens.PostScreen
 import com.neatplex.nightell.ui.screens.SearchScreen
 import com.neatplex.nightell.ui.screens.UserScreen
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.fromJson
@@ -30,12 +31,14 @@ import com.neatplex.nightell.utils.fromJson
 @Composable
 fun BottomNavHost(
     navController: NavHostController,
-    tokenManager: TokenManager
+    tokenManager: TokenManager,
+    mediaViewModel : MediaViewModel
 ) {
 
 
     val hasToken = tokenManager.getToken() != null
     val sharedViewModel : SharedViewModel = hiltViewModel()
+
 
 
     NavHost(navController = navController, startDestination = "splash") {
@@ -53,7 +56,7 @@ fun BottomNavHost(
         }
 
         composable(Screens.Home.route) {
-            HomeNavHost(sharedViewModel)
+            HomeNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel)
         }
 
         composable(Screens.AddPost.route) {
@@ -61,14 +64,14 @@ fun BottomNavHost(
         }
 
         composable(Screens.Profile.route) {
-            ProfileNavHost(sharedViewModel)
+            ProfileNavHost(sharedViewModel, mediaViewModel = mediaViewModel)
         }
 
     }
 }
 
 @Composable
-fun HomeNavHost(sharedViewModel: SharedViewModel){
+fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel){
 
     val homeNavController = rememberNavController()
 
@@ -86,7 +89,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel){
         ) { backStackEntry ->
             val postString = backStackEntry.arguments?.getString("post") ?: ""
             val post = postString.fromJson(Post::class.java)
-            PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, data = post)
+            PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel)
         }
 
         composable("search") {
@@ -107,7 +110,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel){
 }
 
 @Composable
-fun ProfileNavHost(sharedViewModel: SharedViewModel){
+fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel){
 
     val profileNavController = rememberNavController()
 
@@ -125,7 +128,7 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel){
         ) { backStackEntry ->
             val postString = backStackEntry.arguments?.getString("post") ?: ""
             val post = postString.fromJson(Post::class.java)
-            PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, data = post)
+            PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel)
         }
 
         composable(
@@ -162,4 +165,5 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel){
         }
     }
 }
+
 
