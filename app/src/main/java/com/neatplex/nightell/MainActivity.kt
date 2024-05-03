@@ -8,13 +8,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavHost
 import com.neatplex.nightell.navigation.BottomNavigationScreen
 import com.neatplex.nightell.navigation.Screens
-import com.neatplex.nightell.service.SimpleMediaService
+import com.neatplex.nightell.service.MediaService
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
@@ -24,15 +22,15 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val tokenManager by lazy { TokenManager(applicationContext) }
+
     private val mediaViewModel : MediaViewModel by viewModels()
-    var isServiceRunning = false
+    private var isServiceRunning = false
 
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-
             val listItems = listOf(
                 Screens.Home,
                 Screens.AddPost,
@@ -46,10 +44,10 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 Scaffold(
                     bottomBar = {
-                        BottomNavigationScreen(rootNavController,listItems)
+                        BottomNavigationScreen(rootNavController,listItems,mediaViewModel = mediaViewModel)
                     }
                 ) {
-                    BottomNavHost(navController = rootNavController, tokenManager = tokenManager, mediaViewModel = mediaViewModel)
+                    BottomNavHost(navController = rootNavController, tokenManager = tokenManager, mediaViewModel = mediaViewModel, startService = ::startService)
                 }
             }
         }
@@ -57,15 +55,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopService(Intent(this, SimpleMediaService::class.java))
+        stopService(Intent(this, MediaService::class.java))
         isServiceRunning = false
     }
 
     private fun startService(){
-        if(isServiceRunning){
-            val intent = Intent(this, SimpleMediaService::class.java)
+        if(!isServiceRunning){
+            val intent = Intent(this, MediaService::class.java)
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
                 startForegroundService(intent)
+            } else {
+                startService(intent)
             }
             isServiceRunning = true
         }

@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,7 +13,6 @@ import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
@@ -34,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
-import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.PostViewModel
@@ -100,6 +97,7 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
                                 itemsIndexed(posts) { index, post ->
                                     if (post != null) {
                                         PostCard(post = post) { selectedPost ->
+                                            sharedViewModel.setPost(selectedPost)
                                             val postJson = selectedPost.toJson()
                                             navController.navigate("postScreen/${Uri.encode(postJson)}")
                                         }
@@ -149,5 +147,5 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
 
 @Composable
 fun BottomNavigationHeight(): Dp {
-    return 60.dp // Default height of bottom navigation bar
+    return 60.dp
 }

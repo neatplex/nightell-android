@@ -24,12 +24,11 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
 import com.neatplex.nightell.ui.theme.MySliderColors
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
-import com.neatplex.nightell.ui.viewmodel.UIEvent
 import kotlinx.coroutines.delay
 
 
 @Composable
-fun AudioPlayer(audioPath: String, mediaViewModel: MediaViewModel) {
+fun AudioPlayer(audioPath: String,imagePath: String,title: String, postId: String, mediaViewModel: MediaViewModel) {
 
     var mediaPlayer: MediaPlayer? by remember { mutableStateOf(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -88,14 +87,7 @@ fun AudioPlayer(audioPath: String, mediaViewModel: MediaViewModel) {
             ) {
                 IconButton(
                     onClick = {
-                        mediaPlayer?.let { player ->
-                            isPlaying = !isPlaying
-                            if (isPlaying) {
-                                player.start()
-                            } else {
-                                player.pause()
-                            }
-                        }
+                        mediaViewModel.loadData(audioPath,imagePath,title, postId)
                     },
                     modifier = Modifier.size(80.dp)
                 ) {
@@ -114,8 +106,7 @@ fun AudioPlayer(audioPath: String, mediaViewModel: MediaViewModel) {
                                 }
                             },
                         painter = painterResource(
-                            id = if (isPlaying) R.drawable.baseline_pause_24
-                            else R.drawable.baseline_play_arrow_24
+                            id = R.drawable.baseline_play_arrow_24
                         ),
                         contentDescription = "Play Sound"
                     )

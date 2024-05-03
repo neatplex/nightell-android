@@ -26,13 +26,14 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -42,8 +43,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.HorizontalAlignmentLine
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -54,8 +60,10 @@ import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.media.AudioPlayer
 import com.neatplex.nightell.component.CustomSimpleButton
+import com.neatplex.nightell.component.media.BottomPlayerUI
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.navigation.Screens
+import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.LikeViewModel
@@ -63,17 +71,21 @@ import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.PostViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.ProfileViewModel
-import com.neatplex.nightell.utils.fromJson
-import com.neatplex.nightell.utils.toJson
+import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 
 @Composable
-fun PostScreen(navController: NavController,
-               sharedViewModel: SharedViewModel,
-               data: Post?,
-               mediaViewModel: MediaViewModel) {
+fun PostScreen(
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
+    data: Post?,
+    mediaViewModel: MediaViewModel,
+    startService: () -> Unit
+) {
 
-    val state = mediaViewModel.uiState.collectAsStateWithLifecycle()
+    val isAudioPlaying = mediaViewModel.isPlaying
+
+    var changeState = 0
 
     // Initialize ViewModels
     val profileViewModel: ProfileViewModel = hiltViewModel()
@@ -97,7 +109,7 @@ fun PostScreen(navController: NavController,
         profileViewModel.getUserInfo(post.user_id)
     }
 
-//     Observe likes and user info results
+    //Observe likes and user info results
     val likesCountResult by likeViewModel.showLikesResult.observeAsState()
     val unlikeResult by likeViewModel.unlikeResult.observeAsState()
     val likeResult by likeViewModel.likeResult.observeAsState()
@@ -105,7 +117,7 @@ fun PostScreen(navController: NavController,
     val postUpdateResult by postViewModel.storePostResult.observeAsState()
     val bottomBarHeight = BottomNavigationHeight()
 
-//     Update UI based on likes result
+    //Update UI based on likes result
     likesCountResult?.let { result ->
         when (result) {
             is Result.Success -> {
@@ -115,9 +127,11 @@ fun PostScreen(navController: NavController,
                 icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
                 likeId = if (isLiked) likes.find { it.user_id == userId }?.id else null
             }
+
             is Result.Error -> {
                 // Handle error
             }
+
             else -> {
             }
         }
@@ -140,11 +154,19 @@ fun PostScreen(navController: NavController,
     var isEditing by remember { mutableStateOf(false) }
 
     val audioPath = Constant.Files_URL + post.audio.path
+    val imagePath = Constant.Files_URL + post.image?.path
+    val postId = post.id
 
     Column(modifier = Modifier.fillMaxSize()) {
 
         Row(modifier = Modifier.fillMaxWidth()) {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = {
+                if (changeState == 0) {
+                    navController.popBackStack()
+                } else {
+                    navController.navigate(Screens.Home.route)
+                }
+            }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back"
@@ -182,7 +204,10 @@ fun PostScreen(navController: NavController,
                         DropdownMenuItem(onClick = {
                             postViewModel.deletePost(post.id)
                             menuExpanded.value = false
-                            navController.previousBackStackEntry?.savedStateHandle?.set("postDeleted", true)
+                            navController.previousBackStackEntry?.savedStateHandle?.set(
+                                "postDeleted",
+                                true
+                            )
                             navController.popBackStack()
                         }) {
                             Text(text = stringResource(id = R.string.delet))
@@ -194,15 +219,16 @@ fun PostScreen(navController: NavController,
 
         val scrollState = rememberScrollState()
 
-        Column( modifier = Modifier
-            .verticalScroll(scrollState)
-            .fillMaxSize()
-            .padding(bottom = bottomBarHeight)) {
+        Column(
+            modifier = Modifier
+                .verticalScroll(scrollState)
+                .fillMaxSize()
+                .padding(bottom = bottomBarHeight)
+        ) {
             val imageResource = rememberImagePainter(
-                data = post.image?.path?.let { Constant.Files_URL + it }
+                data = post.image?.path?.let { imagePath }
                     ?: R.drawable.ic_launcher_background
             )
-
             Image(
                 painter = imageResource,
                 contentDescription = "Story Image",
@@ -211,18 +237,20 @@ fun PostScreen(navController: NavController,
                     .height(300.dp),
                 contentScale = ContentScale.Crop
             )
-
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 5.dp),
-                verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
 
                 userInfoResult?.let { userResult ->
                     when (userResult) {
                         is Result.Success -> {
                             Spacer(modifier = Modifier.width(16.dp))
                             userResult.data?.user?.let {
-                                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image,)
+                                val imageResource =
+                                    rememberImagePainter(data = R.drawable.default_profile_image)
 
                                 Image(
                                     painter = imageResource,
@@ -247,13 +275,12 @@ fun PostScreen(navController: NavController,
                                 )
                             }
                         }
+
                         else -> {
                         }
                     }
                 }
-
                 Spacer(Modifier.weight(1f))
-
                 Text(text = likesCount.toString())
                 IconButton(onClick = {
                     if (isLiked) {
@@ -264,19 +291,56 @@ fun PostScreen(navController: NavController,
                         likeViewModel.like(post.id)
                     }
                 }) {
-                    Icon(icon, contentDescription = "Like",
-                        modifier = Modifier.size(35.dp))
+                    Icon(
+                        icon, contentDescription = "Like",
+                        modifier = Modifier.size(35.dp)
+                    )
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 8.dp)
+            ) {
+
+                if (!mediaViewModel.initial) {
+                    startService()
+                }
+                // Observe data changes and load media when available
+                var isSame = postId.toString() == mediaViewModel.currentPostId
+
+                if(isSame){
+                    BottomPlayerUI(
+                        durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
+                        playResourceProvider = {
+                            if (mediaViewModel.isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+                        },
+                        progressProvider = {
+                            Pair(
+                                mediaViewModel.progress,
+                                mediaViewModel.progressString
+                            )
+                        },
+                        onUiEvent = mediaViewModel::onUIEvent)
+                } else {
+                    BottomPlayerUI(
+                        modifier = Modifier.fillMaxWidth(),
+                        durationString = "00:00", // Default duration string
+                        playResourceProvider = {
+                            android.R.drawable.ic_media_play // Always show play icon
+                        },
+                        progressProvider = {
+                            Pair(0f, "00:00") // Default progress
+                        },
+                        onUiEvent = {
+                            // Replace audio with the one in mediaViewModel when play button is clicked
+                            mediaViewModel.loadData(audioPath, imagePath, editedTitle, postId.toString())
+                        }
+                    )
                 }
             }
 
-            Row(modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 8.dp)) {
-                AudioPlayer(audioPath, mediaViewModel)
-            }
-
             if (isEditing) {
-
                 TextField(
                     value = editedTitle,
                     onValueChange = {
@@ -316,15 +380,20 @@ fun PostScreen(navController: NavController,
                         keyboardType = KeyboardType.Text
                     )
                 )
-                Row(modifier = Modifier
-                    .align(alignment = Alignment.CenterHorizontally)
-                    .padding(16.dp)) {
+                Row(
+                    modifier = Modifier
+                        .align(alignment = Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ) {
                     CustomSimpleButton(
                         onClick = {
-                            postViewModel.editPost(post.id, editedTitle, editedDescription)
-                            postUpdateResult?.let {
-                                if (it is Result.Success) {
-                                    isEditing = false
+                            if (editedTitle != post.title || editedDescription != post.description) {
+                                changeState++
+                                postViewModel.editPost(post.id, editedTitle, editedDescription)
+                                postUpdateResult?.let {
+                                    if (it is Result.Success) {
+                                        isEditing = false
+                                    }
                                 }
                             }
                         },
@@ -346,5 +415,4 @@ fun PostScreen(navController: NavController,
             }
         }
     }
-
 }

@@ -1,20 +1,27 @@
 package com.neatplex.nightell.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -26,61 +33,116 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.ShowPosts
+import com.neatplex.nightell.component.media.SimpleMediaPlayerUI
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.SearchViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.UIState
+
 
 @Composable
-fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel, searchViewModel: SearchViewModel = hiltViewModel()) {
+fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, searchViewModel: SearchViewModel = hiltViewModel(), startService: () -> Unit) {
 
-    var query by remember { mutableStateOf("") }
-    val searchResult by searchViewModel.searchResult.observeAsState()
-    val isLoading by searchViewModel.isLoading.observeAsState(false)
+    val state = mediaViewModel.uiState.collectAsStateWithLifecycle()
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colors.onSecondary)
+    )
+    {
+        when(state.value){
+            UIState.Initial -> CircularProgressIndicator(
+                modifier = Modifier
+                    .size(30.dp)
+                    .align(Alignment.Center)
+            )
+
+            UIState.Ready -> {
+                LaunchedEffect(key1 = true) {
+                    //startService()
+                }
+
+                ReadyContent(vm = mediaViewModel, navController = navController)
+            }
+        }
+    }
+
+
+//    var query by remember { mutableStateOf("") }
+//    val searchResult by searchViewModel.searchResult.observeAsState()
+//    val isLoading by searchViewModel.isLoading.observeAsState(false)
+//
+//    Column(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(16.dp, 50.dp)
+//            .verticalScroll(rememberScrollState())
+//    ) {
+//        // Search Box
+//        Row {
+//            OutlinedTextField(
+//                value = query,
+//                onValueChange = { query = it
+//                    searchViewModel.search(query)},
+//                label = { Text("Search") },
+//                trailingIcon = {
+//                    IconButton(onClick = { searchViewModel.search(query) }) {
+//                    Icon(
+//                        painter = painterResource(R.drawable.baseline_search_24),
+//                        contentDescription = null
+//                    )
+//                    }
+//                },
+//                modifier = Modifier.fillMaxWidth(),
+//                keyboardOptions = KeyboardOptions(
+//                    imeAction = ImeAction.Search
+//                ),
+//                keyboardActions = KeyboardActions(
+//                    onSearch = {
+//                        // Trigger search when user hits enter
+//                        searchViewModel.search(query)
+//                    }
+//                )
+//            )
+//        }
+//
+//        // ShowPosts
+//        ShowPosts(searchResult, navController, sharedViewModel)
+//
+//        // Show loading indicator if loading
+//        if (isLoading) {
+//            CircularProgressIndicator(
+//                modifier = Modifier.align(Alignment.CenterHorizontally)
+//            )
+//        }
+//    }
+}
+
+@Composable
+fun ReadyContent(vm: MediaViewModel, navController: NavController) {
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp, 50.dp)
-            .verticalScroll(rememberScrollState())
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Search Box
-        Row {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it
-                    searchViewModel.search(query)},
-                label = { Text("Search") },
-                trailingIcon = {
-                    IconButton(onClick = { searchViewModel.search(query) }) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_search_24),
-                        contentDescription = null
-                    )
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        // Trigger search when user hits enter
-                        searchViewModel.search(query)
-                    }
-                )
-            )
-        }
-
-        // ShowPosts
-        ShowPosts(searchResult, navController, sharedViewModel)
-
-        // Show loading indicator if loading
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            )
+        SimpleMediaPlayerUI(
+            durationString = vm.formatDuration(vm.duration),
+            playResourceProvider = {
+                if(vm.isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+            },
+            progressProvider = { Pair(vm.progress, vm.progressString) },
+            onUiEvent = vm::onUIEvent)
+        
+        FloatingActionButton(onClick = { navController.navigate("second") },
+            modifier = Modifier.padding(top= 16.dp)) {
+            
+            Text(text = "Click to go next")
         }
     }
 }

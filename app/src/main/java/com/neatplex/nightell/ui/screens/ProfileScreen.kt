@@ -15,9 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -48,7 +46,6 @@ import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.PostViewModel

@@ -99,7 +99,7 @@ dependencies {
     implementation ("androidx.preference:preference-ktx:1.2.1")
 
     // Coil loading images
-    implementation ("io.coil-kt:coil-compose:1.4.0")
+    implementation ("io.coil-kt:coil-compose:2.2.2")
 
 
     // Dependency Injection

@@ -30,7 +30,7 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".service.SimpleMediaService"/>
+        <service android:name=".service.MediaService"/>
 
     </application>
 
