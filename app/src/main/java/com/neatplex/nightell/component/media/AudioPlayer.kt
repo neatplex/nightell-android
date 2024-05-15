@@ -117,9 +117,10 @@ fun AudioPlayer(audioPath: String,imagePath: String,title: String, postId: Strin
 }
 
 // Utility function to format time in HH:MM:SS format
-private fun formatTime(millis: Long): String {
+@Composable
+fun formatTime(millis: Long): String {
     val seconds = millis / 1000
     val minutes = seconds / 60
     val hours = minutes / 60
-    return String.format("%02d:%02d:%02d", hours, minutes % 60, seconds % 60)
+    return String.format("%02d:%02d", minutes % 60, seconds % 60)
 }

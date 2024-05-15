@@ -21,7 +21,6 @@ import com.neatplex.nightell.ui.screens.SignUpScreen
 import com.neatplex.nightell.ui.screens.SplashScreen
 import com.neatplex.nightell.ui.screens.PostScreen
 import com.neatplex.nightell.ui.screens.SearchScreen
-import com.neatplex.nightell.ui.screens.SecondScreen
 import com.neatplex.nightell.ui.screens.UserScreen
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
@@ -97,13 +96,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
 
         composable("search") {
             SearchScreen(homeNavController,
-                sharedViewModel = sharedViewModel,
-                mediaViewModel = mediaViewModel,
-                startService = startService)
-        }
-
-        composable("second"){
-            SecondScreen(vm = mediaViewModel)
+                sharedViewModel = sharedViewModel)
         }
 
         composable(

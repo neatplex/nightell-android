@@ -1,6 +1,7 @@
 package com.neatplex.nightell.ui.screens
 
 
+import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -61,6 +62,7 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.media.AudioPlayer
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.media.BottomPlayerUI
+import com.neatplex.nightell.component.media.formatTime
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
@@ -82,8 +84,6 @@ fun PostScreen(
     mediaViewModel: MediaViewModel,
     startService: () -> Unit
 ) {
-
-    val isAudioPlaying = mediaViewModel.isPlaying
 
     var changeState = 0
 
@@ -266,9 +266,7 @@ fun PostScreen(
                                         .padding(start = 8.dp)
                                         .clickable {
                                             // Navigate to another page when "Followers" is clicked
-                                            if (sharedViewModel.user.value?.id == it.id) {
-                                                navController.navigate("profile")
-                                            } else {
+                                            if (sharedViewModel.user.value?.id != it.id) {
                                                 navController.navigate("userScreen/${it.id}")
                                             }
                                         }
@@ -323,9 +321,20 @@ fun PostScreen(
                         },
                         onUiEvent = mediaViewModel::onUIEvent)
                 } else {
+
+                    var totalDuration by remember { mutableStateOf(0L) }
+
+                    val mediaPlayer = MediaPlayer().apply {
+                        setDataSource(audioPath)
+                        prepare()
+                        totalDuration = duration.toLong()
+                    }
+
+                    totalDuration = mediaPlayer.duration.toLong()
+
                     BottomPlayerUI(
                         modifier = Modifier.fillMaxWidth(),
-                        durationString = "00:00", // Default duration string
+                        durationString = formatTime(millis = totalDuration), // Default duration string
                         playResourceProvider = {
                             android.R.drawable.ic_media_play // Always show play icon
                         },
@@ -335,6 +344,8 @@ fun PostScreen(
                         onUiEvent = {
                             // Replace audio with the one in mediaViewModel when play button is clicked
                             mediaViewModel.loadData(audioPath, imagePath, editedTitle, postId.toString())
+                            // Automatically play the audio when it's loaded
+                            mediaViewModel.onUIEvent(UIEvent.PlayPause)
                         }
                     )
                 }
@@ -416,3 +427,4 @@ fun PostScreen(
         }
     }
 }
+

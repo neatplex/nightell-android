@@ -20,6 +20,10 @@ class ProfileViewModel @Inject constructor(private val profileRepository: Profil
     private val _followResult = MutableLiveData<Result<Any?>>()
     val followResult: LiveData<Result<Any?>> get() = _followResult
 
+    private val _unfollowResult = MutableLiveData<Result<Any?>>()
+    val unfollowResult: LiveData<Result<Any?>> get() = _unfollowResult
+
+
     fun getUserInfo(userId: Int) {
         viewModelScope.launch {
             _showUserInfoResult.value = Result.Loading
@@ -38,7 +42,7 @@ class ProfileViewModel @Inject constructor(private val profileRepository: Profil
     fun unfollowUser(userId: Int, friendId: Int){
         viewModelScope.launch {
             val result = profileRepository.unfollow(userId, friendId)
-            _followResult.value = result
+            _unfollowResult.value = result
         }
     }
 }

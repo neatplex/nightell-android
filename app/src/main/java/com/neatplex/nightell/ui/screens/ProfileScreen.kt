@@ -62,6 +62,7 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
     val isLoading by postViewModel.isLoading.observeAsState(false)
     val bottomBarHeight = BottomNavigationHeight()
 
+
     // trigger the profile loading
     LaunchedEffect(Unit) {
         userProfileViewModel.fetchProfile()
@@ -75,6 +76,13 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
         navController.navigate("editProfile") {
             launchSingleTop = true
         }
+    }
+
+    val (followers, setFollowers) = remember { mutableStateOf(0) }
+
+    // Define a function to update follower count
+    val updateFollowerCount: (Int) -> Unit = { increment ->
+        setFollowers(followers + increment)
     }
 
     Scaffold(topBar = {
@@ -105,7 +113,7 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
                         val followers = result.data?.followers_count
                         val followings = result.data?.followings_count
                         if (user != null) {
-                            ShowProfile(navController ,user, followers!!, followings!!)
+                            ShowMyProfile(navController ,user, followers!!, followings!!)
                         }
                     }
 
@@ -156,9 +164,8 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
     })
 }
 
-
 @Composable
-fun ShowProfile(navController: NavController, user: User, followers: Int, followings: Int) {
+fun ShowMyProfile(navController: NavController, user: User, followers: Int, followings: Int) {
 
     Column {
         Row(
@@ -235,4 +242,5 @@ fun ShowProfile(navController: NavController, user: User, followers: Int, follow
         }
     }
 }
+
 
