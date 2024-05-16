@@ -19,7 +19,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.ui.shared.SharedViewModel
 
 @Composable
 fun ShowUsers(users: List<User?>?, navController: NavController, viewModel: SharedViewModel) {

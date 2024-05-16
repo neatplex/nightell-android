@@ -1,4 +1,4 @@
-package com.neatplex.nightell.repository
+package com.neatplex.nightell.data.repository
 
 
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

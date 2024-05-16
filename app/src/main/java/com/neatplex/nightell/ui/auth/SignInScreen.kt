@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.auth
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.viewmodel.UserAuthViewModel
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector

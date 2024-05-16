@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.viewmodel
+package com.neatplex.nightell.ui.user
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.ShowProfileResponse
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.data.dto.Users
-import com.neatplex.nightell.repository.UserProfileRepository
+import com.neatplex.nightell.data.repository.UserProfileRepository
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

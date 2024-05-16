@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.search
 
 import android.annotation.SuppressLint
 import android.net.Uri
@@ -10,10 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -37,8 +35,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
-import com.neatplex.nightell.ui.viewmodel.SearchViewModel
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.ui.screens.BottomNavigationHeight
+import com.neatplex.nightell.ui.shared.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 
 

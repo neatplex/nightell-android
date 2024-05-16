@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.user
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.Column
@@ -22,8 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.component.ShowUsers
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
+import com.neatplex.nightell.ui.shared.SharedViewModel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable

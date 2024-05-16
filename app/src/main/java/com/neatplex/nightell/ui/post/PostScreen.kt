@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.post
 
 
 import android.media.MediaPlayer
@@ -27,9 +27,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
@@ -44,36 +42,26 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.HorizontalAlignmentLine
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.component.media.AudioPlayer
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.media.BottomPlayerUI
 import com.neatplex.nightell.component.media.formatTime
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.navigation.Screens
-import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
+import com.neatplex.nightell.ui.screens.BottomNavigationHeight
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.LikeViewModel
-import com.neatplex.nightell.ui.viewmodel.MediaViewModel
-import com.neatplex.nightell.ui.viewmodel.PostViewModel
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.ui.viewmodel.ProfileViewModel
-import com.neatplex.nightell.ui.viewmodel.UIEvent
+import com.neatplex.nightell.ui.shared.MediaViewModel
+import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.profile.ProfileViewModel
+import com.neatplex.nightell.ui.shared.UIEvent
 
 
 @Composable
@@ -85,7 +73,7 @@ fun PostScreen(
     startService: () -> Unit
 ) {
 
-    var changeState = 0
+    var changeState by remember { mutableStateOf(0) }
 
     // Initialize ViewModels
     val profileViewModel: ProfileViewModel = hiltViewModel()
@@ -161,11 +149,7 @@ fun PostScreen(
 
         Row(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = {
-                if (changeState == 0) {
-                    navController.popBackStack()
-                } else {
-                    navController.navigate(Screens.Home.route)
-                }
+                navController.popBackStack()
             }) {
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
@@ -399,13 +383,8 @@ fun PostScreen(
                     CustomSimpleButton(
                         onClick = {
                             if (editedTitle != post.title || editedDescription != post.description) {
-                                changeState++
                                 postViewModel.editPost(post.id, editedTitle, editedDescription)
-                                postUpdateResult?.let {
-                                    if (it is Result.Success) {
-                                        isEditing = false
-                                    }
-                                }
+                                isEditing = false
                             }
                         },
                         text = "Save Changes"
@@ -424,6 +403,13 @@ fun PostScreen(
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
+        }
+    }
+
+    postUpdateResult?.let {
+        if (it is Result.Success) {
+            changeState ++
+            isEditing = false
         }
     }
 }

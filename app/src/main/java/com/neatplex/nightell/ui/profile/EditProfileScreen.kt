@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.profile
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.ui.user.UserProfileViewModel
+import com.neatplex.nightell.ui.shared.SharedViewModel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable

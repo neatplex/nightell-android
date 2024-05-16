@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.viewmodel
+package com.neatplex.nightell.ui.shared
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

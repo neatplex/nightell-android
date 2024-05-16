@@ -1,11 +1,11 @@
-package com.neatplex.nightell.ui.viewmodel
+package com.neatplex.nightell.ui.upload
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.FileUploadResponse
-import com.neatplex.nightell.repository.FileRepository
+import com.neatplex.nightell.data.repository.FileRepository
 import kotlinx.coroutines.launch
 import java.io.File
 import javax.inject.Inject

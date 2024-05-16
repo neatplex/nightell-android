@@ -1,10 +1,9 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.upload
 
 import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.LinearProgressIndicator
@@ -51,9 +49,8 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
 import com.neatplex.nightell.ui.theme.MyVerticalGradiant
-import com.neatplex.nightell.ui.viewmodel.FileViewModel
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.PostViewModel
+import com.neatplex.nightell.ui.post.PostViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

@@ -1,14 +1,13 @@
-package com.neatplex.nightell.ui.viewmodel
+package com.neatplex.nightell.ui.auth
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.AuthResponse
-import com.neatplex.nightell.repository.UserAuthRepository
+import com.neatplex.nightell.data.repository.UserAuthRepository
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.TokenManager
-import com.neatplex.nightell.utils.Validation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject

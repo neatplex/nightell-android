@@ -10,21 +10,21 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.ui.screens.AddPostScreen
-import com.neatplex.nightell.ui.screens.EditProfileScreen
-import com.neatplex.nightell.ui.screens.FollowerScreen
-import com.neatplex.nightell.ui.screens.FollowingScreen
+import com.neatplex.nightell.ui.upload.AddPostScreen
+import com.neatplex.nightell.ui.profile.EditProfileScreen
+import com.neatplex.nightell.ui.user.FollowerScreen
+import com.neatplex.nightell.ui.user.FollowingScreen
 import com.neatplex.nightell.ui.screens.HomeScreen
-import com.neatplex.nightell.ui.screens.SignInScreen
-import com.neatplex.nightell.ui.screens.ProfileScreen
-import com.neatplex.nightell.ui.screens.SignUpScreen
+import com.neatplex.nightell.ui.auth.SignInScreen
+import com.neatplex.nightell.ui.profile.ProfileScreen
+import com.neatplex.nightell.ui.auth.SignUpScreen
 import com.neatplex.nightell.ui.screens.SplashScreen
-import com.neatplex.nightell.ui.screens.PostScreen
-import com.neatplex.nightell.ui.screens.SearchScreen
-import com.neatplex.nightell.ui.screens.UserScreen
-import com.neatplex.nightell.ui.viewmodel.MediaViewModel
+import com.neatplex.nightell.ui.post.PostScreen
+import com.neatplex.nightell.ui.search.SearchScreen
+import com.neatplex.nightell.ui.user.UserScreen
+import com.neatplex.nightell.ui.shared.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.ui.shared.SharedViewModel
 import com.neatplex.nightell.utils.fromJson
 
 

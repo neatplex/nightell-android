@@ -1,4 +1,4 @@
-package com.neatplex.nightell.repository
+package com.neatplex.nightell.data.repository
 
 
 import com.neatplex.nightell.utils.Result

@@ -34,9 +34,9 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.PostCard
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.PostViewModel
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.ui.viewmodel.UserProfileViewModel
+import com.neatplex.nightell.ui.post.PostViewModel
+import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.user.UserProfileViewModel
 import com.neatplex.nightell.utils.toJson
 
 
@@ -143,6 +143,8 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
         )
     }
 }
+
+
 
 
 @Composable

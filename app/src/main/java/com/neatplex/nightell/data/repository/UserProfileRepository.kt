@@ -1,4 +1,4 @@
-package com.neatplex.nightell.repository
+package com.neatplex.nightell.data.repository
 
 import com.neatplex.nightell.data.dto.ShowProfileResponse
 import com.neatplex.nightell.data.dto.UserUpdated
