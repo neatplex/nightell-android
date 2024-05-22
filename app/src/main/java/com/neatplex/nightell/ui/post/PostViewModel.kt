@@ -34,6 +34,9 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
     private var allPosts = emptyList<Post>()
     private var allUserPosts = emptyList<Post>()
 
+    private val _isRefreshing = MutableLiveData<Boolean>()
+    val isRefreshing: LiveData<Boolean> get() = _isRefreshing
+
     fun loadFeed() {
         viewModelScope.launch {
             val result = postRepository.showFeed(lastPostId)
@@ -49,7 +52,17 @@ class PostViewModel @Inject constructor(private val postRepository: PostReposito
             }else if (result is Result.Error) {
                 _posts.value = emptyList() // Clear previous posts
             }
+        }
+    }
 
+    fun refreshFeed() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            lastPostId = null
+            allPosts = emptyList()
+            _posts.value = emptyList() // Clear previous posts in LiveData
+            loadFeed() // Reload the feed
+            _isRefreshing.value = false
         }
     }
 

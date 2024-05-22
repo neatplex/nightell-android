@@ -87,7 +87,7 @@ fun PostScreen(
 
     // States for like and unlike handling
     var isLiked by remember { mutableStateOf(false) }
-    var likesCount by remember { mutableIntStateOf(0) }
+    var likesCount by remember { mutableStateOf(0) }
     var likeId by remember { mutableStateOf<Int?>(null) }
     var icon by remember { mutableStateOf(Icons.Filled.FavoriteBorder) }
 
@@ -105,35 +105,48 @@ fun PostScreen(
     val postUpdateResult by postViewModel.storePostResult.observeAsState()
     val bottomBarHeight = BottomNavigationHeight()
 
-    //Update UI based on likes result
-    likesCountResult?.let { result ->
-        when (result) {
-            is Result.Success -> {
-                val likes = result.data?.likes.orEmpty()
-                likesCount = likes.size
-                isLiked = likes.any { it.user_id == userId }
-                icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
-                likeId = if (isLiked) likes.find { it.user_id == userId }?.id else null
-            }
 
-            is Result.Error -> {
-                // Handle error
-            }
-
-            else -> {
+    // Update UI based on likes result
+    LaunchedEffect(likesCountResult) {
+        likesCountResult?.let { result ->
+            when (result) {
+                is Result.Success -> {
+                    val likes = result.data?.likes.orEmpty()
+                    likesCount = likes.size
+                    isLiked = likes.any { it.user_id == userId }
+                    icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+                    likeId = if (isLiked) likes.find { it.user_id == userId }?.id else null
+                }
+                is Result.Error -> {
+                    // Handle error case
+                }
+                else -> {
+                }
             }
         }
     }
 
-    likeResult?.let {
-        if (it is Result.Success) {
-            likeViewModel.showLikes(post.id)
+    LaunchedEffect(likeResult) {
+        likeResult?.let {
+            if (it is Result.Success) {
+                isLiked = true
+                likeId = it.data!!.like.id
+                icon = Icons.Filled.Favorite
+            }else {
+                isLiked = false
+            }
         }
     }
 
-    unlikeResult?.let {
-        if (it is Result.Success) {
-            likeViewModel.showLikes(post.id)
+    LaunchedEffect(unlikeResult) {
+        unlikeResult?.let {
+            if (it is Result.Success) {
+                isLiked = false
+                icon = Icons.Filled.FavoriteBorder
+                likeId = null
+            } else {
+                isLiked = true
+            }
         }
     }
 
@@ -263,14 +276,22 @@ fun PostScreen(
                     }
                 }
                 Spacer(Modifier.weight(1f))
+                
                 Text(text = likesCount.toString())
+
                 IconButton(onClick = {
-                    if (isLiked) {
+                    if (!isLiked) {
+                        likeViewModel.like(post.id)
+                        isLiked = true
+                        likesCount++
+                        icon = Icons.Filled.Favorite
+                    } else {
                         likeId?.let { id ->
                             likeViewModel.deleteLike(id)
                         }
-                    } else if (!isLiked) {
-                        likeViewModel.like(post.id)
+                        isLiked = false
+                        likesCount--
+                        icon = Icons.Filled.FavoriteBorder
                     }
                 }) {
                     Icon(
@@ -412,5 +433,6 @@ fun PostScreen(
             isEditing = false
         }
     }
+
 }
 

@@ -44,7 +44,7 @@ class MainActivity : ComponentActivity() {
             AppTheme {
                 Scaffold(
                     bottomBar = {
-                        BottomNavigationScreen(rootNavController,listItems,mediaViewModel = mediaViewModel)
+                        BottomNavigationScreen(rootNavController,listItems)
                     }
                 ) {
                     BottomNavHost(navController = rootNavController, tokenManager = tokenManager, mediaViewModel = mediaViewModel, startService = ::startService)

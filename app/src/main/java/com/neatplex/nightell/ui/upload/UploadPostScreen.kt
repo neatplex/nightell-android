@@ -120,7 +120,6 @@ fun AddPostScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(brush = MyVerticalGradiant())
     ) {
 
         Column(
@@ -128,7 +127,7 @@ fun AddPostScreen(
                 .padding(30.dp)
                 .align(alignment = Alignment.Center)
                 .background(
-                    Color.White.copy(alpha = 0.8f),
+                    Color.Red.copy(alpha = 0.8f),
                     shape = RoundedCornerShape(8.dp),
                 )
         ) {

@@ -38,7 +38,9 @@ import com.neatplex.nightell.ui.post.PostViewModel
 import com.neatplex.nightell.ui.shared.SharedViewModel
 import com.neatplex.nightell.ui.user.UserProfileViewModel
 import com.neatplex.nightell.utils.toJson
-
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshState
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
 fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
@@ -46,6 +48,8 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
 
     val posts by postViewModel.posts.observeAsState(emptyList())
     val isLoading by postViewModel.isLoading.observeAsState(false)
+    val isRefreshing by postViewModel.isRefreshing.observeAsState(false) // Add a new observable state for refreshing
+
 
     val userProfileViewModel: UserProfileViewModel = hiltViewModel()
     val profileResult by userProfileViewModel.profileData.observeAsState()
@@ -89,36 +93,41 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
                             .fillMaxSize()
                             .padding(16.dp)
                     ) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(bottom = bottomBarHeight),
-                            content = {
-                                itemsIndexed(posts) { index, post ->
-                                    if (post != null) {
-                                        PostCard(post = post) { selectedPost ->
-                                            sharedViewModel.setPost(selectedPost)
-                                            val postJson = selectedPost.toJson()
-                                            navController.navigate("postScreen/${Uri.encode(postJson)}")
-                                        }
-                                        if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
-                                            postViewModel.loadFeed()
+                        SwipeRefresh(
+                            state = rememberSwipeRefreshState(isRefreshing),
+                            onRefresh = { postViewModel.refreshFeed() }
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(bottom = bottomBarHeight),
+                                content = {
+                                    itemsIndexed(posts) { index, post ->
+                                        if (post != null) {
+                                            PostCard(post = post) { selectedPost ->
+                                                sharedViewModel.setPost(selectedPost)
+                                                val postJson = selectedPost.toJson()
+                                                navController.navigate("postScreen/${Uri.encode(postJson)}")
+                                            }
+                                            if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
+                                                postViewModel.loadFeed()
+                                            }
                                         }
                                     }
-                                }
 
-                                if (isLoading && posts.isNotEmpty()) {
-                                    item {
-                                        // Load more indicator
-                                        CircularProgressIndicator(
-                                            modifier = Modifier
-                                                .padding(vertical = 16.dp)
-                                                .align(Alignment.CenterHorizontally)
-                                        )
+                                    if (isLoading && posts.isNotEmpty()) {
+                                        item {
+                                            // Load more indicator
+                                            CircularProgressIndicator(
+                                                modifier = Modifier
+                                                    .padding(vertical = 16.dp)
+                                                    .align(Alignment.CenterHorizontally)
+                                            )
+                                        }
                                     }
                                 }
-                            }
-                        )
+                            )
+                        }
 
                         when (val result = profileResult) {
                             is Result.Success -> {
@@ -136,7 +145,6 @@ fun HomeScreen(navController: NavController, postViewModel: PostViewModel = hilt
                                     .align(Alignment.CenterHorizontally)
                             )
                         }
-
                     }
                 }
             }

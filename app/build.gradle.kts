@@ -130,5 +130,8 @@ dependencies {
     // Glide
     implementation ("com.github.bumptech.glide:glide:4.16.0")
 
+    //Pull To Refresh
+    implementation ("com.google.accompanist:accompanist-swiperefresh:0.35.1-alpha")
+
 
 }
