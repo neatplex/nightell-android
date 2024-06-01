@@ -127,7 +127,7 @@ fun AddPostScreen(
                 .padding(30.dp)
                 .align(alignment = Alignment.Center)
                 .background(
-                    Color.Red.copy(alpha = 0.8f),
+                    brush = MyVerticalGradiant(),
                     shape = RoundedCornerShape(8.dp),
                 )
         ) {

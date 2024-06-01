@@ -1,4 +1,4 @@
-package com.neatplex.nightell.data.repository
+package com.neatplex.nightell.domain.repository
 
 
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -13,7 +13,6 @@ import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
 class FileRepository @Inject constructor(private val apiService: ApiService) {
-
     suspend fun uploadFile(
         file: File,
         extension: String

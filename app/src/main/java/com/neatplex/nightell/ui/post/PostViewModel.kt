@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.PostStoreResponse
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.data.repository.PostRepository
+import com.neatplex.nightell.domain.repository.PostRepository
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch

@@ -28,11 +28,11 @@ interface ApiService {
 
     // SignIn
     @POST("auth/sign-in/email")
-    suspend fun loginWithEmail(@Body request: Any): Response<AuthResponse>
+    suspend fun loginWithEmail(@Body request: LoginEmailRequest): Response<AuthResponse>
 
     // SignIn
     @POST("auth/sign-in/username")
-    suspend fun loginWithUsername(@Body request: Any): Response<AuthResponse>
+    suspend fun loginWithUsername(@Body request: LoginUsernameRequest): Response<AuthResponse>
 
     // Home Feed
     @GET("feed")
@@ -115,6 +115,5 @@ interface ApiService {
     // Unfollow
     @DELETE("users/{user_id}/followings/{friend_id}")
     suspend fun unfollow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Any>
-
 
 }

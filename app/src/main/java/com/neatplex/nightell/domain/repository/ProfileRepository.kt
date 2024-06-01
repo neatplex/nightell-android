@@ -1,4 +1,4 @@
-package com.neatplex.nightell.data.repository
+package com.neatplex.nightell.domain.repository
 
 import com.neatplex.nightell.data.dto.ShowProfileResponse
 import com.neatplex.nightell.data.api.ApiService
@@ -8,11 +8,11 @@ import javax.inject.Inject
 
 class ProfileRepository @Inject constructor(private val apiService: ApiService) {
 
-    suspend fun showUserProfile(userId: Int) : Result<ShowProfileResponse?> {
+    suspend fun showUserProfile(userId: Int): Result<ShowProfileResponse?> {
         return try {
             val response = apiService.showUserProfile(userId)
             handleApiResponse(response)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Result.Error(e.message ?: "An error occurred")
 
         }
@@ -22,7 +22,7 @@ class ProfileRepository @Inject constructor(private val apiService: ApiService) 
         return try {
             val response = apiService.follow(userId, friendId)
             handleApiResponse(response)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Result.Error(e.message ?: "An error occurred")
 
         }
@@ -32,7 +32,7 @@ class ProfileRepository @Inject constructor(private val apiService: ApiService) 
         return try {
             val response = apiService.unfollow(userId, friendId)
             handleApiResponse(response)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             Result.Error(e.message ?: "An error occurred")
 
         }

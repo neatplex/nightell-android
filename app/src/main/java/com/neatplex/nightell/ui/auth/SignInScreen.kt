@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.OutlinedTextField
@@ -112,7 +113,7 @@ fun SignInScreen(navController: NavController, viewModel: UserAuthViewModel = hi
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-                colors = androidx.compose.material.ButtonDefaults.buttonColors(
+                colors = ButtonDefaults.buttonColors(
                     backgroundColor = colorResource(id = R.color.purple_light).copy(alpha = 0.5f), // Set button background color to transparent
                 )
             ) {
@@ -220,7 +221,6 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
     when (val result = authResultState) {
         is Result.Success -> {
             result.data?.let {
-                // Successful login, navigate to HomeScreen
                 navController.navigate(Screens.Home.route)
             }
         }

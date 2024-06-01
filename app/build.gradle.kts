@@ -70,7 +70,7 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation(platform("androidx.compose:compose-bom:2023.08.00"))
     implementation("androidx.wear.compose:compose-material:1.3.0")
-    testImplementation("junit:junit:4.13.2")
+    testImplementation("junit:junit:4.12")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation(platform("androidx.compose:compose-bom:2023.08.00"))
@@ -133,5 +133,17 @@ dependencies {
     //Pull To Refresh
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.35.1-alpha")
 
+    // Local Unit Tests
+    testImplementation ("junit:junit:4.13.2")
+    testImplementation ("androidx.test:core:1.5.0")
+    testImplementation ("androidx.arch.core:core-testing:2.2.0")
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
+    testImplementation ("com.google.truth:truth:1.1.3")
+    testImplementation ("com.squareup.okhttp3:mockwebserver:4.9.1")
+    debugImplementation ("androidx.compose.ui:ui-test-manifest:1.6.7")
+    testImplementation ("io.mockk:mockk:1.10.5")
 
+    // Instrumentation Tests
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.37")
+    androidTestImplementation("com.google.dagger:hilt-android-compiler:2.37")
 }

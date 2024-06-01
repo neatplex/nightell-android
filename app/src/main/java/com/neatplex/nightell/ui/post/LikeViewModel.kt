@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.StoreLike
-import com.neatplex.nightell.data.repository.LikeRepository
+import com.neatplex.nightell.domain.repository.LikeRepository
 import javax.inject.Inject
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel

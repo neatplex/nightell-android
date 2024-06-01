@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.runtime.Composable
@@ -199,5 +200,9 @@ fun EditableField(
                 Icon(Icons.Filled.Close, contentDescription = "Cancel")
             }
         }
+    }
+
+    Button(onClick = {  }) {
+        Text(text = "Sign Out")
     }
 }

@@ -51,11 +51,17 @@ import com.neatplex.nightell.ui.shared.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 
 @Composable
-fun UserScreen(navController: NavController, userId: Int, profileViewModel: ProfileViewModel = hiltViewModel(), postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
+fun UserScreen(
+    navController: NavController,
+    userId: Int,
+    profileViewModel: ProfileViewModel = hiltViewModel(),
+    postViewModel: PostViewModel = hiltViewModel(),
+    sharedViewModel: SharedViewModel
+) {
 
     //Fetch user profile info
     val profileResult by profileViewModel.showUserInfoResult.observeAsState()
-    val posts by postViewModel.posts.observeAsState(emptyList())
+    val posts by postViewModel.userPosts.observeAsState(emptyList())
 
     //Fetch if user followed this profile
     val followingViewModel: UserProfileViewModel = hiltViewModel()
@@ -64,7 +70,7 @@ fun UserScreen(navController: NavController, userId: Int, profileViewModel: Prof
     val myId = sharedViewModel.user.value!!.id
 
     var isLoading by remember { mutableStateOf(true) }
-    var followings : List<User> by remember { mutableStateOf(emptyList()) }
+    var followings: List<User> by remember { mutableStateOf(emptyList()) }
 
     var isFollowed by remember { mutableStateOf(false) }
 
@@ -75,13 +81,10 @@ fun UserScreen(navController: NavController, userId: Int, profileViewModel: Prof
         followingViewModel.fetchUserFollowings(myId)
     }
 
-    when(val result = followingsResult){
-
+    when (val result = followingsResult) {
         is Result.Success -> {
-            followings = result.data!!.users
-            for(following in followings){
-                if(following.id == userId) isFollowed = true
-            }
+            followings = result.data?.users.orEmpty()
+            isFollowed = followings.any { it.id == userId }
         }
 
         else -> {}
@@ -133,44 +136,42 @@ fun UserScreen(navController: NavController, userId: Int, profileViewModel: Prof
 
                 }
 
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(bottom = 50.dp),
-                        content = {
-                            itemsIndexed(posts) { index, post ->
-                                if (post != null) {
-                                    PostCard(post = post) { selectedPost ->
-                                        sharedViewModel.setPost(selectedPost)
-                                        val postJson = selectedPost.toJson()
-                                        navController.navigate("postScreen/${Uri.encode(postJson)}")
-                                    }
-                                }
-                            }
 
-                            if (isLoading && posts!!.isNotEmpty()) {
-                                item {
-                                    // Load more indicator
-                                    CircularProgressIndicator(
-                                        modifier = Modifier
-                                            .padding(vertical = 16.dp)
-                                            .align(Alignment.CenterHorizontally)
-                                    )
+                LazyColumn(
+                    modifier = Modifier
+                        .padding(bottom = 50.dp),
+                    content = {
+                        itemsIndexed(posts) { index, post ->
+                            if (post != null) {
+                                PostCard(post = post) { selectedPost ->
+                                    isLoading = false
+                                    sharedViewModel.setPost(selectedPost)
+                                    val postJson = selectedPost.toJson()
+                                    navController.navigate("postScreen/${Uri.encode(postJson)}")
                                 }
+                            } else {
+                                isLoading = false
                             }
                         }
-                    )
-                }
+                    }
+                )
+
             }
         }
     })
 }
 
 @Composable
-fun ShowProfile(navController: NavController, user: User, followers: Int, followings: Int, profileViewModel: ProfileViewModel, myId: Int, userId: Int, isFollowed: Boolean) {
+fun ShowProfile(
+    navController: NavController,
+    user: User,
+    followers: Int,
+    followings: Int,
+    profileViewModel: ProfileViewModel,
+    myId: Int,
+    userId: Int,
+    isFollowed: Boolean
+) {
 
     // Define a mutable state for the follower count
     var followers by remember { mutableIntStateOf(followers) }
@@ -194,10 +195,12 @@ fun ShowProfile(navController: NavController, user: User, followers: Int, follow
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Column(modifier = Modifier
-                .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image,)
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image)
                 Image(
                     painter = imageResource,
                     contentDescription = "Profile Image",
@@ -213,9 +216,11 @@ fun ShowProfile(navController: NavController, user: User, followers: Int, follow
                 )
             }
 
-            Column(modifier = Modifier
-                .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
                     navController.navigate("followerScreen/${user.id}")
@@ -228,9 +233,11 @@ fun ShowProfile(navController: NavController, user: User, followers: Int, follow
 
             }
 
-            Column(modifier = Modifier
-                .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
                     navController.navigate("followingScreen/${user.id}")
@@ -247,14 +254,16 @@ fun ShowProfile(navController: NavController, user: User, followers: Int, follow
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp)) {
+                .padding(start = 16.dp)
+        ) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = user.name)
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp)) {
+                .padding(start = 16.dp)
+        ) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = user.bio)
         }

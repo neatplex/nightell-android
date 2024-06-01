@@ -1,4 +1,4 @@
-package com.neatplex.nightell.data.repository
+package com.neatplex.nightell.domain.repository
 
 import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.data.dto.PostUpdateRequest
