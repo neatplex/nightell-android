@@ -55,7 +55,6 @@ import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.media.BottomPlayerUI
 import com.neatplex.nightell.component.media.formatTime
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.ui.screens.BottomNavigationHeight
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.shared.MediaViewModel
@@ -103,7 +102,6 @@ fun PostScreen(
     val likeResult by likeViewModel.likeResult.observeAsState()
     val userInfoResult by profileViewModel.showUserInfoResult.observeAsState()
     val postUpdateResult by postViewModel.storePostResult.observeAsState()
-    val bottomBarHeight = BottomNavigationHeight()
 
 
     // Update UI based on likes result
@@ -220,7 +218,6 @@ fun PostScreen(
             modifier = Modifier
                 .verticalScroll(scrollState)
                 .fillMaxSize()
-                .padding(bottom = bottomBarHeight)
         ) {
             val imageResource = rememberImagePainter(
                 data = post.image?.path?.let { imagePath }

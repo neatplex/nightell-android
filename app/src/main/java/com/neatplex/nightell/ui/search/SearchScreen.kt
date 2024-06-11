@@ -34,8 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import com.neatplex.nightell.component.PostCard
-import com.neatplex.nightell.ui.screens.BottomNavigationHeight
+import com.neatplex.nightell.component.post.RecentPostCard
 import com.neatplex.nightell.ui.shared.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 
@@ -48,9 +47,6 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
     var query by remember { mutableStateOf("") }
     val searchResultPosts by searchViewModel.searchResult.observeAsState(emptyList())
     val isLoading by searchViewModel.isLoading.observeAsState(false)
-    val bottomBarHeight = BottomNavigationHeight()
-
-
 
     Scaffold(
         topBar = {
@@ -95,12 +91,11 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
                 ) {
                     LazyColumn(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(bottom = bottomBarHeight),
+                            .fillMaxSize(),
                         content = {
                             itemsIndexed(searchResultPosts) { index, post ->
                                 if (post != null) {
-                                    PostCard(post = post) { selectedPost ->
+                                    RecentPostCard(post = post) { selectedPost ->
                                         sharedViewModel.setPost(selectedPost)
                                         val postJson = selectedPost.toJson()
                                         navController.navigate("postScreen/${Uri.encode(postJson)}")

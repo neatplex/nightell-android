@@ -2,7 +2,7 @@ package com.neatplex.nightell.di
 
 import android.content.Context
 import com.neatplex.nightell.data.api.ApiService
-import com.neatplex.nightell.domain.repository.UserAuthRepository
+import com.neatplex.nightell.domain.repository.UserAuthRepositoryImpl
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.TokenManager
 import dagger.Module
@@ -52,7 +52,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRepository(api: ApiService) = UserAuthRepository(api)
+    fun provideRepository(api: ApiService) = UserAuthRepositoryImpl(api)
 
 
 }

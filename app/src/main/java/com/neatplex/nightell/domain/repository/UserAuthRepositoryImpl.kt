@@ -7,13 +7,12 @@ import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.data.api.ApiService
-import com.neatplex.nightell.utils.Validation
 import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
-class UserAuthRepository @Inject constructor(private val apiService: ApiService) {
+class UserAuthRepositoryImpl @Inject constructor(private val apiService: ApiService) : UserAuthRepository {
 
-    suspend fun register(request: RegistrationRequest): Result<AuthResponse?> {
+    override suspend fun register(request: RegistrationRequest): Result<AuthResponse?> {
         return try {
             val response = apiService.register(request)
             handleApiResponse(response)
@@ -22,7 +21,7 @@ class UserAuthRepository @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    suspend fun loginWithEmail(request: LoginEmailRequest): Result<AuthResponse?> {
+    override suspend fun loginWithEmail(request: LoginEmailRequest): Result<AuthResponse?> {
         return try {
             val response = apiService.loginWithEmail(request)
             handleApiResponse(response)
@@ -31,7 +30,7 @@ class UserAuthRepository @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    suspend fun loginWithUsername(request: LoginUsernameRequest): Result<AuthResponse?> {
+    override suspend fun loginWithUsername(request: LoginUsernameRequest): Result<AuthResponse?> {
         return try {
             val response = apiService.loginWithUsername(request)
             handleApiResponse(response)

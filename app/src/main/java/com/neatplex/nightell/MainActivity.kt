@@ -7,7 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material.Scaffold
+import androidx.compose.material3.Scaffold
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavHost
 import com.neatplex.nightell.navigation.BottomNavigationScreen
@@ -26,28 +26,28 @@ class MainActivity : ComponentActivity() {
     private val mediaViewModel : MediaViewModel by viewModels()
     private var isServiceRunning = false
 
-    @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+    @SuppressLint("UnusedMaterialScaffoldPaddingParameter",
+        "UnusedMaterial3ScaffoldPaddingParameter"
+    )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
+            AppTheme {
             val listItems = listOf(
                 Screens.Home,
-                Screens.AddPost,
                 Screens.Profile
             )
 
             window.statusBarColor = getColor(R.color.black)
             val rootNavController = rememberNavController()
 
-
-            AppTheme {
-                Scaffold(
-                    bottomBar = {
-                        BottomNavigationScreen(rootNavController,listItems)
-                    }
-                ) {
-                    BottomNavHost(navController = rootNavController, tokenManager = tokenManager, mediaViewModel = mediaViewModel, startService = ::startService)
+            Scaffold(
+                bottomBar = {
+                    BottomNavigationScreen(rootNavController,listItems)
+                }
+            ) {
+                BottomNavHost(navController = rootNavController, tokenManager = tokenManager, mediaViewModel = mediaViewModel, startService = ::startService)
                 }
             }
         }

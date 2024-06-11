@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
@@ -42,7 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.component.PostCard
+import com.neatplex.nightell.component.post.RecentPostCard
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.post.PostViewModel
@@ -143,7 +142,7 @@ fun UserScreen(
                     content = {
                         itemsIndexed(posts) { index, post ->
                             if (post != null) {
-                                PostCard(post = post) { selectedPost ->
+                                RecentPostCard(post = post) { selectedPost ->
                                     isLoading = false
                                     sharedViewModel.setPost(selectedPost)
                                     val postJson = selectedPost.toJson()
