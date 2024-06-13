@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.home
 
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -37,18 +37,18 @@ import com.neatplex.nightell.component.post.HomePostCard
 @Composable
 fun HomeScreen(
     navController: NavController,
-    postViewModel: PostViewModel = hiltViewModel(),
+    homeViewModel: HomeViewModel = hiltViewModel(),
     sharedViewModel: SharedViewModel
 ) {
-    val posts by postViewModel.posts.observeAsState(emptyList())
-    val isLoading by postViewModel.isLoading.observeAsState(false)
-    val isRefreshing by postViewModel.isRefreshing.observeAsState(false)
+    val feed by homeViewModel.feed.observeAsState(emptyList())
+    val isLoading by homeViewModel.isLoading.observeAsState(false)
+    val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
 
     val userProfileViewModel: UserProfileViewModel = hiltViewModel()
     val profileResult by userProfileViewModel.profileData.observeAsState()
 
     LaunchedEffect(Unit) {
-        postViewModel.loadFeed()
+        homeViewModel.loadFeed()
         userProfileViewModel.fetchProfile()
     }
 
@@ -88,12 +88,12 @@ fun HomeScreen(
                 Box(modifier = Modifier.padding(space)) {
                     SwipeRefresh(
                         state = rememberSwipeRefreshState(isRefreshing),
-                        onRefresh = { postViewModel.refreshFeed() }
+                        onRefresh = { homeViewModel.refreshFeed() }
                     ) {
                         Column {
 
                             LazyRow {
-                                itemsIndexed(posts.take(3)) { index, post ->
+                                itemsIndexed(feed!!.take(3)) { index, post ->
                                     if (post != null) {
                                         RecentPostCard(post = post) { selectedPost ->
                                             sharedViewModel.setPost(selectedPost)
@@ -114,7 +114,7 @@ fun HomeScreen(
                                 contentPadding = PaddingValues(bottom = 65.dp),
                                 modifier = Modifier.fillMaxSize(),
                                 content = {
-                                    itemsIndexed(posts.drop(3)) { index, post ->
+                                    itemsIndexed(feed!!.drop(3)) { index, post ->
                                         if (post != null) {
                                             HomePostCard(post = post) { selectedPost ->
                                                 sharedViewModel.setPost(selectedPost)
@@ -127,13 +127,13 @@ fun HomeScreen(
                                                     }"
                                                 )
                                             }
-                                            if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
-                                                postViewModel.loadFeed()
+                                            if (feed!!.size > 9 && index == feed!!.size - 1 && !isLoading) {
+                                                homeViewModel.loadFeed()
                                             }
                                         }
                                     }
 
-                                    if (isLoading && posts.isNotEmpty()) {
+                                    if (isLoading) {
                                         item {
                                             // Load more indicator
                                             CircularProgressIndicator(
@@ -155,14 +155,6 @@ fun HomeScreen(
 
                         else -> {
                         }
-                    }
-
-                    // Show loading indicator if loading
-                    if (isLoading && posts.isEmpty()) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .padding(vertical = 16.dp)
-                        )
                     }
                 }
             }

@@ -22,16 +22,14 @@ class UserAuthViewModel @Inject constructor(
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
             _authResult.value = Result.Loading
-            val result = authUseCase.register(username, email, password)
-            _authResult.value = result
+            _authResult.value = authUseCase.register(username, email, password)
         }
     }
 
     fun loginUser(emailOrUsername: String, password: String) {
         viewModelScope.launch {
             _authResult.value = Result.Loading
-            val result = authUseCase.login(emailOrUsername, password)
-            _authResult.value = result
+            _authResult.value = authUseCase.login(emailOrUsername, password)
         }
     }
 }

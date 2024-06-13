@@ -10,14 +10,14 @@ import com.neatplex.nightell.data.api.ApiService
 import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
-class UserAuthRepositoryImpl @Inject constructor(private val apiService: ApiService) : UserAuthRepository {
+class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService) : AuthRepository {
 
     override suspend fun register(request: RegistrationRequest): Result<AuthResponse?> {
         return try {
             val response = apiService.register(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Error(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -26,7 +26,7 @@ class UserAuthRepositoryImpl @Inject constructor(private val apiService: ApiServ
             val response = apiService.loginWithEmail(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Error(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -35,7 +35,7 @@ class UserAuthRepositoryImpl @Inject constructor(private val apiService: ApiServ
             val response = apiService.loginWithUsername(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Error(e.localizedMessage ?: "An error occurred", e)
         }
     }
 }

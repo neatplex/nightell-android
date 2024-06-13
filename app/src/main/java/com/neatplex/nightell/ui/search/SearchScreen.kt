@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.post.HomePostCard
 import com.neatplex.nightell.component.post.RecentPostCard
 import com.neatplex.nightell.ui.shared.SharedViewModel
 import com.neatplex.nightell.utils.toJson
@@ -45,7 +46,7 @@ import com.neatplex.nightell.utils.toJson
 fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel, searchViewModel: SearchViewModel = hiltViewModel()) {
 
     var query by remember { mutableStateOf("") }
-    val searchResultPosts by searchViewModel.searchResult.observeAsState(emptyList())
+    val searchResultPosts by searchViewModel.posts.observeAsState(emptyList())
     val isLoading by searchViewModel.isLoading.observeAsState(false)
 
     Scaffold(
@@ -93,9 +94,9 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
                         modifier = Modifier
                             .fillMaxSize(),
                         content = {
-                            itemsIndexed(searchResultPosts) { index, post ->
+                            itemsIndexed(searchResultPosts!!) { index, post ->
                                 if (post != null) {
-                                    RecentPostCard(post = post) { selectedPost ->
+                                    HomePostCard(post = post) { selectedPost ->
                                         sharedViewModel.setPost(selectedPost)
                                         val postJson = selectedPost.toJson()
                                         navController.navigate("postScreen/${Uri.encode(postJson)}")
@@ -103,7 +104,7 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
                                 }
                             }
 
-                            if (isLoading && searchResultPosts.isNotEmpty()) {
+                            if (isLoading) {
                                 item {
                                     // Load more indicator
                                     CircularProgressIndicator(

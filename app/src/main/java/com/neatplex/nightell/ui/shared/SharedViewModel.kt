@@ -11,6 +11,7 @@ class SharedViewModel : ViewModel() {
     private val _post = MutableLiveData<Post>()
     val post: LiveData<Post> = _post
 
+
     private val _user = MutableLiveData<User>()
     val user: LiveData<User> = _user
 

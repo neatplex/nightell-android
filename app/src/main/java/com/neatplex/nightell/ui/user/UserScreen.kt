@@ -54,13 +54,13 @@ fun UserScreen(
     navController: NavController,
     userId: Int,
     profileViewModel: ProfileViewModel = hiltViewModel(),
-    postViewModel: PostViewModel = hiltViewModel(),
+    UserViewModel: UserViewModel = hiltViewModel(),
     sharedViewModel: SharedViewModel
 ) {
 
     //Fetch user profile info
     val profileResult by profileViewModel.showUserInfoResult.observeAsState()
-    val posts by postViewModel.userPosts.observeAsState(emptyList())
+    val posts by UserViewModel.posts.observeAsState(emptyList())
 
     //Fetch if user followed this profile
     val followingViewModel: UserProfileViewModel = hiltViewModel()
@@ -76,7 +76,7 @@ fun UserScreen(
 
     LaunchedEffect(Unit) {
         profileViewModel.getUserInfo(userId)
-        postViewModel.loadUserPosts(userId)
+        UserViewModel.loadPosts(userId)
         followingViewModel.fetchUserFollowings(myId)
     }
 
@@ -140,7 +140,7 @@ fun UserScreen(
                     modifier = Modifier
                         .padding(bottom = 50.dp),
                     content = {
-                        itemsIndexed(posts) { index, post ->
+                        itemsIndexed(posts!!) { index, post ->
                             if (post != null) {
                                 RecentPostCard(post = post) { selectedPost ->
                                     isLoading = false

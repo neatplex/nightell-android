@@ -61,14 +61,13 @@ import kotlinx.coroutines.launch
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AddPostScreen(
-    fileViewModel: FileViewModel = hiltViewModel(),
-    postViewModel: PostViewModel = hiltViewModel()
+    uploadViewModel: UploadViewModel = hiltViewModel()
 ) {
 
-    val uploadFileResults by fileViewModel.uploadState.observeAsState()
-    val uploadPostResult by postViewModel.storePostResult.observeAsState()
-    val uploadPostIsLoading by postViewModel.isLoading.observeAsState(false)
-    val uploadFileIsLoading by fileViewModel.isLoading.observeAsState(false)
+    val uploadFileResults by uploadViewModel.uploadState.observeAsState()
+    val uploadPostResult by uploadViewModel.storePostResult.observeAsState()
+    val uploadPostIsLoading by uploadViewModel.isLoading.observeAsState(false)
+    val uploadFileIsLoading by uploadViewModel.isLoading.observeAsState(false)
 
     var selectedAudio by remember { mutableStateOf<Uri?>(null) }
     var selectedAudioName by remember { mutableStateOf("") }
@@ -94,7 +93,7 @@ fun AddPostScreen(
                 val file = uriToFile(context, selectedAudio!!)
                 if (fileExtension.equals("mp3", ignoreCase = true)) {
                     selectedAudioName = fileName!!
-                    fileViewModel.uploadFile(file!!, "MP3")
+                    uploadViewModel.uploadFile(file!!, "MP3")
                 } else {
                     errorMessage = "Only .mp3 type is allowed for post audio!"
                 }
@@ -110,7 +109,7 @@ fun AddPostScreen(
                 val file = uriToFile(context, selectedImage!!)
                 if (fileExtension.equals("jpg", ignoreCase = true)) {
                     selectedImageName = fileName!!
-                    fileViewModel.uploadFile(file!!, "JPG")
+                    uploadViewModel.uploadFile(file!!, "JPG")
                 } else {
                     errorMessage = "Only .jpg type is allowed for post image!"
                 }
@@ -282,7 +281,7 @@ fun AddPostScreen(
                 CustomSimpleButton(
                     onClick = {
                         if (selectedAudio != null && title.isNotEmpty()) {
-                            postViewModel.uploadPost(title, description, audioId, imageId)
+                            uploadViewModel.uploadPost(title, description, audioId, imageId)
                         } else {
                             errorMessage = "Audio file and Title are required!"
                         }

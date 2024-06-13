@@ -1,0 +1,111 @@
+package com.neatplex.nightell.component.post
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.rememberImagePainter
+import com.neatplex.nightell.R
+import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.utils.Constant
+
+@Composable
+fun RecentPostCard(post: Post, onPostClicked: (Post) -> Unit) {
+
+
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onPostClicked(post) },
+        elevation = 0.dp
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image)
+                Image(
+                    painter = imageResource,
+                    contentDescription = "Author Image",
+                    modifier = Modifier
+                        .width(48.dp)
+                        .height(48.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                // Check if post.title is not null or empty
+                val title = post.title
+                val desc = post.description ?: "..."
+
+                Column(
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.body1,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = desc,
+                        style = MaterialTheme.typography.body1,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            Row {
+                val imageResource = if (post.image != null) {
+                    rememberImagePainter(data = Constant.Files_URL + post.image.path)
+                } else {
+                    rememberImagePainter(data = R.drawable.slider)
+                }
+                Image(
+                    painter = imageResource,
+                    contentDescription = "Story Image",
+                    modifier = Modifier
+                        .width(280.dp)
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+    }
+}
+
+

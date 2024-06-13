@@ -29,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,6 +56,9 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
     var editedBio by remember { mutableStateOf(user.value!!.bio ?: "") }
     var editedUsername by remember { mutableStateOf(user.value!!.username ?: "") }
 
+    // State for sign-out confirmation dialog
+    var showSignOutDialog by remember { mutableStateOf(false) }
+
 
     // Track changes in fields
     var isNameChanged by remember { mutableStateOf(false) }
@@ -80,7 +84,7 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
 
-                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image,)
+                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image)
 
                 Image(
                     painter = imageResource,
@@ -107,8 +111,10 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                             isNameChanged = false
                         }
                     },
-                    onCancelClicked = { editedName = user.value?.name ?: ""
-                        isNameChanged = false}
+                    onCancelClicked = {
+                        editedName = user.value?.name ?: ""
+                        isNameChanged = false
+                    }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -126,8 +132,10 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                             isBioChanged = false
                         }
                     },
-                    onCancelClicked = { editedBio = user.value?.bio ?: ""
-                        isBioChanged = false}
+                    onCancelClicked = {
+                        editedBio = user.value?.bio ?: ""
+                        isBioChanged = false
+                    }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -145,11 +153,48 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                             isUsernameChanged = false
                         }
                     },
-                    onCancelClicked = { editedUsername = user.value?.username ?: ""
-                        isUsernameChanged = false}
+                    onCancelClicked = {
+                        editedUsername = user.value?.username ?: ""
+                        isUsernameChanged = false
+                    }
                 )
                 Spacer(modifier = Modifier.height(16.dp))
 
+                Button(onClick = {
+                    showSignOutDialog = true
+                }) {
+                    Text(text = "Sign Out")
+                }
+
+                if (showSignOutDialog) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            showSignOutDialog = false
+                        },
+                        title = {
+                            Text(text = "Sign Out")
+                        },
+                        text = {
+                            Text("Are you sure you want to sign out?")
+                        },
+                        confirmButton = {
+                            Button(onClick = {
+                                // Handle sign out logic
+                                //sharedViewModel.deleteToken()
+
+                            }) {
+                                Text("Yes")
+                            }
+                        },
+                        dismissButton = {
+                            Button(onClick = {
+                                showSignOutDialog = false
+                            }) {
+                                Text("No")
+                            }
+                        }
+                    )
+                }
             }
         }
     )
@@ -163,9 +208,11 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                     sharedViewModel.setUser(updatedUser.user)
                 }
             }
+
             is Result.Error -> {
                 // Handle error
             }
+
             is Result.Loading -> {
                 // Show loading indicator
             }
@@ -200,9 +247,5 @@ fun EditableField(
                 Icon(Icons.Filled.Close, contentDescription = "Cancel")
             }
         }
-    }
-
-    Button(onClick = {  }) {
-        Text(text = "Sign Out")
     }
 }

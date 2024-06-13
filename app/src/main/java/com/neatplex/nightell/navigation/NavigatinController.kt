@@ -14,7 +14,7 @@ import com.neatplex.nightell.ui.upload.AddPostScreen
 import com.neatplex.nightell.ui.profile.EditProfileScreen
 import com.neatplex.nightell.ui.user.FollowerScreen
 import com.neatplex.nightell.ui.user.FollowingScreen
-import com.neatplex.nightell.ui.screens.HomeScreen
+import com.neatplex.nightell.ui.home.HomeScreen
 import com.neatplex.nightell.ui.auth.SignInScreen
 import com.neatplex.nightell.ui.profile.ProfileScreen
 import com.neatplex.nightell.ui.auth.SignUpScreen

@@ -22,6 +22,10 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
         return sharedPreferences.getString(TOKEN_KEY, null)
     }
 
+    fun deleteToken() {
+        sharedPreferences.edit().remove(TOKEN_KEY).apply()
+    }
+
     fun setId(id: Int) {
         sharedPreferences.edit().putInt(USER_ID, id).apply()
     }

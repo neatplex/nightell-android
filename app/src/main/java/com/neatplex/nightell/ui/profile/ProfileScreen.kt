@@ -42,29 +42,31 @@ import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
+import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.user.UserProfileViewModel
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.post.PostViewModel
 import com.neatplex.nightell.ui.shared.SharedViewModel
 import com.neatplex.nightell.ui.theme.AppTheme
+import com.neatplex.nightell.ui.user.UserViewModel
 import com.neatplex.nightell.utils.toJson
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfileViewModel = hiltViewModel(), postViewModel: PostViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
+fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfileViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
 
     val profileResult by userProfileViewModel.profileData.observeAsState()
     val userId = sharedViewModel.user.value!!.id
-    val posts by postViewModel.userPosts.observeAsState(emptyList())
-    val isLoading by postViewModel.isLoading.observeAsState(false)
+    val posts by userViewModel.posts.observeAsState(emptyList<Post>())
+    val isLoading by userViewModel.isLoading.observeAsState(false)
 
 
     // trigger the profile loading
     LaunchedEffect(Unit) {
         userProfileViewModel.fetchProfile()
-        postViewModel.loadUserPosts(userId)
+        userViewModel.loadPosts(userId)
     }
 
     val (followers, setFollowers) = remember { mutableStateOf(0) }
@@ -129,19 +131,19 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
                             columns = GridCells.Fixed(2), // Define the number of columns
                             modifier = Modifier.fillMaxSize(),
                         ) {
-                            itemsIndexed(posts) { index, post ->
+                            itemsIndexed(posts!!) { index, post ->
                                 if (post != null) {
                                     ProfilePostCard(post = post) { selectedPost ->
                                         val postJson = selectedPost.toJson()
                                         navController.navigate("postScreen/${Uri.encode(postJson)}")
                                     }
                                 }
-                                if (posts.size > 9 && index == posts.size - 1 && !isLoading) {
-                                    postViewModel.loadUserPosts(userId)
+                                if (posts!!.size > 9 && index == posts!!.size - 1 && !isLoading) {
+                                    userViewModel.loadPosts(userId)
                                 }
                             }
 
-                            if (isLoading && posts.isNotEmpty()) {
+                            if (isLoading) {
                                 item {
                                     // Load more indicator
                                     CircularProgressIndicator(
