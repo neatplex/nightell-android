@@ -25,9 +25,7 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.post.RecentPostCard
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.post.PostViewModel
-import com.neatplex.nightell.ui.shared.SharedViewModel
-import com.neatplex.nightell.ui.user.UserProfileViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -43,13 +41,11 @@ fun HomeScreen(
     val feed by homeViewModel.feed.observeAsState(emptyList())
     val isLoading by homeViewModel.isLoading.observeAsState(false)
     val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
-
-    val userProfileViewModel: UserProfileViewModel = hiltViewModel()
-    val profileResult by userProfileViewModel.profileData.observeAsState()
+    val profileResult by homeViewModel.profileData.observeAsState()
 
     LaunchedEffect(Unit) {
         homeViewModel.loadFeed()
-        userProfileViewModel.fetchProfile()
+        homeViewModel.fetchProfile()
     }
 
     AppTheme {
@@ -152,7 +148,6 @@ fun HomeScreen(
                         is Result.Success -> {
                             result.data?.user?.let { sharedViewModel.setUser(it) }
                         }
-
                         else -> {
                         }
                     }

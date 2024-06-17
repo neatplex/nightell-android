@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
 import com.neatplex.nightell.ui.theme.MySliderColors
-import com.neatplex.nightell.ui.shared.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import kotlinx.coroutines.delay
 
 

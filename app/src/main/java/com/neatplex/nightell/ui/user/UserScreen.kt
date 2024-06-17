@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,8 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
 import androidx.compose.material.Scaffold
@@ -41,30 +43,27 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.component.post.RecentPostCard
+import com.neatplex.nightell.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.post.PostViewModel
 import com.neatplex.nightell.ui.profile.ProfileViewModel
-import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 
 @Composable
 fun UserScreen(
     navController: NavController,
     userId: Int,
-    profileViewModel: ProfileViewModel = hiltViewModel(),
-    UserViewModel: UserViewModel = hiltViewModel(),
-    sharedViewModel: SharedViewModel
+    userViewModel: UserViewModel = hiltViewModel(), sharedViewModel: SharedViewModel
 ) {
 
     //Fetch user profile info
-    val profileResult by profileViewModel.showUserInfoResult.observeAsState()
-    val posts by UserViewModel.posts.observeAsState(emptyList())
+    val profileResult by userViewModel.showUserInfoResult.observeAsState()
+    val posts by userViewModel.posts.observeAsState(emptyList())
 
     //Fetch if user followed this profile
-    val followingViewModel: UserProfileViewModel = hiltViewModel()
-    val followingsResult by followingViewModel.userData.observeAsState()
+    val followingViewModel: ProfileViewModel = hiltViewModel()
+    val followingsResult by followingViewModel.usersList.observeAsState()
 
     val myId = sharedViewModel.user.value!!.id
 
@@ -75,8 +74,8 @@ fun UserScreen(
 
 
     LaunchedEffect(Unit) {
-        profileViewModel.getUserInfo(userId)
-        UserViewModel.loadPosts(userId)
+        userViewModel.getUserInfo(userId)
+        userViewModel.loadUserPosts(userId)
         followingViewModel.fetchUserFollowings(myId)
     }
 
@@ -111,7 +110,7 @@ fun UserScreen(
                                 user,
                                 followers,
                                 followings,
-                                profileViewModel,
+                                userViewModel,
                                 myId,
                                 userId,
                                 isFollowed
@@ -136,13 +135,14 @@ fun UserScreen(
                 }
 
 
-                LazyColumn(
-                    modifier = Modifier
-                        .padding(bottom = 50.dp),
-                    content = {
+                LazyVerticalGrid(
+                    contentPadding = PaddingValues(bottom = 65.dp),
+                    columns = GridCells.Fixed(2), // Define the number of columns
+                    modifier = Modifier.fillMaxSize(),
+                ) {
                         itemsIndexed(posts!!) { index, post ->
                             if (post != null) {
-                                RecentPostCard(post = post) { selectedPost ->
+                                ProfilePostCard(post = post) { selectedPost ->
                                     isLoading = false
                                     sharedViewModel.setPost(selectedPost)
                                     val postJson = selectedPost.toJson()
@@ -152,12 +152,11 @@ fun UserScreen(
                                 isLoading = false
                             }
                         }
-                    }
-                )
-
+                }
             }
         }
-    })
+    }
+    )
 }
 
 @Composable
@@ -166,7 +165,7 @@ fun ShowProfile(
     user: User,
     followers: Int,
     followings: Int,
-    profileViewModel: ProfileViewModel,
+    userViewModel: UserViewModel,
     myId: Int,
     userId: Int,
     isFollowed: Boolean
@@ -176,8 +175,8 @@ fun ShowProfile(
     var followers by remember { mutableIntStateOf(followers) }
     var isFollowed by remember { mutableStateOf(isFollowed) }
 
-    val followResult by profileViewModel.followResult.observeAsState()
-    val unfollowResult by profileViewModel.unfollowResult.observeAsState()
+    val followResult by userViewModel.followResult.observeAsState()
+    val unfollowResult by userViewModel.unfollowResult.observeAsState()
 
     // Function to update follower count
     val updateFollowerCount: (Int) -> Unit = { increment ->
@@ -272,11 +271,11 @@ fun ShowProfile(
         Button(
             onClick = {
                 if (!isFollowed) {
-                    profileViewModel.followUser(myId, userId)
+                    userViewModel.followUser(myId, userId)
                     isFollowed = true
                     updateFollowerCount(1)
                 } else {
-                    profileViewModel.unfollowUser(myId, userId)
+                    userViewModel.unfollowUser(myId, userId)
                     isFollowed = false
                     updateFollowerCount(-1)
                 }

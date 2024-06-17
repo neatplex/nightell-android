@@ -26,7 +26,7 @@ class SearchViewModel @Inject constructor(
     fun search(query: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = postUseCase.search(query)
+            var result = postUseCase.search(query)
             if (result is Result.Success) {
                 _posts.value = result.data
             } else {

@@ -61,7 +61,7 @@ interface ApiService {
 
     // Delete Post
     @DELETE("posts/{post_id}")
-    suspend fun deletePost(@Path("post_id") postId: Int) :  Response<Any>
+    suspend fun deletePost(@Path("post_id") postId: Int) : Response<Unit>
 
     // User's Own Profile Info
     @GET("profile")
@@ -89,7 +89,7 @@ interface ApiService {
 
     // Delete Like Of Post
     @DELETE("likes/{like_id}")
-    suspend fun deleteLike(@Path("like_id") likeId: Int) : Response<Any>
+    suspend fun deleteLike(@Path("like_id") likeId: Int) : Response<Unit>
 
     // Users Profile Info
     @GET("users/{user_id}")
@@ -110,10 +110,10 @@ interface ApiService {
 
     // Follow
     @POST("users/{user_id}/followings/{friend_id}")
-    suspend fun follow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Any>
+    suspend fun follow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Unit>
 
     // Unfollow
     @DELETE("users/{user_id}/followings/{friend_id}")
-    suspend fun unfollow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Any>
+    suspend fun unfollow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Unit>
 
 }

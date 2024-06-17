@@ -5,44 +5,93 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.ShowProfileResponse
-import com.neatplex.nightell.domain.repository.ProfileRepository
+import com.neatplex.nightell.data.dto.UserUpdated
+import com.neatplex.nightell.data.dto.Users
+import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.domain.repository.FollowRepository
+import com.neatplex.nightell.domain.usecase.PostUseCase
+import com.neatplex.nightell.domain.usecase.ProfileUseCase
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ProfileViewModel @Inject constructor(private val profileRepository: ProfileRepository) : ViewModel() {
+class ProfileViewModel @Inject constructor(
+    private val profileUseCase: ProfileUseCase, private val followRepository: FollowRepository, private val postUseCase: PostUseCase) : ViewModel() {
 
-    private val _showUserInfoResult = MutableLiveData<Result<ShowProfileResponse?>>()
-    val showUserInfoResult : LiveData<Result<ShowProfileResponse?>> get() = _showUserInfoResult
+    private val _profileData = MutableLiveData<Result<ShowProfileResponse>>()
+    val profileData: LiveData<Result<ShowProfileResponse>>
+        get() = _profileData
 
-    private val _followResult = MutableLiveData<Result<Any?>>()
-    val followResult: LiveData<Result<Any?>> get() = _followResult
+    private val _userUpdatedData = MutableLiveData<Result<UserUpdated>>()
+    val userUpdatedData: LiveData<Result<UserUpdated>>
+        get() = _userUpdatedData
 
-    private val _unfollowResult = MutableLiveData<Result<Any?>>()
-    val unfollowResult: LiveData<Result<Any?>> get() = _unfollowResult
+    private val _posts = MutableLiveData<List<Post>?>()
+    val posts: LiveData<List<Post>?> get() = _posts
 
 
-    fun getUserInfo(userId: Int) {
+    private val _usersList = MutableLiveData<Result<Users?>>()
+    val usersList: LiveData<Result<Users?>>
+        get() = _usersList
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
+
+    fun fetchProfile() {
         viewModelScope.launch {
-            _showUserInfoResult.value = Result.Loading
-            val result = profileRepository.showUserProfile(userId)
-            _showUserInfoResult.value = result
+            _profileData.value = Result.Loading
+            val result = profileUseCase.profile()
+            _profileData.value = result
         }
     }
 
-    fun followUser(userId: Int, friendId: Int){
+    fun updateProfileName(name: String){
         viewModelScope.launch {
-            val result = profileRepository.follow(userId, friendId)
-            _followResult.value = result
+            val result = profileUseCase.changeProfileName(name)
+            _userUpdatedData.value = result
+        }
+    }
+    fun updateBioOfUser(bio: String){
+        viewModelScope.launch {
+            val result = profileUseCase.changeProfileBio(bio)
+            _userUpdatedData.value = result
         }
     }
 
-    fun unfollowUser(userId: Int, friendId: Int){
+    fun updateUsernameOfUser(username: String){
         viewModelScope.launch {
-            val result = profileRepository.unfollow(userId, friendId)
-            _unfollowResult.value = result
+            val result = profileUseCase.changeProfileUsername(username)
+            _userUpdatedData.value = result
+        }
+    }
+
+    fun fetchUserFollowers(userId: Int) {
+        viewModelScope.launch {
+            val result = followRepository.followers(userId)
+            _usersList.value = result
+        }
+    }
+
+    fun fetchUserFollowings(userId: Int) {
+        viewModelScope.launch {
+            val result = followRepository.followings(userId)
+            _usersList.value = result
+        }
+    }
+
+    fun loadPosts(userId : Int){
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = postUseCase.loadUserPosts(userId)
+            if (result is Result.Success) {
+                _posts.value = result.data
+            } else {
+                _posts.value = emptyList()
+            }
+            _isLoading.value = false
         }
     }
 }

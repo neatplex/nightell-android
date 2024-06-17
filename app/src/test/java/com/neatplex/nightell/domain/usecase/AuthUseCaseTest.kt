@@ -35,7 +35,7 @@ import kotlin.test.assertEquals
 
 @RunWith(MockitoJUnitRunner::class)
 @ExperimentalCoroutinesApi
-class UserAuthUseCaseTest {
+class AuthUseCaseTest {
 
     @Mock
     lateinit var userAuthRepositoryImpl: AuthRepositoryImpl
@@ -44,7 +44,7 @@ class UserAuthUseCaseTest {
     lateinit var tokenManager: TokenManager
 
     @InjectMocks
-    lateinit var userAuthUseCase: UserAuthUseCase
+    lateinit var authUseCase: AuthUseCase
 
     private val testDispatcher = TestCoroutineDispatcher()
 
@@ -83,7 +83,7 @@ class UserAuthUseCaseTest {
 
         whenever(userAuthRepositoryImpl.register(request)).thenReturn(result)
 
-        val actualResult = userAuthUseCase.register("testuser", "test@example.com", "password")
+        val actualResult = authUseCase.register("testuser", "test@example.com", "password")
 
         assertEquals(result, actualResult)
         verify(tokenManager).setToken(authResponse.token)
@@ -103,7 +103,7 @@ class UserAuthUseCaseTest {
 
         `when`(userAuthRepositoryImpl.loginWithEmail(request)).thenReturn(result)
 
-        val actualResult = userAuthUseCase.login(validEmail, "password")
+        val actualResult = authUseCase.login(validEmail, "password")
 
         assertEquals(result, actualResult)
         verify(tokenManager).setToken(authResponse.token)
@@ -123,7 +123,7 @@ class UserAuthUseCaseTest {
 
         `when`(userAuthRepositoryImpl.loginWithUsername(request)).thenReturn(result)
 
-        val actualResult = userAuthUseCase.login(username, "password")
+        val actualResult = authUseCase.login(username, "password")
 
         assertEquals(result, actualResult)
         verify(tokenManager).setToken(authResponse.token)
@@ -139,7 +139,7 @@ class UserAuthUseCaseTest {
         // Mock the repository response
         `when`(userAuthRepositoryImpl.register(request)).thenReturn(result)
 
-        val actualResult = userAuthUseCase.register("testuser", "test@example.com", "password")
+        val actualResult = authUseCase.register("testuser", "test@example.com", "password")
 
         // Assert that the result is as expected
         assertEquals(result, actualResult)
@@ -162,7 +162,7 @@ class UserAuthUseCaseTest {
 
         `when`(userAuthRepositoryImpl.loginWithEmail(request)).thenReturn(result)
 
-        val actualResult = userAuthUseCase.login(validEmail, "password")
+        val actualResult = authUseCase.login(validEmail, "password")
 
         assertEquals(result, actualResult)
         verify(tokenManager, never()).setToken(anyString())

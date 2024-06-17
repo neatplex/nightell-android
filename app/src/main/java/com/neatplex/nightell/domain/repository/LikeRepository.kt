@@ -27,7 +27,7 @@ class LikeRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    suspend fun deleteLike(likeId : Int) : Result<Any?>{
+    suspend fun deleteLike(likeId : Int) : Result<Unit>{
         return try {
             val response = apiService.deleteLike(likeId)
             handleApiResponse(response)

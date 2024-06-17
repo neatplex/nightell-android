@@ -16,7 +16,7 @@ class FileRepository @Inject constructor(private val apiService: ApiService) {
     suspend fun uploadFile(
         file: File,
         extension: String
-    ): Result<FileUploadResponse?> {
+    ): Result<FileUploadResponse> {
         val requestBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
         val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
         val extensionPart = extension.toRequestBody("text/plain".toMediaTypeOrNull())

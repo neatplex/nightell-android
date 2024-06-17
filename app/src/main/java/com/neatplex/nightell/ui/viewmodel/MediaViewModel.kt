@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.shared
+package com.neatplex.nightell.ui.viewmodel
 
 import android.net.Uri
 import androidx.compose.runtime.mutableStateOf

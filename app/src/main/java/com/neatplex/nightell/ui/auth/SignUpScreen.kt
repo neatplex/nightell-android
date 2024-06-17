@@ -54,9 +54,9 @@ import com.neatplex.nightell.utils.Validation.isValidUsername
 @Composable
 fun SignUpScreen(
     navController: NavController,
-    userAuthViewModel: UserAuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val authResultState by userAuthViewModel.authResult.observeAsState()
+    val authResultState by authViewModel.authResult.observeAsState()
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -132,7 +132,7 @@ fun SignUpScreen(
                     if (username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() &&
                         isValidUsername(username) && isValidEmail(email) && isValidPassword(password)
                     ) {
-                        userAuthViewModel.registerUser(username, email, password)
+                        authViewModel.registerUser(username, email, password)
                     }
                 },
                 modifier = Modifier

@@ -2,6 +2,8 @@ package com.neatplex.nightell.navigation
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -18,15 +20,14 @@ import com.neatplex.nightell.ui.home.HomeScreen
 import com.neatplex.nightell.ui.auth.SignInScreen
 import com.neatplex.nightell.ui.profile.ProfileScreen
 import com.neatplex.nightell.ui.auth.SignUpScreen
-import com.neatplex.nightell.ui.screens.SplashScreen
+import com.neatplex.nightell.ui.splash.SplashScreen
 import com.neatplex.nightell.ui.post.PostScreen
 import com.neatplex.nightell.ui.search.SearchScreen
 import com.neatplex.nightell.ui.user.UserScreen
-import com.neatplex.nightell.ui.shared.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
-import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.fromJson
-
 
 @Composable
 fun BottomNavHost(
@@ -36,16 +37,12 @@ fun BottomNavHost(
     startService: () -> Unit
 ) {
 
-
-    val hasToken = tokenManager.getToken() != null
+    val tokenState by tokenManager.tokenState.collectAsState()
     val sharedViewModel : SharedViewModel = hiltViewModel()
 
-
-
     NavHost(navController = navController, startDestination = "splash") {
-
         composable("splash") {
-            SplashScreen(navController = navController, hasToken)
+            SplashScreen(navController = navController, hasToken = tokenState != null)
         }
 
         composable("signIn") {
@@ -57,22 +54,25 @@ fun BottomNavHost(
         }
 
         composable(Screens.Home.route) {
-            HomeNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, startService = startService)
+            HomeNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, startService = startService, tokenState)
         }
 
         composable(Screens.AddPost.route) {
-            AddPostScreen()
+            AddPostScreen(tokenState, navController,
+                onLogout = {
+                }
+            )
         }
 
         composable(Screens.Profile.route) {
-            ProfileNavHost(sharedViewModel, mediaViewModel = mediaViewModel, startService = startService)
+            ProfileNavHost(parentNavController = navController, sharedViewModel, mediaViewModel = mediaViewModel, startService = startService,tokenState)
         }
 
     }
 }
 
 @Composable
-fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit){
+fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit, tokenState: String?){
 
     val homeNavController = rememberNavController()
 
@@ -108,17 +108,15 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
             val userId = backStackEntry.arguments?.getInt("userId") ?: -1
             UserScreen(homeNavController, userId, sharedViewModel = sharedViewModel)
         }
-
     }
 }
 
 @Composable
-fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit){
+fun ProfileNavHost(parentNavController: NavHostController, sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit, tokenState: String?){
 
     val profileNavController = rememberNavController()
 
     NavHost(navController = profileNavController, startDestination = "ProfileInfo"){
-
         composable("ProfileInfo") {
             ProfileScreen(navController = profileNavController, sharedViewModel = sharedViewModel)
         }
@@ -145,7 +143,7 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
         }
 
         composable("editProfile") {
-            EditProfileScreen(profileNavController, sharedViewModel = sharedViewModel)
+            EditProfileScreen(parentNavController = parentNavController, profileNavController, sharedViewModel = sharedViewModel)
         }
 
         composable(
@@ -168,4 +166,3 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
         }
     }
 }
-

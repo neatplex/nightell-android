@@ -22,7 +22,7 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
             val newFeed = result.data?.posts ?: emptyList()
             if (newFeed.isNotEmpty()) {
                 lastPostId = newFeed.last().id
-                allPosts = newFeed
+                allPosts = newFeed + allPosts
             }
             Result.Success(allPosts)
         } else {
@@ -36,13 +36,13 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
         return loadFeed() // Reload the feed
     }
 
-    suspend fun loadUserPosts(userId: Int): Result<List<Post>> {
+    suspend fun loadUserPosts(userId: Int): Result<List<Post>?> {
         val result = postRepository.showUserPosts(userId, lastUserPostId)
         return if (result is Result.Success) {
             val newFeed = result.data?.posts ?: emptyList()
             if (newFeed.isNotEmpty()) {
                 lastUserPostId = newFeed.last().id
-                allUserPosts = newFeed
+                allUserPosts = newFeed + allPosts
             }
             Result.Success(allUserPosts)
         } else {
@@ -50,26 +50,22 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
         }
     }
 
-    suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse?> {
+    suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse> {
         return postRepository.uploadPost(title, description, audioId, imageId)
     }
 
-    suspend fun editPost(postId: Int, newTitle: String, newDescription: String): Result<PostStoreResponse?> {
+    suspend fun editPost(postId: Int, newTitle: String, newDescription: String): Result<PostStoreResponse> {
         return postRepository.editPost(newTitle, newDescription, postId)
     }
 
-    suspend fun deletePost(postId: Int): Result<Any?> {
+    suspend fun deletePost(postId: Int): Result<Unit> {
         return postRepository.deletePost(postId)
     }
 
-    suspend fun search(q: String) : Result<List<Post>> {
-        val result = postRepository.search(q,lastSearchedPostId)
+    suspend fun search(query: String) : Result<List<Post>> {
+        val result = postRepository.search(query,lastSearchedPostId)
         return if (result is Result.Success) {
-            val newFeed = result.data?.posts ?: emptyList()
-            if (newFeed.isNotEmpty()) {
-                lastSearchedPostId = newFeed.last().id
-                allSearchedPosts = allSearchedPosts + newFeed
-            }
+            allSearchedPosts = result.data?.posts ?: emptyList()
             Result.Success(allSearchedPosts)
         } else {
             Result.Error("Error loading searched posts", null)

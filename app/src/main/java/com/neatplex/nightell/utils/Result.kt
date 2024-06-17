@@ -11,7 +11,7 @@ sealed class Result<out T> {
 }
 
 // API Response Handler
-fun <T> handleApiResponse(response: Response<T>): Result<T?> {
+fun <T> handleApiResponse(response: Response<T>): Result<T> {
     return if (response.isSuccessful) {
         Result.Success(response.body(), response.code())
     } else {

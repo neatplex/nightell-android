@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,16 +41,22 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.user.UserProfileViewModel
-import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import kotlinx.coroutines.Delay
+import kotlinx.coroutines.delay
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewModel) {
+@NonRestartableComposable
+fun EditProfileScreen(
+    parentNavController: NavController,
+    navController: NavController,
+    sharedViewModel: SharedViewModel
+) {
 
-    val userProfileViewModel: UserProfileViewModel = hiltViewModel()
+    val profileViewModel: ProfileViewModel = hiltViewModel()
     val user = sharedViewModel.user
-    val editProfileResult by userProfileViewModel.userUpdatedData.observeAsState()
+    val editProfileResult by profileViewModel.userUpdatedData.observeAsState()
 
 
     // State for edited fields
@@ -107,7 +115,7 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                     isChanged = isNameChanged,
                     onSaveClicked = {
                         if (isNameChanged) {
-                            userProfileViewModel.changeProfileName(editedName)
+                            profileViewModel.updateProfileName(editedName)
                             isNameChanged = false
                         }
                     },
@@ -128,7 +136,7 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                     isChanged = isBioChanged,
                     onSaveClicked = {
                         if (isBioChanged) {
-                            userProfileViewModel.updateBioOfUser(editedBio)
+                            profileViewModel.updateBioOfUser(editedBio)
                             isBioChanged = false
                         }
                     },
@@ -149,7 +157,7 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                     isChanged = isUsernameChanged,
                     onSaveClicked = {
                         if (isUsernameChanged) {
-                            userProfileViewModel.updateUsernameOfUser(editedUsername)
+                            profileViewModel.updateUsernameOfUser(editedUsername)
                             isUsernameChanged = false
                         }
                     },
@@ -179,9 +187,10 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
                         },
                         confirmButton = {
                             Button(onClick = {
-                                // Handle sign out logic
-                                //sharedViewModel.deleteToken()
-
+                                sharedViewModel.deleteToken()
+                                parentNavController.navigate("splash") {
+                                    popUpTo(0) { inclusive = true }
+                                }
                             }) {
                                 Text("Yes")
                             }
@@ -216,6 +225,8 @@ fun EditProfileScreen(navController: NavController, sharedViewModel: SharedViewM
             is Result.Loading -> {
                 // Show loading indicator
             }
+
+            else -> {}
         }
     }
 }

@@ -1,8 +1,7 @@
-package com.neatplex.nightell.ui.screens
+package com.neatplex.nightell.ui.splash
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -10,7 +9,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -22,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -39,8 +36,8 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
 
     // Animate the offset for the gradient
     val offsetX by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2.5f,
+        initialValue = 1.5f,
+        targetValue = 2f,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -52,7 +49,7 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
     // Create the gradient brush
     val gradientBrush = Brush.linearGradient(
         colors = colors,
-        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+        start = androidx.compose.ui.geometry.Offset(100f, 100f),
         end = androidx.compose.ui.geometry.Offset(1000f * offsetX, 1000f * offsetX)
     )
 

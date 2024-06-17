@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService) : AuthRepository {
 
-    override suspend fun register(request: RegistrationRequest): Result<AuthResponse?> {
+    override suspend fun register(request: RegistrationRequest): Result<AuthResponse> {
         return try {
             val response = apiService.register(request)
             handleApiResponse(response)
@@ -21,7 +21,7 @@ class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun loginWithEmail(request: LoginEmailRequest): Result<AuthResponse?> {
+    override suspend fun loginWithEmail(request: LoginEmailRequest): Result<AuthResponse> {
         return try {
             val response = apiService.loginWithEmail(request)
             handleApiResponse(response)
@@ -30,7 +30,7 @@ class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun loginWithUsername(request: LoginUsernameRequest): Result<AuthResponse?> {
+    override suspend fun loginWithUsername(request: LoginUsernameRequest): Result<AuthResponse> {
         return try {
             val response = apiService.loginWithUsername(request)
             handleApiResponse(response)

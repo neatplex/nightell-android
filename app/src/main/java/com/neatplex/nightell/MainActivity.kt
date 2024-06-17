@@ -14,7 +14,7 @@ import com.neatplex.nightell.navigation.BottomNavigationScreen
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.service.MediaService
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.ui.shared.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
 

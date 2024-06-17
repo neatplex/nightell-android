@@ -3,6 +3,8 @@ package com.neatplex.nightell.utils
 import android.content.Context
 import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 class TokenManager @Inject constructor(@ApplicationContext private val context: Context) {
@@ -14,8 +16,13 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
     private val USER_ID = "user_id"
     private val USER_EMAIL = "user_email"
 
+    private val _tokenState = MutableStateFlow<String?>(getToken())
+    val tokenState: StateFlow<String?> = _tokenState
+
     fun setToken(token: String) {
         sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
+        _tokenState.value = token
+
     }
 
     fun getToken(): String? {
@@ -24,6 +31,7 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
 
     fun deleteToken() {
         sharedPreferences.edit().remove(TOKEN_KEY).apply()
+        _tokenState.value = null
     }
 
     fun setId(id: Int) {

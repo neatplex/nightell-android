@@ -11,12 +11,12 @@ import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.Validation
 
 
-class UserAuthUseCase @Inject constructor(
+class AuthUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val tokenManager: TokenManager
 ) {
 
-    suspend fun register(username: String, email: String, password: String): Result<AuthResponse?> {
+    suspend fun register(username: String, email: String, password: String): Result<AuthResponse> {
         val request = RegistrationRequest(username, email, password)
         val result = authRepository.register(request)
         if (result is Result.Success) {
@@ -27,7 +27,7 @@ class UserAuthUseCase @Inject constructor(
         return result
     }
 
-    suspend fun login(emailOrUsername: String, password: String): Result<AuthResponse?> {
+    suspend fun login(emailOrUsername: String, password: String): Result<AuthResponse> {
 
         val request = if (Validation.isValidEmail(emailOrUsername)) {
             LoginEmailRequest(emailOrUsername, password)

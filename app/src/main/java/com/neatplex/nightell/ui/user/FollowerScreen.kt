@@ -22,16 +22,16 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.component.ShowUsers
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun FollowerScreen(navController: NavController, userId: Int, sharedViewModel : SharedViewModel) {
 
-    val userProfileViewModel : UserProfileViewModel = hiltViewModel()
-    val usersObserve by userProfileViewModel.userData.observeAsState()
+    val userViewModel : UserViewModel = hiltViewModel()
+    val usersObserve by userViewModel.usersList.observeAsState()
     LaunchedEffect(Unit) {
-        userProfileViewModel.fetchUserFollowers(userId)
+        userViewModel.fetchUserFollowers(userId)
     }
 
     Scaffold(

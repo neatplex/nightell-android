@@ -4,6 +4,7 @@ package com.neatplex.nightell.ui.post
 import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -35,7 +37,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -44,6 +45,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -57,10 +59,10 @@ import com.neatplex.nightell.component.media.formatTime
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.shared.MediaViewModel
-import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.profile.ProfileViewModel
-import com.neatplex.nightell.ui.shared.UIEvent
+import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 
 @Composable
@@ -71,13 +73,10 @@ fun PostScreen(
     mediaViewModel: MediaViewModel,
     startService: () -> Unit
 ) {
-
     var changeState by remember { mutableStateOf(0) }
 
     // Initialize ViewModels
-    val profileViewModel: ProfileViewModel = hiltViewModel()
     val postViewModel: PostViewModel = hiltViewModel()
-    val likeViewModel: LikeViewModel = hiltViewModel()
 
     // Retrieve necessary data
     val post = data!!
@@ -92,15 +91,13 @@ fun PostScreen(
 
     // Fetch likes and user info
     LaunchedEffect(Unit) {
-        likeViewModel.showLikes(post.id)
-        profileViewModel.getUserInfo(post.user_id)
+        postViewModel.showLikes(post.id)
     }
 
     //Observe likes and user info results
-    val likesCountResult by likeViewModel.showLikesResult.observeAsState()
-    val unlikeResult by likeViewModel.unlikeResult.observeAsState()
-    val likeResult by likeViewModel.likeResult.observeAsState()
-    val userInfoResult by profileViewModel.showUserInfoResult.observeAsState()
+    val likesCountResult by postViewModel.showLikesResult.observeAsState()
+    val unlikeResult by postViewModel.unlikeResult.observeAsState()
+    val likeResult by postViewModel.likeResult.observeAsState()
     val postUpdateResult by postViewModel.storePostResult.observeAsState()
 
 
@@ -115,9 +112,11 @@ fun PostScreen(
                     icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
                     likeId = if (isLiked) likes.find { it.user_id == userId }?.id else null
                 }
+
                 is Result.Error -> {
                     // Handle error case
                 }
+
                 else -> {
                 }
             }
@@ -130,7 +129,7 @@ fun PostScreen(
                 isLiked = true
                 likeId = it.data!!.like.id
                 icon = Icons.Filled.Favorite
-            }else {
+            } else {
                 isLiked = false
             }
         }
@@ -156,7 +155,10 @@ fun PostScreen(
     val imagePath = Constant.Files_URL + post.image?.path
     val postId = post.id
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
 
         Row(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = {
@@ -171,7 +173,7 @@ fun PostScreen(
             Spacer(Modifier.weight(1f))
 
             // Conditional toggle menu for edit/delete
-            if (userId == post.user_id) {
+            if (userId == post.user.id) {
                 // Show edit and delete menu here
                 Box(modifier = Modifier.padding(8.dp)) {
                     IconButton(
@@ -234,57 +236,44 @@ fun PostScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(all = 5.dp),
+                    .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
-                userInfoResult?.let { userResult ->
-                    when (userResult) {
-                        is Result.Success -> {
-                            Spacer(modifier = Modifier.width(16.dp))
-                            userResult.data?.user?.let {
-                                val imageResource =
-                                    rememberImagePainter(data = R.drawable.default_profile_image)
-
-                                Image(
-                                    painter = imageResource,
-                                    contentDescription = "Profile Image",
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .clip(CircleShape),
-                                    contentScale = ContentScale.Crop
-                                )
-                                Text(
-                                    text = it.username,
-                                    modifier = Modifier
-                                        .padding(start = 8.dp)
-                                        .clickable {
-                                            // Navigate to another page when "Followers" is clicked
-                                            if (sharedViewModel.user.value?.id != it.id) {
-                                                navController.navigate("userScreen/${it.id}")
-                                            }
-                                        }
-                                )
+                val imageResource =
+                    rememberImagePainter(data = R.drawable.default_profile_image)
+                Image(
+                    painter = imageResource,
+                    contentDescription = "Profile Image",
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                Text(
+                    text = post.user.username,
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clickable {
+                            // Navigate to another page when "Followers" is clicked
+                            if (sharedViewModel.user.value?.id != post.user.id) {
+                                navController.navigate("userScreen/${post.user.id}")
                             }
                         }
+                )
 
-                        else -> {
-                        }
-                    }
-                }
                 Spacer(Modifier.weight(1f))
-                
+
                 Text(text = likesCount.toString())
 
                 IconButton(onClick = {
                     if (!isLiked) {
-                        likeViewModel.like(post.id)
+                        postViewModel.like(post.id)
                         isLiked = true
                         likesCount++
                         icon = Icons.Filled.Favorite
                     } else {
                         likeId?.let { id ->
-                            likeViewModel.deleteLike(id)
+                            postViewModel.deleteLike(id)
                         }
                         isLiked = false
                         likesCount--
@@ -293,14 +282,15 @@ fun PostScreen(
                 }) {
                     Icon(
                         icon, contentDescription = "Like",
-                        modifier = Modifier.size(35.dp)
+                        modifier = Modifier.size(42.dp),
+                        tint = if (isLiked) colorResource(id = R.color.purple_light) else Color.Gray
                     )
                 }
             }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(all = 8.dp)
+                    .padding(horizontal = 16.dp)
             ) {
 
                 if (!mediaViewModel.initial) {
@@ -309,7 +299,7 @@ fun PostScreen(
                 // Observe data changes and load media when available
                 var isSame = postId.toString() == mediaViewModel.currentPostId
 
-                if(isSame){
+                if (isSame) {
                     BottomPlayerUI(
                         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
                         playResourceProvider = {
@@ -321,9 +311,9 @@ fun PostScreen(
                                 mediaViewModel.progressString
                             )
                         },
-                        onUiEvent = mediaViewModel::onUIEvent)
+                        onUiEvent = mediaViewModel::onUIEvent
+                    )
                 } else {
-
                     var totalDuration by remember { mutableStateOf(0L) }
 
                     val mediaPlayer = MediaPlayer().apply {
@@ -345,7 +335,12 @@ fun PostScreen(
                         },
                         onUiEvent = {
                             // Replace audio with the one in mediaViewModel when play button is clicked
-                            mediaViewModel.loadData(audioPath, imagePath, editedTitle, postId.toString())
+                            mediaViewModel.loadData(
+                                audioPath,
+                                imagePath,
+                                editedTitle,
+                                postId.toString()
+                            )
                             // Automatically play the audio when it's loaded
                             mediaViewModel.onUIEvent(UIEvent.PlayPause)
                         }
@@ -353,80 +348,81 @@ fun PostScreen(
                 }
             }
 
-            if (isEditing) {
-                TextField(
-                    value = editedTitle,
-                    onValueChange = {
-                        editedTitle = it.take(25) // Limiting input to 250 characters
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text("Title", color = Color.Black) // Changing label color
-                    },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        backgroundColor = Color.White.copy(0.5f), // Changing background color
-                        textColor = Color.Black, // Changing text color
-                        focusedBorderColor = Color.White
-                    ),
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text
-                    )
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                TextField(
-                    value = editedDescription,
-                    onValueChange = {
-                        editedDescription = it.take(250) // Limiting input to 250 characters
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text("Caption", color = Color.Black) // Changing label color
-                    },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        backgroundColor = Color.White.copy(0.5f), // Changing background color
-                        textColor = Color.Black, // Changing text color
-                        focusedBorderColor = Color.White
-                    ),
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text
-                    )
-                )
+            Column{
                 Row(
                     modifier = Modifier
-                        .align(alignment = Alignment.CenterHorizontally)
-                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 ) {
-                    CustomSimpleButton(
-                        onClick = {
-                            if (editedTitle != post.title || editedDescription != post.description) {
-                                postViewModel.editPost(post.id, editedTitle, editedDescription)
-                                isEditing = false
-                            }
-                        },
-                        text = "Save Changes"
-                    )
-                }
+                    if (isEditing) {
+                        TextField(
+                            value = editedTitle,
+                            onValueChange = {
+                                editedTitle = it.take(25) // Limiting input to 250 characters
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {
+                                Text("Title", color = Color.Black) // Changing label color
+                            },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                backgroundColor = Color.White.copy(0.5f), // Changing background color
+                                textColor = Color.Black, // Changing text color
+                                focusedBorderColor = Color.White
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Text
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        TextField(
+                            value = editedDescription,
+                            onValueChange = {
+                                editedDescription = it.take(250) // Limiting input to 250 characters
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {
+                                Text("Caption", color = Color.Black) // Changing label color
+                            },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                backgroundColor = Color.White.copy(0.5f), // Changing background color
+                                textColor = Color.Black, // Changing text color
+                                focusedBorderColor = Color.White
+                            ),
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Text
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        CustomSimpleButton(
+                            onClick = {
+                                if (editedTitle != post.title || editedDescription != post.description) {
+                                    postViewModel.editPost(post.id, editedTitle, editedDescription)
+                                    isEditing = false
+                                }
+                            },
+                            text = "Save Changes"
+                        )
 
-            } else {
-                Text(
-                    text = editedTitle,
-                    style = MaterialTheme.typography.h5,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = editedDescription,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                    } else {
+                        Text(
+                            text = editedTitle,
+                            style = MaterialTheme.typography.h5,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = editedDescription,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
             }
         }
     }
 
     postUpdateResult?.let {
         if (it is Result.Success) {
-            changeState ++
+            changeState++
             isEditing = false
         }
     }

@@ -11,7 +11,7 @@ import javax.inject.Inject
 
 class PostRepositoryImpl @Inject constructor(private val apiService: ApiService) : PostRepository{
 
-    override suspend fun showFeed(lastId: Int?) : Result<PostCollection?> {
+    override suspend fun showFeed(lastId: Int?) : Result<PostCollection> {
         return try {
             val response = apiService.showFeed(lastId)
             handleApiResponse(response)
@@ -20,7 +20,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun showUserPosts(userId: Int, lastId: Int?) : Result<PostCollection?> {
+    override suspend fun showUserPosts(userId: Int, lastId: Int?) : Result<PostCollection> {
         return try {
             val response = apiService.showUserPosts(userId,lastId)
             handleApiResponse(response)
@@ -30,7 +30,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse?> {
+    override suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse> {
 
         val request = PostUploadRequest(title,description, audioId, imageId)
 
@@ -42,7 +42,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun editPost(title: String, description: String, postId: Int) : Result<PostStoreResponse?> {
+    override suspend fun editPost(title: String, description: String, postId: Int) : Result<PostStoreResponse> {
         val request = PostUpdateRequest(title,description)
         return try {
             val response = apiService.updatePost(postId, request)
@@ -53,7 +53,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
 
     }
 
-    override suspend fun deletePost(postId: Int) : Result<Any?> {
+    override suspend fun deletePost(postId: Int) : Result<Unit> {
         return try {
             val response = apiService.deletePost(postId)
             handleApiResponse(response)
@@ -62,7 +62,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun search(query: String, lastId: Int?): Result<PostCollection?> {
+    override suspend fun search(query: String, lastId: Int?): Result<PostCollection> {
         return try {
             val response = apiService.search(query, lastId)
             handleApiResponse(response)

@@ -6,6 +6,8 @@ import com.neatplex.nightell.domain.repository.PostRepository
 import com.neatplex.nightell.domain.repository.PostRepositoryImpl
 import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.domain.repository.AuthRepositoryImpl
+import com.neatplex.nightell.domain.repository.ProfileRepository
+import com.neatplex.nightell.domain.repository.ProfileRepositoryImpl
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.TokenManager
 import dagger.Binds
@@ -29,7 +31,7 @@ import javax.inject.Singleton
 abstract class NetworkModule {
 
     @Binds
-    abstract fun bindUserAuthRepository(
+    abstract fun bindAuthRepository(
         userAuthRepositoryImpl: AuthRepositoryImpl
     ): AuthRepository
 
@@ -37,6 +39,11 @@ abstract class NetworkModule {
     abstract fun bindPostRepository(
         postRepositoryImpl: PostRepositoryImpl
     ) : PostRepository
+
+    @Binds
+    abstract fun bindProfileRepository(
+        profileRepositoryImpl: ProfileRepositoryImpl
+    ) : ProfileRepository
 
     companion object {
         @Provides

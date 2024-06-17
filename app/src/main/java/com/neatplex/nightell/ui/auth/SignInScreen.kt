@@ -56,7 +56,7 @@ import kotlinx.coroutines.delay
 
 
 @Composable
-fun SignInScreen(navController: NavController, viewModel: UserAuthViewModel = hiltViewModel()) {
+fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
     var emailOrUsername by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }

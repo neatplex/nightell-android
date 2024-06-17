@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -28,6 +27,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -45,12 +45,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
 import com.neatplex.nightell.ui.theme.MyVerticalGradiant
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.post.PostViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -61,7 +61,10 @@ import kotlinx.coroutines.launch
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AddPostScreen(
-    uploadViewModel: UploadViewModel = hiltViewModel()
+    tokenState: String?,
+    navController: NavController,
+    uploadViewModel: UploadViewModel = hiltViewModel(),
+    onLogout: () -> Unit
 ) {
 
     val uploadFileResults by uploadViewModel.uploadState.observeAsState()
@@ -79,7 +82,6 @@ fun AddPostScreen(
     var description by rememberSaveable { mutableStateOf("") }
     var audioId by rememberSaveable { mutableStateOf(0) }
     var imageId by rememberSaveable { mutableStateOf<Int?>(null) }
-
 
     val context = LocalContext.current
 
@@ -119,16 +121,13 @@ fun AddPostScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(color = Color.LightGray)
     ) {
 
         Column(
             modifier = Modifier
                 .padding(30.dp)
                 .align(alignment = Alignment.Center)
-                .background(
-                    brush = MyVerticalGradiant(),
-                    shape = RoundedCornerShape(8.dp),
-                )
         ) {
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -138,7 +137,6 @@ fun AddPostScreen(
                     elevation = 4.dp,
                     shape = CircleShape,
                     modifier = Modifier
-                        .padding(16.dp)
                 ) {
 
                     IconButton(
@@ -179,12 +177,14 @@ fun AddPostScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Row(modifier = Modifier
+                .align(alignment = Alignment.CenterHorizontally)
+                .padding(top = 4.dp)) {
                 Text(
                     text = if (audioId == 0) {
-                        "1. MP3 AUDIO FILE"
+                        "CHOOSE MP3 AUDIO FILE"
                     } else {
-                        "2. JPG IMAGE FILE"
+                        "CHOOSE JPG IMAGE FILE"
                     }
                 )
             }
@@ -202,7 +202,7 @@ fun AddPostScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
+            Row() {
                 TextField(
                     value = title,
                     onValueChange = {
@@ -222,10 +222,8 @@ fun AddPostScreen(
                     )
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            Row(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
+            Row() {
                 TextField(
                     value = description,
                     onValueChange = {
@@ -245,7 +243,6 @@ fun AddPostScreen(
                     )
                 )
             }
-
             // Observe audio upload results
             when (val result = uploadFileResults) {
                 is Result.Success -> {
@@ -259,23 +256,18 @@ fun AddPostScreen(
                         }
                     }
                 }
-
                 is Result.Error -> {
                     errorMessage = result.message
                 }
-
                 else -> {}
             }
-
             if (uploadPostIsLoading || uploadFileIsLoading) {
                 LinearProgressIndicator(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     color = MaterialTheme.colors.surface
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
 
                 CustomSimpleButton(
@@ -289,9 +281,7 @@ fun AddPostScreen(
                     text = "Upload Post"
                 )
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
                 Text(errorMessage, color = Color.Red)
                 if(errorMessage.length > 5){
@@ -301,9 +291,7 @@ fun AddPostScreen(
                     }
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
-
             uploadPostResult?.let { result ->
                 when (result) {
                     is Result.Success -> {
@@ -318,6 +306,10 @@ fun AddPostScreen(
                         imageId = null
                         // Reset error message
                         errorMessage = ""
+
+                        navController.navigate("home") {
+                            popUpTo("home") { inclusive = true }
+                        }
                     }
 
                     is Result.Error -> {
@@ -339,7 +331,6 @@ fun AddPostScreen(
 fun getFileNameAndUri(context: Context, uri: Uri): Pair<String?, Uri?> {
     var fileName: String? = null
     var mainUri: Uri? = null
-
     context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
         if (cursor.moveToFirst()) {
             val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
@@ -347,7 +338,6 @@ fun getFileNameAndUri(context: Context, uri: Uri): Pair<String?, Uri?> {
             mainUri = uri
         }
     }
-
     return Pair(fileName, mainUri)
 }
 
@@ -355,12 +345,10 @@ fun uriToFile(context: Context, uri: Uri): File? {
     val inputStream = context.contentResolver.openInputStream(uri)
     val tempFile = File.createTempFile("temp_file", null, context.cacheDir)
     tempFile.deleteOnExit()
-
     inputStream?.use { input ->
         FileOutputStream(tempFile).use { output ->
             input.copyTo(output)
         }
     }
-
     return tempFile
 }

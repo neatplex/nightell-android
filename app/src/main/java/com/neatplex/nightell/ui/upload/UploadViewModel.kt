@@ -17,11 +17,11 @@ import javax.inject.Inject
 @HiltViewModel
 class UploadViewModel @Inject constructor(private val postUseCase: PostUseCase, private val fileRepository: FileRepository) : ViewModel() {
 
-    private var _storePostResult = MutableLiveData<Result<PostStoreResponse?>>()
-    val storePostResult: LiveData<Result<PostStoreResponse?>> get() = _storePostResult
+    private var _storePostResult = MutableLiveData<Result<PostStoreResponse>>()
+    val storePostResult: LiveData<Result<PostStoreResponse>> get() = _storePostResult
 
-    private val _uploadState = MutableLiveData<Result<FileUploadResponse?>>()
-    val uploadState: LiveData<Result<FileUploadResponse?>> get() = _uploadState
+    private val _uploadState = MutableLiveData<Result<FileUploadResponse>>()
+    val uploadState: LiveData<Result<FileUploadResponse>> get() = _uploadState
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading

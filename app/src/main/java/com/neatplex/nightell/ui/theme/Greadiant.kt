@@ -5,6 +5,7 @@ import androidx.compose.material.SliderColors
 import androidx.compose.material.SliderDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import com.neatplex.nightell.R
 
@@ -21,13 +22,13 @@ fun MyHorizontalGradiant(): Brush {
 
 @Composable
 fun MyVerticalGradiant(): Brush {
-    return Brush.verticalGradient(
+    return Brush.linearGradient(
         colors = listOf(
-            colorResource(id = R.color.blue_light),
-            colorResource(id = R.color.blue),
-            colorResource(id = R.color.blue_dark),
-            colorResource(id = R.color.purple)
-        )
+            Color(0xFF4Da1aB),
+            Color(0xFF2D436C),
+            Color(0xFFDA03BD)),
+        start = androidx.compose.ui.geometry.Offset(0f, 0f),
+        end = androidx.compose.ui.geometry.Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
     )
 }
 

@@ -42,31 +42,26 @@ import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
-import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.user.UserProfileViewModel
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.post.PostViewModel
-import com.neatplex.nightell.ui.shared.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.ui.user.UserViewModel
 import com.neatplex.nightell.utils.toJson
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfileViewModel = hiltViewModel(), userViewModel: UserViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
+fun ProfileScreen(navController: NavController, profileViewModel: ProfileViewModel = hiltViewModel(), postViewModel: ProfileViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
 
-    val profileResult by userProfileViewModel.profileData.observeAsState()
+    val profileResult by profileViewModel.profileData.observeAsState()
     val userId = sharedViewModel.user.value!!.id
-    val posts by userViewModel.posts.observeAsState(emptyList<Post>())
-    val isLoading by userViewModel.isLoading.observeAsState(false)
+    val posts by postViewModel.posts.observeAsState(emptyList())
+    val isLoading by postViewModel.isLoading.observeAsState(false)
 
 
     // trigger the profile loading
     LaunchedEffect(Unit) {
-        userProfileViewModel.fetchProfile()
-        userViewModel.loadPosts(userId)
+        profileViewModel.fetchProfile()
+        profileViewModel.loadPosts(userId)
     }
 
     val (followers, setFollowers) = remember { mutableStateOf(0) }
@@ -94,11 +89,9 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp)
+                            .padding(8.dp)
                     ) {
-
                         when (val result = profileResult) {
-
                             is Result.Success -> {
                                 val user = result.data?.user
                                 val followers = result.data?.followers_count
@@ -115,13 +108,9 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
                                     color = Color.Red
                                 )
                             }
-
                             is Result.Loading -> {
-
                             }
-
                             else -> {}
-
                         }
 
                         Spacer(modifier = Modifier.height(30.dp))
@@ -139,7 +128,7 @@ fun ProfileScreen(navController: NavController, userProfileViewModel: UserProfil
                                     }
                                 }
                                 if (posts!!.size > 9 && index == posts!!.size - 1 && !isLoading) {
-                                    userViewModel.loadPosts(userId)
+                                    profileViewModel.loadPosts(userId)
                                 }
                             }
 
