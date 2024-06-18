@@ -50,7 +50,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.navigation.Screens
-import com.neatplex.nightell.ui.theme.MyVerticalGradiant
+import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.delay
 
@@ -62,7 +62,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     var isPasswordVisible by remember { mutableStateOf(false) }
     val authResultState by viewModel.authResult.observeAsState()
 
-    Box(modifier = Modifier.fillMaxSize().background(brush = MyVerticalGradiant())) {
+    Box(modifier = Modifier.fillMaxSize().background(brush = myLinearGradiant())) {
 
         Column(
             modifier = Modifier

@@ -4,7 +4,6 @@ package com.neatplex.nightell.ui.post
 import android.media.MediaPlayer
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,7 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
@@ -51,7 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.media.BottomPlayerUI
@@ -61,7 +58,6 @@ import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.ui.profile.ProfileViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 
@@ -147,7 +143,7 @@ fun PostScreen(
         }
     }
 
-    var editedTitle by remember { mutableStateOf(post.title ?: "") }
+    var editedTitle by remember { mutableStateOf(post.title) }
     var editedDescription by remember { mutableStateOf(post.description ?: "") }
     var isEditing by remember { mutableStateOf(false) }
 
@@ -165,7 +161,7 @@ fun PostScreen(
                 navController.popBackStack()
             }) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back"
                 )
             }
@@ -221,8 +217,8 @@ fun PostScreen(
                 .verticalScroll(scrollState)
                 .fillMaxSize()
         ) {
-            val imageResource = rememberImagePainter(
-                data = post.image?.path?.let { imagePath }
+            val imageResource = rememberAsyncImagePainter(
+                model = post.image?.path?.let { imagePath }
                     ?: R.drawable.ic_launcher_background
             )
             Image(
@@ -239,10 +235,10 @@ fun PostScreen(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val imageResource =
-                    rememberImagePainter(data = R.drawable.default_profile_image)
+                val imgResource =
+                    rememberAsyncImagePainter(model = R.drawable.default_profile_image)
                 Image(
-                    painter = imageResource,
+                    painter = imgResource,
                     contentDescription = "Profile Image",
                     modifier = Modifier
                         .size(40.dp)
@@ -292,12 +288,11 @@ fun PostScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             ) {
-
                 if (!mediaViewModel.initial) {
                     startService()
                 }
                 // Observe data changes and load media when available
-                var isSame = postId.toString() == mediaViewModel.currentPostId
+                val isSame = postId.toString() == mediaViewModel.currentPostId
 
                 if (isSame) {
                     BottomPlayerUI(
@@ -321,9 +316,7 @@ fun PostScreen(
                         prepare()
                         totalDuration = duration.toLong()
                     }
-
                     totalDuration = mediaPlayer.duration.toLong()
-
                     BottomPlayerUI(
                         modifier = Modifier.fillMaxWidth(),
                         durationString = formatTime(millis = totalDuration), // Default duration string
@@ -348,73 +341,71 @@ fun PostScreen(
                 }
             }
 
-            Column{
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    if (isEditing) {
-                        TextField(
-                            value = editedTitle,
-                            onValueChange = {
-                                editedTitle = it.take(25) // Limiting input to 250 characters
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = {
-                                Text("Title", color = Color.Black) // Changing label color
-                            },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                backgroundColor = Color.White.copy(0.5f), // Changing background color
-                                textColor = Color.Black, // Changing text color
-                                focusedBorderColor = Color.White
-                            ),
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Text
-                            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 32.dp)
+            ) {
+                if (isEditing) {
+                    TextField(
+                        value = editedTitle,
+                        onValueChange = {
+                            editedTitle = it.take(25) // Limiting input to 250 characters
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text("Title", color = Color.Black) // Changing label color
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color.White.copy(0.5f), // Changing background color
+                            textColor = Color.Black, // Changing text color
+                            focusedBorderColor = Color.White
+                        ),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        TextField(
-                            value = editedDescription,
-                            onValueChange = {
-                                editedDescription = it.take(250) // Limiting input to 250 characters
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            label = {
-                                Text("Caption", color = Color.Black) // Changing label color
-                            },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                backgroundColor = Color.White.copy(0.5f), // Changing background color
-                                textColor = Color.Black, // Changing text color
-                                focusedBorderColor = Color.White
-                            ),
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Text
-                            )
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    TextField(
+                        value = editedDescription,
+                        onValueChange = {
+                            editedDescription = it.take(250) // Limiting input to 250 characters
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text("Caption", color = Color.Black) // Changing label color
+                        },
+                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                            backgroundColor = Color.White.copy(0.5f), // Changing background color
+                            textColor = Color.Black, // Changing text color
+                            focusedBorderColor = Color.White
+                        ),
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        CustomSimpleButton(
-                            onClick = {
-                                if (editedTitle != post.title || editedDescription != post.description) {
-                                    postViewModel.editPost(post.id, editedTitle, editedDescription)
-                                    isEditing = false
-                                }
-                            },
-                            text = "Save Changes"
-                        )
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    CustomSimpleButton(
+                        onClick = {
+                            if (editedTitle != post.title || editedDescription != post.description) {
+                                postViewModel.editPost(post.id, editedTitle, editedDescription)
+                                isEditing = false
+                            }
+                        },
+                        text = "Save Changes"
+                    )
 
-                    } else {
-                        Text(
-                            text = editedTitle,
-                            style = MaterialTheme.typography.h5,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = editedDescription,
-                            modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                    }
+                } else {
+                    Text(
+                        text = editedTitle,
+                        style = MaterialTheme.typography.h5,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = editedDescription,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
                 }
             }
         }

@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.theme.MyVerticalGradiant
+import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Validation.isValidEmail
 import com.neatplex.nightell.utils.Validation.isValidPassword
 import com.neatplex.nightell.utils.Validation.isValidUsername
@@ -63,7 +63,7 @@ fun SignUpScreen(
     var isPasswordVisible by remember { mutableStateOf(false) }
 
 
-    Box(modifier = Modifier.fillMaxSize().background(brush = MyVerticalGradiant())) {
+    Box(modifier = Modifier.fillMaxSize().background(brush = myLinearGradiant())) {
 
         Column(
             modifier = Modifier

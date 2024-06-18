@@ -6,9 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -20,7 +18,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
+import com.neatplex.nightell.ui.theme.myHorizontalGradiant
 
 @Composable
 fun CustomSimpleButton(
@@ -55,7 +53,7 @@ fun CustomGradiantButton(
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(4.dp)) // Set rounded corners to the Box
-            .background(brush = MyHorizontalGradiant())
+            .background(brush = myHorizontalGradiant())
             .clickable(onClick = onClick) // Make the whole Box clickable
     ) {
         Text(

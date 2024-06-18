@@ -10,7 +10,7 @@ import androidx.compose.ui.res.colorResource
 import com.neatplex.nightell.R
 
 @Composable
-fun MyHorizontalGradiant(): Brush {
+fun myHorizontalGradiant(): Brush {
     return Brush.horizontalGradient(
         colors = listOf(
             colorResource(id = R.color.blue_light),
@@ -21,7 +21,7 @@ fun MyHorizontalGradiant(): Brush {
 }
 
 @Composable
-fun MyVerticalGradiant(): Brush {
+fun myLinearGradiant(): Brush {
     return Brush.linearGradient(
         colors = listOf(
             Color(0xFF4Da1aB),
@@ -33,7 +33,7 @@ fun MyVerticalGradiant(): Brush {
 }
 
 @Composable
-fun MySliderColors(): SliderColors {
+fun mySliderColors(): SliderColors {
     return SliderDefaults.colors(
         thumbColor = MaterialTheme.colors.secondary,
         activeTrackColor = MaterialTheme.colors.background ,

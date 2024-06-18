@@ -27,7 +27,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -48,8 +47,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
-import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
-import com.neatplex.nightell.ui.theme.MyVerticalGradiant
+import com.neatplex.nightell.ui.theme.myHorizontalGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -150,7 +148,7 @@ fun AddPostScreen(
                         modifier = Modifier
                             .size(80.dp)
                     ) {
-                        val horizontalGradientBrush = MyHorizontalGradiant()
+                        val horizontalGradientBrush = myHorizontalGradiant()
 
                         Icon(
                             modifier = Modifier

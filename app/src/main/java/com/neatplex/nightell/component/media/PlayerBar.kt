@@ -14,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.neatplex.nightell.ui.theme.MyVerticalGradiant
 import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 @Composable
@@ -26,7 +25,6 @@ fun PlayerBar(
 ) {
     val newProgressValue = remember { mutableStateOf(0f) }
     val useNewProgressValue = remember { mutableStateOf(false) }
-    val gradientBrush = MyVerticalGradiant()
 
     Column {
         Box(

@@ -21,8 +21,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.theme.MyHorizontalGradiant
-import com.neatplex.nightell.ui.theme.MySliderColors
+import com.neatplex.nightell.ui.theme.myHorizontalGradiant
+import com.neatplex.nightell.ui.theme.mySliderColors
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import kotlinx.coroutines.delay
 
@@ -77,7 +77,7 @@ fun AudioPlayer(audioPath: String,imagePath: String,title: String, postId: Strin
                 onValueChangeFinished = {
                     // Handle seek bar change finished
                 },
-                colors = MySliderColors()
+                colors = mySliderColors()
             )
 
         Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
@@ -91,7 +91,7 @@ fun AudioPlayer(audioPath: String,imagePath: String,title: String, postId: Strin
                     },
                     modifier = Modifier.size(80.dp)
                 ) {
-                    val horizontalGradientBrush = MyHorizontalGradiant()
+                    val horizontalGradientBrush = myHorizontalGradiant()
 
                     Icon(
                         modifier = Modifier
