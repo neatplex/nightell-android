@@ -54,7 +54,7 @@ fun BottomNavHost(
         }
 
         composable(Screens.Home.route) {
-            HomeNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, startService = startService, tokenState)
+            HomeNavHost(parentNavController = navController, sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, startService = startService, tokenState)
         }
 
         composable(Screens.AddPost.route) {
@@ -72,7 +72,7 @@ fun BottomNavHost(
 }
 
 @Composable
-fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit, tokenState: String?){
+fun HomeNavHost(parentNavController: NavHostController, sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit, tokenState: String?){
 
     val homeNavController = rememberNavController()
 
@@ -90,7 +90,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
         ) { backStackEntry ->
             val postString = backStackEntry.arguments?.getString("post") ?: ""
             val post = postString.fromJson(Post::class.java)
-            PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel,
+            PostScreen(parentNavController = parentNavController, navController = homeNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel,
                 startService = startService)
         }
 
@@ -129,7 +129,7 @@ fun ProfileNavHost(parentNavController: NavHostController, sharedViewModel: Shar
         ) { backStackEntry ->
             val postString = backStackEntry.arguments?.getString("post") ?: ""
             val post = postString.fromJson(Post::class.java)
-            PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel, startService = startService)
+            PostScreen(parentNavController = parentNavController, navController = profileNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel, startService = startService)
         }
 
         composable(
