@@ -107,7 +107,8 @@ fun AddPostScreen(
                 selectedImage = mainUri
                 val fileExtension = fileName?.substringAfterLast('.', "")
                 val file = uriToFile(context, selectedImage!!)
-                if (fileExtension.equals("jpg", ignoreCase = true)) {
+                if (fileExtension.equals("jpg", ignoreCase = true) ||
+                    fileExtension.equals("jpeg", ignoreCase = true)) {
                     selectedImageName = fileName!!
                     uploadViewModel.uploadFile(file!!, "JPG")
                 } else {
@@ -119,7 +120,7 @@ fun AddPostScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color.LightGray)
+            .background(color = Color.LightGray.copy(alpha = 0.5f))
     ) {
 
         Column(
