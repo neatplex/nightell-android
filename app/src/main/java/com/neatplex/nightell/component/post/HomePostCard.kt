@@ -39,7 +39,7 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 3.dp)
+            .padding(bottom = 2.dp)
             .clickable { onPostClicked(post) },
         elevation = 0.dp
     ) {
