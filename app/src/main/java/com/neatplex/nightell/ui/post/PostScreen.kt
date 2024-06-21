@@ -6,6 +6,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -63,6 +64,7 @@ import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 @Composable
 fun PostScreen(
+    parentNavController: NavController,
     navController: NavController,
     sharedViewModel: SharedViewModel,
     data: Post?,
@@ -154,11 +156,14 @@ fun PostScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 65.dp)
     ) {
-
         Row(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = {
-                navController.popBackStack()
+                parentNavController.navigate("home") {
+                    popUpTo("home") { inclusive = true }
+                }
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -214,12 +219,11 @@ fun PostScreen(
 
         Column(
             modifier = Modifier
-                .verticalScroll(scrollState)
                 .fillMaxSize()
         ) {
             val imageResource = rememberAsyncImagePainter(
                 model = post.image?.path?.let { imagePath }
-                    ?: R.drawable.ic_launcher_background
+                    ?: R.drawable.slider
             )
             Image(
                 painter = imageResource,
@@ -279,7 +283,7 @@ fun PostScreen(
                     Icon(
                         icon, contentDescription = "Like",
                         modifier = Modifier.size(42.dp),
-                        tint = if (isLiked) colorResource(id = R.color.purple_light) else Color.Gray
+                        tint = if (isLiked) Color.Red else Color.Gray
                     )
                 }
             }
@@ -298,7 +302,7 @@ fun PostScreen(
                     BottomPlayerUI(
                         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
                         playResourceProvider = {
-                            if (mediaViewModel.isPlaying) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play
+                            if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
                         },
                         progressProvider = {
                             Pair(
@@ -321,7 +325,7 @@ fun PostScreen(
                         modifier = Modifier.fillMaxWidth(),
                         durationString = formatTime(millis = totalDuration), // Default duration string
                         playResourceProvider = {
-                            android.R.drawable.ic_media_play // Always show play icon
+                            R.drawable.baseline_play_arrow_24 // Always show play icon
                         },
                         progressProvider = {
                             Pair(0f, "00:00") // Default progress
@@ -389,22 +393,21 @@ fun PostScreen(
                         onClick = {
                             if (editedTitle != post.title || editedDescription != post.description) {
                                 postViewModel.editPost(post.id, editedTitle, editedDescription)
+                            }
+                            else{
                                 isEditing = false
                             }
                         },
                         text = "Save Changes"
                     )
-
                 } else {
                     Text(
                         text = editedTitle,
-                        style = MaterialTheme.typography.h5,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        style = MaterialTheme.typography.h5
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = editedDescription,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        text = editedDescription
                     )
                 }
             }
