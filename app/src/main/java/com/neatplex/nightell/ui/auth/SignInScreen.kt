@@ -1,5 +1,8 @@
 package com.neatplex.nightell.ui.auth
 
+import android.app.Activity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -40,14 +44,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
+import com.neatplex.nightell.component.CustomBorderedButton
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.myLinearGradiant
@@ -57,13 +69,31 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
+
     var emailOrUsername by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     val authResultState by viewModel.authResult.observeAsState()
+    val context = LocalContext.current
+
+    val googleSignInClient = remember {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(context.getString(R.string.web_client_id))
+            .requestEmail()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            handleSignInResult(task, viewModel)
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(brush = myLinearGradiant())) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -102,7 +132,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
                 }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Button(
                 onClick = {
@@ -112,13 +142,23 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .clip(CircleShape)
+                    .height(50.dp),
                 colors = ButtonDefaults.buttonColors(
-                    backgroundColor = colorResource(id = R.color.purple_light).copy(alpha = 0.5f), // Set button background color to transparent
+                    backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
                 )
             ) {
                 Text(text = "Sign In", color = Color.White)
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CustomBorderedButton(
+                onClick = {
+                    val signInIntent = googleSignInClient.signInIntent
+                    googleSignInLauncher.launch(signInIntent)
+                },
+                text = "Sign In with Google")
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -144,7 +184,6 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
                     navController.navigate("signUp")
                 }
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             // Handle authentication result
@@ -226,5 +265,20 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
         }
 
         else -> {}
+    }
+}
+
+private fun handleSignInResult(
+    completedTask: Task<GoogleSignInAccount>,
+    viewModel: AuthViewModel
+) {
+    try {
+        val account = completedTask.getResult(ApiException::class.java)
+        account?.idToken?.let { idToken ->
+            // Send the ID token to your backend via your ViewModel
+            viewModel.signInWithGoogle(idToken)
+        }
+    } catch (e: ApiException) {
+        // Handle sign-in failure
     }
 }

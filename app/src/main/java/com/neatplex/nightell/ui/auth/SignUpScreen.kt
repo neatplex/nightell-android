@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
@@ -29,6 +30,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
@@ -49,7 +51,6 @@ import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Validation.isValidEmail
 import com.neatplex.nightell.utils.Validation.isValidPassword
 import com.neatplex.nightell.utils.Validation.isValidUsername
-
 
 @Composable
 fun SignUpScreen(
@@ -124,7 +125,7 @@ fun SignUpScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Sign Up Button
             Button(
@@ -137,9 +138,10 @@ fun SignUpScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .clip(CircleShape)
+                    .height(50.dp),
                 colors = androidx.compose.material.ButtonDefaults.buttonColors(
-                    backgroundColor = colorResource(id = R.color.purple_light).copy(alpha = 0.5f), // Set button background color to transparent
+                    backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
                 )
             ) {
                 Text(text = "Sign Up", color = Color.White)

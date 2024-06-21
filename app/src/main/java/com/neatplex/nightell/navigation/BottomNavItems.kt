@@ -1,6 +1,7 @@
 package com.neatplex.nightell.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -86,18 +87,16 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                 NavigationBar(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .shadow(8.dp)
                         .height(70.dp)
-                        .background(colorScheme.primary), // Use primary color from the theme
-                    containerColor = colorScheme.primary// Ensure the background color is set
+                        .border(width = 1.dp, color = Color.LightGray)
+                        .background(Color.White), // Use primary color from the theme
+                    containerColor = Color.White// Ensure the background color is set
                 ) {
                     items.forEachIndexed { index, item ->
                         val isSelected = item.route == currentDestination?.route
                         BottomNavigationItem(
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(4.dp)
-                                .background(Color.Transparent),
+                                .fillMaxHeight(),
                             icon = {
                                 if (isSelected) {
                                     Box(
@@ -108,7 +107,7 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                                             painter = rememberVectorPainter(image = item.Icon),
                                             contentDescription = null,
                                             modifier = Modifier.size(28.dp),
-                                            tint = Color.White
+                                            tint = Color.Black
                                         )
                                     }
                                 } else {
@@ -116,7 +115,7 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                                         painter = rememberVectorPainter(image = item.Icon),
                                         contentDescription = null,
                                         modifier = Modifier.size(28.dp),
-                                        tint = Color.White.copy(alpha = 0.8f)
+                                        tint = Color.Black.copy(alpha = 0.5f)
                                     )
                                 }
                             },
@@ -149,14 +148,23 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                         .align(Alignment.TopCenter)
                         .offset(y = -35.dp)
                         .size(70.dp)
-                        .shadow(10.dp, shape = CircleShape),
+                        .shadow(10.dp, shape = CircleShape)
+                        .background(Color.Transparent),
                     contentColor = Color.White,
                 ) {
-                    Icon(
-                        painter = rememberVectorPainter(Icons.Filled.Add), // Replace with your icon
-                        contentDescription = null,
-                        modifier = Modifier.size(42.dp)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .size(70.dp)
+                            .background(Color.Black, CircleShape) // Custom background color
+                    ) {
+                        Icon(
+                            painter = rememberVectorPainter(Icons.Filled.Add), // Replace with your icon
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(42.dp)
+                                .align(Alignment.Center)
+                        )
+                    }
                 }
             }
         }
