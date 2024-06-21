@@ -18,8 +18,9 @@ class HomeViewModel @Inject constructor(
     private val postUseCase: PostUseCase, private val profileUseCase: ProfileUseCase
 ) : ViewModel() {
 
-    private val _feed = MutableLiveData<List<Post>?>()
-    val feed: LiveData<List<Post>?> get() = _feed
+    private val _feed = MutableLiveData<List<Post>>(emptyList()) // Initialize with an empty list
+    val feed: LiveData<List<Post>> get() = _feed
+    var canLoadMore = true // Default to true for initial load
 
     private val _profileData = MutableLiveData<Result<ShowProfileResponse?>>()
     val profileData: LiveData<Result<ShowProfileResponse?>>
@@ -31,12 +32,18 @@ class HomeViewModel @Inject constructor(
     private val _isRefreshing = MutableLiveData<Boolean>()
     val isRefreshing: LiveData<Boolean> get() = _isRefreshing
 
-    fun loadFeed() {
+    fun loadFeed(lastPostId: Int?) {
+        if (!canLoadMore || _isLoading.value == true) return
+
         viewModelScope.launch {
             _isLoading.value = true
-            val result = postUseCase.loadFeed()
+            val result = postUseCase.loadFeed(lastPostId)
             if (result is Result.Success) {
-                _feed.value = result.data
+                val posts = result.data ?: emptyList()
+                if (posts.size < 10) {
+                    canLoadMore = false
+                }
+                _feed.value = _feed.value.orEmpty() + posts
             } else {
                 _feed.value = emptyList()
             }
@@ -45,19 +52,13 @@ class HomeViewModel @Inject constructor(
     }
 
     fun refreshFeed() {
-        viewModelScope.launch {
-            _isRefreshing.value = true
-            val result = postUseCase.refreshFeed()
-            if (result is Result.Success) {
-                _feed.value = result.data
-            } else {
-                _feed.value = emptyList()
-            }
-            _isRefreshing.value = false
-        }
+        canLoadMore = true // Allow loading more on refresh
+        _feed.value = emptyList()
+        loadFeed(null)
     }
 
-    fun fetchProfile() {
+
+        fun fetchProfile() {
         viewModelScope.launch {
             _profileData.value = Result.Loading
             val result = profileUseCase.profile()

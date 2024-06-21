@@ -8,32 +8,20 @@ import javax.inject.Inject
 
 class PostUseCase @Inject constructor(private val postRepository: PostRepository) {
 
-    private var lastPostId: Int? = null
     private var lastUserPostId: Int? = null
     private var lastSearchedPostId: Int? = null
 
-    private var allPosts = emptyList<Post>()
     private var allUserPosts = emptyList<Post>()
     private var allSearchedPosts = emptyList<Post>()
 
-    suspend fun loadFeed() : Result<List<Post>> {
+    suspend fun loadFeed(lastPostId: Int?) : Result<List<Post>> {
         val result = postRepository.showFeed(lastPostId)
         return if (result is Result.Success) {
             val newFeed = result.data?.posts ?: emptyList()
-            if (newFeed.isNotEmpty()) {
-                lastPostId = newFeed.last().id
-                allPosts = newFeed + allPosts
-            }
-            Result.Success(allPosts)
+            Result.Success(newFeed)
         } else {
             Result.Error("Error loading feed", null)
         }
-    }
-
-    suspend fun refreshFeed() : Result<List<Post>> {
-        lastPostId = null
-        allPosts = emptyList()
-        return loadFeed() // Reload the feed
     }
 
     suspend fun loadUserPosts(userId: Int): Result<List<Post>?> {
@@ -42,7 +30,7 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
             val newFeed = result.data?.posts ?: emptyList()
             if (newFeed.isNotEmpty()) {
                 lastUserPostId = newFeed.last().id
-                allUserPosts = newFeed + allPosts
+                allUserPosts = newFeed
             }
             Result.Success(allUserPosts)
         } else {
