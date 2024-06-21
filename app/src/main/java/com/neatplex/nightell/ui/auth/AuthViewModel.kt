@@ -32,4 +32,15 @@ class AuthViewModel @Inject constructor(
             _authResult.value = authUseCase.login(emailOrUsername, password)
         }
     }
+
+    fun signInWithGoogle(idToken: String) {
+        viewModelScope.launch {
+            _authResult.value = Result.Loading
+            try {
+                _authResult.value = authUseCase.signInWithGoogle(idToken)
+            } catch (e: Exception) {
+                _authResult.value = Result.Error(e.localizedMessage ?: "An error occurred")
+            }
+        }
+    }
 }

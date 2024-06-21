@@ -34,6 +34,11 @@ interface ApiService {
     @POST("auth/sign-in/username")
     suspend fun loginWithUsername(@Body request: LoginUsernameRequest): Response<AuthResponse>
 
+    // SignIn with Google
+    @FormUrlEncoded
+    @POST("your-endpoint-url")
+    suspend fun signInWithGoogle(@Field("idToken") idToken: String): Response<AuthResponse>
+
     // Home Feed
     @GET("feed")
     suspend fun showFeed(@Query("lastId") lastId: Int?) : Response<PostCollection>

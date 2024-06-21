@@ -48,6 +48,10 @@ class AuthUseCase @Inject constructor(
         return result
     }
 
+    suspend fun signInWithGoogle(idToken: String): Result<AuthResponse> {
+        return authRepository.signInWithGoogle(idToken)
+    }
+
     private fun saveUserInfo(token: String, id: Int, email: String) {
         tokenManager.setToken(token)
         tokenManager.setId(id)

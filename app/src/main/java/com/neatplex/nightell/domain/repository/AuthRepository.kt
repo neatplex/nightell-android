@@ -10,4 +10,5 @@ interface AuthRepository {
     suspend fun register(request: RegistrationRequest): Result<AuthResponse>
     suspend fun loginWithEmail(request: LoginEmailRequest): Result<AuthResponse>
     suspend fun loginWithUsername(request: LoginUsernameRequest): Result<AuthResponse>
+    suspend fun signInWithGoogle(idToken: String): Result<AuthResponse>
 }

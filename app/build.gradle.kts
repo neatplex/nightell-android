@@ -90,6 +90,8 @@ dependencies {
     implementation ("com.squareup.okhttp3:okhttp:4.10.0")
     implementation ("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
+    // Google auth
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 
     // Coroutines
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
@@ -117,8 +119,6 @@ dependencies {
     implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
     implementation ("androidx.compose.runtime:runtime-livedata:1.6.0")
-
-
 
     implementation ("androidx.compose.material:material:1.6.1")
 
