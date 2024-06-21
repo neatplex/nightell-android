@@ -9,10 +9,8 @@ import javax.inject.Inject
 class PostUseCase @Inject constructor(private val postRepository: PostRepository) {
 
     private var lastUserPostId: Int? = null
-    private var lastSearchedPostId: Int? = null
 
     private var allUserPosts = emptyList<Post>()
-    private var allSearchedPosts = emptyList<Post>()
 
     suspend fun loadFeed(lastPostId: Int?) : Result<List<Post>> {
         val result = postRepository.showFeed(lastPostId)
@@ -50,11 +48,11 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
         return postRepository.deletePost(postId)
     }
 
-    suspend fun search(query: String) : Result<List<Post>> {
-        val result = postRepository.search(query,lastSearchedPostId)
+    suspend fun search(query: String, lastPostId: Int?) : Result<List<Post>> {
+        val result = postRepository.search(query,lastPostId)
         return if (result is Result.Success) {
-            allSearchedPosts = result.data?.posts ?: emptyList()
-            Result.Success(allSearchedPosts)
+            val newFeed = result.data?.posts ?: emptyList()
+            Result.Success(newFeed)
         } else {
             Result.Error("Error loading searched posts", null)
         }

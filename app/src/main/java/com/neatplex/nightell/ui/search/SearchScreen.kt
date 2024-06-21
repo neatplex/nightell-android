@@ -50,6 +50,8 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
 
+    //searchViewModel.search(query, null, false)
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -58,7 +60,7 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
                         value = query,
                         onValueChange = { newQuery ->
                             query = newQuery
-                            searchViewModel.search(newQuery,null)
+                            searchViewModel.search(newQuery, null, false)
                         },
                         label = { Text("Search") },
                         trailingIcon = {
@@ -77,7 +79,7 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
                         ),
                         keyboardActions = KeyboardActions(
                             onSearch = {
-                                searchViewModel.search(query,null)
+
                             }
                         )
                     )
@@ -109,7 +111,7 @@ fun SearchScreen(navController: NavController, sharedViewModel: SharedViewModel,
                                 }
                                 if (index == posts!!.size - 1 && !isLoading) {
                                     lastPostId = post.id
-                                    searchViewModel.search(query,lastPostId)
+                                    searchViewModel.search(query, lastPostId , true)
                                 }
                             }
                             if (isLoading) {
