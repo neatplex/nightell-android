@@ -19,14 +19,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,7 +47,6 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.profile.ShowMyProfile
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson
@@ -145,7 +140,7 @@ fun UserScreen(
                     columns = GridCells.Fixed(2), // Define the number of columns
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    itemsIndexed(posts!!) { index, post ->
+                    itemsIndexed(posts) { index, post ->
                         ProfilePostCard(post = post) { selectedPost ->
                             sharedViewModel.setPost(selectedPost)
                             val postJson = selectedPost.toJson()
@@ -153,7 +148,7 @@ fun UserScreen(
                                 "postScreen/${Uri.encode(postJson)}"
                             )
                         }
-                        if (index == posts!!.size - 1 && !isLoading && userViewModel.canLoadMore) {
+                        if (index == posts.size - 1 && !isLoading && userViewModel.canLoadMore) {
                             lastPostId = post.id
                             userViewModel.loadPosts(userId, lastPostId)
                         }
@@ -190,14 +185,10 @@ fun ShowProfile(
     var followers by remember { mutableIntStateOf(followers) }
     var isFollowed by remember { mutableStateOf(isFollowed) }
 
-    val followResult by userViewModel.followResult.observeAsState()
-    val unfollowResult by userViewModel.unfollowResult.observeAsState()
-
     // Function to update follower count
     val updateFollowerCount: (Int) -> Unit = { increment ->
         followers += increment
     }
-
 
     Column {
         Row(
