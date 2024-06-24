@@ -22,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -101,7 +100,7 @@ fun HomeScreen(
                         Column {
                             // LazyRow for the first 3 posts
                             LazyRow {
-                                itemsIndexed(feed!!.take(3)) { index, post ->
+                                itemsIndexed(feed.take(3)) { index, post ->
                                     RecentPostCard(post = post) { selectedPost ->
                                         sharedViewModel.setPost(selectedPost)
                                         val postJson = selectedPost.toJson()
@@ -140,34 +139,6 @@ fun HomeScreen(
                                     }
                                 }
                             )
-//                            LazyColumn(
-//                                contentPadding = PaddingValues(bottom = 65.dp),
-//                                modifier = Modifier.fillMaxSize(),
-//                                content = {
-//                                    itemsIndexed(feed) { index, post ->
-//                                        HomePostCard(post = post) { selectedPost ->
-//                                            sharedViewModel.setPost(selectedPost)
-//                                            val postJson = selectedPost.toJson()
-//                                            navController.navigate(
-//                                                "postScreen/${Uri.encode(postJson)}"
-//                                            )
-//                                        }
-//                                        if (index == feed.size - 1 && !isLoading && homeViewModel.canLoadMore) {
-//                                            lastPostId = post.id
-//                                            homeViewModel.loadFeed(lastPostId)
-//                                        }
-//                                    }
-//                                    if (isLoading) {
-//                                        item {
-//                                            CircularProgressIndicator(
-//                                                modifier = Modifier
-//                                                    .padding(vertical = 16.dp)
-//                                                    .align(Alignment.CenterHorizontally)
-//                                            )
-//                                        }
-//                                    }
-//                                }
-//                            )
                         }
                     }
                     when (val result = profileResult) {

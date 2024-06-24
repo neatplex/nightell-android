@@ -78,7 +78,7 @@ class UserViewModel @Inject constructor(
     fun loadUserPosts(userId : Int){
         viewModelScope.launch {
             _isLoading.value = true
-            val result = postUseCase.loadUserPosts(userId)
+            val result = postUseCase.loadUserPosts(userId,null)
             if (result is Result.Success) {
                 _posts.value = result.data
             } else {

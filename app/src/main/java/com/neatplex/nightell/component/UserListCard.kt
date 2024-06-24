@@ -2,6 +2,7 @@ package com.neatplex.nightell.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,15 +24,12 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 @Composable
 fun ShowUsers(users: List<User?>?, navController: NavController, viewModel: SharedViewModel) {
-
-
-
     users?.forEach { user ->
         if (user != null) {
-            UserCard(user = user){
-                if(viewModel.user.value?.id == user.id){
+            UserCard(user = user) {
+                if (viewModel.user.value?.id == user.id) {
 
-                }else {
+                } else {
                     navController.navigate("userScreen/${user.id}")
                 }
             }
@@ -41,15 +39,14 @@ fun ShowUsers(users: List<User?>?, navController: NavController, viewModel: Shar
 
 @Composable
 fun UserCard(user: User, onUserClicked: (User) -> Unit) {
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(all = 8.dp)
             .clickable {
                 onUserClicked(user)
             },
-        elevation = 4.dp
+        elevation = 0.dp
     ) {
         Row(
             modifier = Modifier
@@ -64,12 +61,19 @@ fun UserCard(user: User, onUserClicked: (User) -> Unit) {
                 painter = imageResource,
                 contentDescription = "Profile Image",
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(46.dp)
                     .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
-            Text(modifier = Modifier
-                .padding(start = 8.dp), text = user.username)
+
+            Column(modifier = Modifier.padding(start = 16.dp)) {
+                Text(
+                    text = user.username
+                )
+                Text(
+                    text = user.name
+                )
+            }
         }
     }
 }

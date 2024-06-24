@@ -24,11 +24,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.utils.Constant
@@ -39,7 +40,6 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(bottom = 2.dp)
             .clickable { onPostClicked(post) },
         elevation = 0.dp
     ) {
@@ -53,9 +53,9 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
             ) {
 
                 val imageResource = if (post.image != null) {
-                    rememberImagePainter(data = Constant.Files_URL + post.image.path)
+                    rememberAsyncImagePainter(model = Constant.Files_URL + post.image.path)
                 } else {
-                    rememberImagePainter(data = R.drawable.slider)
+                    rememberAsyncImagePainter(model = R.drawable.slider)
                 }
                 Image(
                     painter = imageResource,
@@ -96,53 +96,41 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Row {
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                    ) {
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column {
-                                Icon(
-                                    imageVector = Icons.Default.Favorite,
-                                    contentDescription = null,
-                                    tint = Color.Red,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                            Column(modifier = Modifier.padding(start = 3.dp)) {
-                                Text(
-                                    post.likes_count.toString(),
-                                    fontSize = 14.sp
-                                )
-                            }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Column {
+                            Icon(
+                                imageVector = Icons.Default.Favorite,
+                                contentDescription = null,
+                                tint = Color.Red,
+                                modifier = Modifier.size(16.dp)
+                            )
                         }
-
+                        Column(modifier = Modifier.padding(start = 3.dp)) {
+                            Text(
+                                post.likes_count.toString(),
+                                fontSize = 14.sp
+                            )
+                        }
                     }
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                    ) {
-
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Column {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.baseline_message_24),
-                                    contentDescription = null,
-                                    tint = Color.Blue,
-                                    modifier = Modifier
-                                        .size(16.dp)
-                                        .graphicsLayer {
-                                            scaleX = -1f
-                                        }
-                                )
-                            }
-                            Column(modifier = Modifier.padding(start = 3.dp)) {
-                                Text(
-                                    post.comments_count.toString(),
-                                    fontSize = 14.sp
-                                )
-                            }
+                    Row(verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 16.dp)) {
+                        Column {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_message_24),
+                                contentDescription = null,
+                                tint = colorResource(id = R.color.blue),
+                                modifier = Modifier
+                                    .size(16.dp)
+                                    .graphicsLayer {
+                                        scaleX = -1f
+                                    }
+                            )
+                        }
+                        Column(modifier = Modifier.padding(start = 3.dp)) {
+                            Text(
+                                post.comments_count.toString(),
+                                fontSize = 14.sp
+                            )
                         }
 
                     }
@@ -151,5 +139,3 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
         }
     }
 }
-
-

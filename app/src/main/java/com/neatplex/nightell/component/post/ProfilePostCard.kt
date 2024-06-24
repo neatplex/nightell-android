@@ -4,11 +4,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
@@ -20,7 +18,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.utils.Constant
@@ -38,9 +36,9 @@ fun ProfilePostCard(post: Post, onPostClicked: (Post) -> Unit) {
         Column {
             Row{
                 val imageResource = if (post.image != null) {
-                    rememberImagePainter(data = Constant.Files_URL + post.image.path)
+                    rememberAsyncImagePainter(model = Constant.Files_URL + post.image.path)
                 } else {
-                    rememberImagePainter(data = R.drawable.slider)
+                    rememberAsyncImagePainter(model = R.drawable.slider)
                 }
                 Image(
                     painter = imageResource,
@@ -65,6 +63,3 @@ fun ProfilePostCard(post: Post, onPostClicked: (Post) -> Unit) {
         }
     }
 }
-
-
-

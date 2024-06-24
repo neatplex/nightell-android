@@ -6,7 +6,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,7 +32,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
@@ -73,74 +71,6 @@ fun MyTitleOutlinedTextField() {
         )
     )
 }
-
-//@Composable
-//fun CustomSearchField() {
-//    var text by remember { mutableStateOf(TextFieldValue("")) }
-//    val linearGradientBrush = myLinearGradiant()
-//
-//    Box(
-//        modifier = Modifier
-//            .padding(16.dp)
-//            .clip(RoundedCornerShape(8.dp))
-//            .background(Color.White)
-//            .height(50.dp)
-//            .fillMaxWidth(),
-//        contentAlignment = Alignment.CenterStart
-//    ) {
-//        Row(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(end = 8.dp),
-//            verticalAlignment = Alignment.CenterVertically
-//        ) {
-//            Box(
-//                modifier = Modifier
-//                    .size(50.dp)
-//                    .clip(CircleShape)
-//                    .background(Color.LightGray.copy(alpha = 0.5f))
-//                    .padding(4.dp),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Icon(
-//                    imageVector = ImageVector.vectorResource(id = R.drawable.baseline_search_24), // Your pink search icon
-//                    contentDescription = "Search Icon",
-//                    modifier = Modifier
-//                        .size(32.dp)
-//                        .graphicsLayer(alpha = 0.99f)
-//                        .drawWithCache {
-//                            onDrawWithContent {
-//                                drawContent()
-//                                drawRect(linearGradientBrush, blendMode = BlendMode.SrcAtop)
-//                            }
-//                        },
-//                )
-//            }
-//            Spacer(modifier = Modifier.width(8.dp))
-//            Box(modifier = Modifier.weight(1f)) {
-//                if (text.text.isEmpty()) {
-//                    Text(
-//                        text = "Text Here....",
-//                        color = Color(0xFFD3A4D3),
-//                        fontSize = 16.sp,
-//                        modifier = Modifier.align(Alignment.CenterStart)
-//                    )
-//                }
-//                BasicTextField(
-//                    value = text,
-//                    onValueChange = { newText -> text = newText },
-//                    textStyle = LocalTextStyle.current.copy(
-//                        color = Color.Black,
-//                        fontSize = 16.sp,
-//                        textAlign = TextAlign.Start
-//                    ),
-//                    modifier = Modifier
-//                        .fillMaxWidth()
-//                )
-//            }
-//        }
-//    }
-//}
 
 @Composable
 fun CustomSearchField(
@@ -190,7 +120,7 @@ fun CustomSearchField(
                 if (text.text.isEmpty()) {
                     Text(
                         text = "Text Here....",
-                        color = Color(0xFFD3A4D3),
+                        color = Color.LightGray,
                         fontSize = 18.sp,
                         modifier = Modifier.align(Alignment.CenterStart)
                     )
