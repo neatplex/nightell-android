@@ -31,9 +31,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
     }
 
     override suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse> {
-
         val request = PostUploadRequest(title,description, audioId, imageId)
-
         return try {
             val response = apiService.uploadPost(request)
             handleApiResponse(response)

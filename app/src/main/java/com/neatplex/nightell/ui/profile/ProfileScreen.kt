@@ -27,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -38,7 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
@@ -50,18 +51,24 @@ import com.neatplex.nightell.utils.toJson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileScreen(navController: NavController, profileViewModel: ProfileViewModel = hiltViewModel(), postViewModel: ProfileViewModel = hiltViewModel(), sharedViewModel: SharedViewModel) {
+fun ProfileScreen(
+    navController: NavController,
+    profileViewModel: ProfileViewModel = hiltViewModel(),
+    postViewModel: ProfileViewModel = hiltViewModel(),
+    sharedViewModel: SharedViewModel
+) {
 
     val profileResult by profileViewModel.profileData.observeAsState()
     val userId = sharedViewModel.user.value!!.id
     val posts by postViewModel.posts.observeAsState(emptyList())
     val isLoading by postViewModel.isLoading.observeAsState(false)
+    var lastPostId by remember { mutableStateOf<Int?>(null) }
 
 
     // trigger the profile loading
     LaunchedEffect(Unit) {
         profileViewModel.fetchProfile()
-        profileViewModel.loadPosts(userId)
+        profileViewModel.loadPosts(userId, lastPostId)
     }
 
     val (followers, setFollowers) = remember { mutableStateOf(0) }
@@ -108,8 +115,10 @@ fun ProfileScreen(navController: NavController, profileViewModel: ProfileViewMod
                                     color = Color.Red
                                 )
                             }
+
                             is Result.Loading -> {
                             }
+
                             else -> {}
                         }
 
@@ -121,20 +130,20 @@ fun ProfileScreen(navController: NavController, profileViewModel: ProfileViewMod
                             modifier = Modifier.fillMaxSize(),
                         ) {
                             itemsIndexed(posts!!) { index, post ->
-                                if (post != null) {
-                                    ProfilePostCard(post = post) { selectedPost ->
-                                        val postJson = selectedPost.toJson()
-                                        navController.navigate("postScreen/${Uri.encode(postJson)}")
-                                    }
+                                ProfilePostCard(post = post) { selectedPost ->
+                                    sharedViewModel.setPost(selectedPost)
+                                    val postJson = selectedPost.toJson()
+                                    navController.navigate(
+                                        "postScreen/${Uri.encode(postJson)}"
+                                    )
                                 }
-                                if (posts!!.size > 9 && index == posts!!.size - 1 && !isLoading) {
-                                    profileViewModel.loadPosts(userId)
+                                if (index == posts!!.size - 1 && !isLoading && profileViewModel.canLoadMore) {
+                                    lastPostId = post.id
+                                    profileViewModel.loadPosts(userId,lastPostId)
                                 }
                             }
-
                             if (isLoading) {
                                 item {
-                                    // Load more indicator
                                     CircularProgressIndicator(
                                         modifier = Modifier
                                             .padding(vertical = 16.dp)
@@ -162,9 +171,11 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            Column(modifier = Modifier
-                .weight(1f)) {
-                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image,)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+            ) {
+                val imageResource = rememberAsyncImagePainter(model = R.drawable.default_profile_image)
                 Image(
                     painter = imageResource,
                     contentDescription = "Profile Image",
@@ -181,9 +192,11 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
                 )
             }
 
-            Column(modifier = Modifier
-                .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
                     navController.navigate("followerScreen/${user.id}")
@@ -196,9 +209,11 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
 
             }
 
-            Column(modifier = Modifier
-                .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier
+                    .weight(1f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
                     navController.navigate("followingScreen/${user.id}")
@@ -215,30 +230,35 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 8.dp)) {
+                .padding(start = 8.dp)
+        ) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = user.name)
         }
         Row(
             modifier = Modifier
                 .width(200.dp)
-                .padding(start = 8.dp)) {
+                .padding(start = 8.dp)
+        ) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = user.bio)
+            Text(text = user.bio,
+                fontSize = 14.sp)
         }
 
-        Row(modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 8.dp, top = 8.dp)){
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, top = 8.dp)
+        ) {
 
-            CustomSimpleButton(onClick = {
-                navController.navigate("editProfile") {
-                    launchSingleTop = true
-                }
-            },
-                text = "Edit Profile")
+            CustomSimpleButton(
+                onClick = {
+                    navController.navigate("editProfile") {
+                        launchSingleTop = true
+                    }
+                },
+                text = "Edit Profile"
+            )
         }
     }
 }
-
-

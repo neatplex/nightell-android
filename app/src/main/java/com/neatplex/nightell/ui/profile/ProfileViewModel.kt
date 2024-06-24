@@ -23,22 +23,17 @@ class ProfileViewModel @Inject constructor(
     private val _profileData = MutableLiveData<Result<ShowProfileResponse>>()
     val profileData: LiveData<Result<ShowProfileResponse>>
         get() = _profileData
-
     private val _userUpdatedData = MutableLiveData<Result<UserUpdated>>()
     val userUpdatedData: LiveData<Result<UserUpdated>>
         get() = _userUpdatedData
-
     private val _posts = MutableLiveData<List<Post>?>()
     val posts: LiveData<List<Post>?> get() = _posts
-
-
+    var canLoadMore = true // Default to true for initial load
     private val _usersList = MutableLiveData<Result<Users?>>()
     val usersList: LiveData<Result<Users?>>
         get() = _usersList
-
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
-
 
     fun fetchProfile() {
         viewModelScope.launch {
@@ -82,12 +77,18 @@ class ProfileViewModel @Inject constructor(
         }
     }
 
-    fun loadPosts(userId : Int){
+    fun loadPosts(userId : Int, lastPostId: Int?){
+        if (!canLoadMore || _isLoading.value == true) return
+
         viewModelScope.launch {
             _isLoading.value = true
-            val result = postUseCase.loadUserPosts(userId)
+            val result = postUseCase.loadUserPosts(userId, lastPostId)
             if (result is Result.Success) {
-                _posts.value = result.data
+                val posts = result.data ?: emptyList()
+                if (posts.size < 10) {
+                    canLoadMore = false
+                }
+                _posts.value = _posts.value.orEmpty() + posts
             } else {
                 _posts.value = emptyList()
             }
