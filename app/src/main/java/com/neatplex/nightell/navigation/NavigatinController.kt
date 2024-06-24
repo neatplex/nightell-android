@@ -106,7 +106,27 @@ fun HomeNavHost(parentNavController: NavHostController, sharedViewModel: SharedV
             })
         ) { backStackEntry ->
             val userId = backStackEntry.arguments?.getInt("userId") ?: -1
-            UserScreen(homeNavController, userId, sharedViewModel = sharedViewModel)
+            UserScreen(navController = homeNavController, userId, sharedViewModel = sharedViewModel)
+        }
+
+        composable(
+            "followerScreen/{userId}",
+            arguments = listOf(navArgument("userId") {
+                type = NavType.IntType
+            })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId") ?: -1
+            FollowerScreen(navController = homeNavController, userId, sharedViewModel = sharedViewModel)
+        }
+
+        composable(
+            "followingScreen/{userId}",
+            arguments = listOf(navArgument("userId") {
+                type = NavType.IntType
+            })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId") ?: -1
+            FollowingScreen(navController = homeNavController, userId, sharedViewModel = sharedViewModel)
         }
     }
 }
@@ -155,6 +175,7 @@ fun ProfileNavHost(parentNavController: NavHostController, sharedViewModel: Shar
             val userId = backStackEntry.arguments?.getInt("userId") ?: -1
             FollowerScreen(profileNavController, userId, sharedViewModel = sharedViewModel)
         }
+
         composable(
             "followingScreen/{userId}",
             arguments = listOf(navArgument("userId") {

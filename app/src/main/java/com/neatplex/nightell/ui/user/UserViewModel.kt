@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neatplex.nightell.data.dto.ShowProfileResponse
+import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.repository.FollowRepository
@@ -17,31 +17,32 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val followRepository: FollowRepository, private val profileUseCase: ProfileUseCase, private val postUseCase: PostUseCase
+    private val followRepository: FollowRepository,
+    private val profileUseCase: ProfileUseCase,
+    private val postUseCase: PostUseCase
 ) : ViewModel() {
 
     private val _usersList = MutableLiveData<Result<Users>>()
     val usersList: LiveData<Result<Users>>
         get() = _usersList
-
+    var canLoadMore = true // Default to true for initial load
     private val _followResult = MutableLiveData<Result<Unit>>()
     val followResult: LiveData<Result<Unit>> get() = _followResult
 
     private val _unfollowResult = MutableLiveData<Result<Unit>>()
     val unfollowResult: LiveData<Result<Unit>> get() = _unfollowResult
 
-    private val _posts = MutableLiveData<List<Post>?>()
-    val posts: LiveData<List<Post>?> get() = _posts
+    private val _posts = MutableLiveData<List<Post>>()
+    val posts: LiveData<List<Post>> get() = _posts
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    private val _showUserInfoResult = MutableLiveData<Result<ShowProfileResponse?>>()
-    val showUserInfoResult : LiveData<Result<ShowProfileResponse?>> get() = _showUserInfoResult
+    private val _showUserInfoResult = MutableLiveData<Result<Profile>>()
+    val showUserInfoResult : LiveData<Result<Profile>> get() = _showUserInfoResult
 
     fun getUserInfo(userId: Int) {
         viewModelScope.launch {
-            _showUserInfoResult.value = Result.Loading
             val result = profileUseCase.showUserProfile(userId)
             _showUserInfoResult.value = result
         }
@@ -49,6 +50,7 @@ class UserViewModel @Inject constructor(
 
     fun fetchUserFollowers(userId: Int) {
         viewModelScope.launch {
+            _usersList.value = Result.Loading
             val result = followRepository.followers(userId)
             _usersList.value = result
         }
@@ -56,6 +58,7 @@ class UserViewModel @Inject constructor(
 
     fun fetchUserFollowings(userId: Int) {
         viewModelScope.launch {
+            _usersList.value = Result.Loading
             val result = followRepository.followings(userId)
             _usersList.value = result
         }
@@ -75,12 +78,18 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    fun loadUserPosts(userId : Int){
+    fun loadPosts(userId : Int, lastPostId: Int?){
+        if (!canLoadMore || _isLoading.value == true) return
+
         viewModelScope.launch {
             _isLoading.value = true
-            val result = postUseCase.loadUserPosts(userId,null)
+            val result = postUseCase.loadUserPosts(userId, lastPostId)
             if (result is Result.Success) {
-                _posts.value = result.data
+                val posts = result.data ?: emptyList()
+                if (posts.size < 10) {
+                    canLoadMore = false
+                }
+                _posts.value = _posts.value.orEmpty() + posts
             } else {
                 _posts.value = emptyList()
             }

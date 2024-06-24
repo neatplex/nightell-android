@@ -14,14 +14,19 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,12 +46,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.ui.profile.ShowMyProfile
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.profile.ProfileViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 
@@ -54,7 +60,8 @@ import com.neatplex.nightell.utils.toJson
 fun UserScreen(
     navController: NavController,
     userId: Int,
-    userViewModel: UserViewModel = hiltViewModel(), sharedViewModel: SharedViewModel
+    userViewModel: UserViewModel = hiltViewModel(),
+    sharedViewModel: SharedViewModel
 ) {
 
     //Fetch user profile info
@@ -62,30 +69,32 @@ fun UserScreen(
     val posts by userViewModel.posts.observeAsState(emptyList())
 
     //Fetch if user followed this profile
-    val followingViewModel: ProfileViewModel = hiltViewModel()
-    val followingsResult by followingViewModel.usersList.observeAsState()
+    val followingsResult by userViewModel.usersList.observeAsState()
 
     val myId = sharedViewModel.user.value!!.id
 
-    var isLoading by remember { mutableStateOf(true) }
+    val isLoading by userViewModel.isLoading.observeAsState(false)
     var followings: List<User> by remember { mutableStateOf(emptyList()) }
 
     var isFollowed by remember { mutableStateOf(false) }
+    var lastPostId by remember { mutableStateOf<Int?>(null) }
+
 
 
     LaunchedEffect(Unit) {
-        userViewModel.getUserInfo(userId)
-        userViewModel.loadUserPosts(userId)
-        followingViewModel.fetchUserFollowings(myId)
+        userViewModel.fetchUserFollowings(myId)
     }
 
     when (val result = followingsResult) {
         is Result.Success -> {
             followings = result.data?.users.orEmpty()
             isFollowed = followings.any { it.id == userId }
+            userViewModel.getUserInfo(userId)
+            userViewModel.loadPosts(userId, lastPostId)
         }
 
-        else -> {}
+        else -> {
+        }
     }
 
     Scaffold(topBar = {
@@ -95,7 +104,7 @@ fun UserScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(8.dp)
             ) {
                 when (val result = profileResult) {
                     is Result.Success -> {
@@ -103,19 +112,16 @@ fun UserScreen(
                         val followers = result.data.followers_count
                         val followings = result.data.followings_count
 
-                        if (user != null) {
-
-                            ShowProfile(
-                                navController,
-                                user,
-                                followers,
-                                followings,
-                                userViewModel,
-                                myId,
-                                userId,
-                                isFollowed
-                            )
-                        }
+                        ShowProfile(
+                            navController,
+                            user,
+                            followers,
+                            followings,
+                            userViewModel,
+                            myId,
+                            userId,
+                            isFollowed
+                        )
                     }
 
                     is Result.Error -> {
@@ -133,25 +139,34 @@ fun UserScreen(
                     else -> {}
 
                 }
-
-
+                Spacer(modifier = Modifier.height(30.dp))
                 LazyVerticalGrid(
                     contentPadding = PaddingValues(bottom = 65.dp),
                     columns = GridCells.Fixed(2), // Define the number of columns
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                        itemsIndexed(posts!!) { index, post ->
-                            if (post != null) {
-                                ProfilePostCard(post = post) { selectedPost ->
-                                    isLoading = false
-                                    sharedViewModel.setPost(selectedPost)
-                                    val postJson = selectedPost.toJson()
-                                    navController.navigate("postScreen/${Uri.encode(postJson)}")
-                                }
-                            } else {
-                                isLoading = false
-                            }
+                    itemsIndexed(posts!!) { index, post ->
+                        ProfilePostCard(post = post) { selectedPost ->
+                            sharedViewModel.setPost(selectedPost)
+                            val postJson = selectedPost.toJson()
+                            navController.navigate(
+                                "postScreen/${Uri.encode(postJson)}"
+                            )
                         }
+                        if (index == posts!!.size - 1 && !isLoading && userViewModel.canLoadMore) {
+                            lastPostId = post.id
+                            userViewModel.loadPosts(userId, lastPostId)
+                        }
+                    }
+                    if (isLoading) {
+                        item {
+                            CircularProgressIndicator(
+                                modifier = Modifier
+                                    .padding(vertical = 16.dp)
+                                    .align(Alignment.CenterHorizontally)
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -188,17 +203,17 @@ fun ShowProfile(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(8.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
             Column(
                 modifier = Modifier
-                    .weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .weight(1f)
             ) {
-                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image)
+                val imageResource =
+                    rememberAsyncImagePainter(model = R.drawable.default_profile_image)
                 Image(
                     painter = imageResource,
                     contentDescription = "Profile Image",
@@ -208,7 +223,8 @@ fun ShowProfile(
                     contentScale = ContentScale.Crop
                 )
 
-                Text(
+                androidx.compose.material3.Text(
+                    modifier = Modifier.padding(vertical = 4.dp),
                     text = user.username,
                     style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
@@ -223,10 +239,10 @@ fun ShowProfile(
                     // Navigate to another page when "Followers" is clicked
                     navController.navigate("followerScreen/${user.id}")
                 }) {
-                    Text(text = "Followers")
+                    androidx.compose.material3.Text(text = "Followers")
                 }
                 Row {
-                    Text(text = followers.toString())
+                    androidx.compose.material3.Text(text = followers.toString())
                 }
 
             }
@@ -240,10 +256,10 @@ fun ShowProfile(
                     // Navigate to another page when "Followers" is clicked
                     navController.navigate("followingScreen/${user.id}")
                 }) {
-                    Text(text = "Followings")
+                    androidx.compose.material3.Text(text = "Followings")
                 }
                 Row {
-                    Text(text = followings.toString())
+                    androidx.compose.material3.Text(text = followings.toString())
                 }
             }
 
@@ -252,37 +268,43 @@ fun ShowProfile(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 16.dp)
+                .padding(start = 8.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = user.name)
+            androidx.compose.material3.Text(text = user.name)
         }
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp)
+                .width(200.dp)
+                .padding(start = 8.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = user.bio)
+            androidx.compose.material3.Text(
+                text = user.bio,
+                fontSize = 14.sp
+            )
         }
-    }
 
-    Row {
-        Button(
-            onClick = {
-                if (!isFollowed) {
-                    userViewModel.followUser(myId, userId)
-                    isFollowed = true
-                    updateFollowerCount(1)
-                } else {
-                    userViewModel.unfollowUser(myId, userId)
-                    isFollowed = false
-                    updateFollowerCount(-1)
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, top = 8.dp)
         ) {
-            Text(text = if (!isFollowed) "Follow" else "Unfollow")
+
+            CustomSimpleButton(
+                onClick = {
+                    if (!isFollowed) {
+                        userViewModel.followUser(myId, userId)
+                        isFollowed = true
+                        updateFollowerCount(1)
+                    } else {
+                        userViewModel.unfollowUser(myId, userId)
+                        isFollowed = false
+                        updateFollowerCount(-1)
+                    }
+                },
+                text = if (!isFollowed) "Follow" else "Unfollow"
+            )
         }
     }
 }
