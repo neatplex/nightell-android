@@ -4,7 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neatplex.nightell.data.dto.ShowProfileResponse
+import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.domain.usecase.PostUseCase
@@ -22,8 +22,8 @@ class HomeViewModel @Inject constructor(
     val feed: LiveData<List<Post>> get() = _feed
     var canLoadMore = true // Default to true for initial load
 
-    private val _profileData = MutableLiveData<Result<ShowProfileResponse?>>()
-    val profileData: LiveData<Result<ShowProfileResponse?>>
+    private val _profileData = MutableLiveData<Result<Profile?>>()
+    val profileData: LiveData<Result<Profile?>>
         get() = _profileData
 
     private val _isLoading = MutableLiveData<Boolean>()

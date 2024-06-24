@@ -54,14 +54,13 @@ import com.neatplex.nightell.utils.toJson
 fun ProfileScreen(
     navController: NavController,
     profileViewModel: ProfileViewModel = hiltViewModel(),
-    postViewModel: ProfileViewModel = hiltViewModel(),
     sharedViewModel: SharedViewModel
 ) {
 
     val profileResult by profileViewModel.profileData.observeAsState()
     val userId = sharedViewModel.user.value!!.id
-    val posts by postViewModel.posts.observeAsState(emptyList())
-    val isLoading by postViewModel.isLoading.observeAsState(false)
+    val posts by profileViewModel.posts.observeAsState(emptyList())
+    val isLoading by profileViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
 
 
@@ -69,13 +68,6 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         profileViewModel.fetchProfile()
         profileViewModel.loadPosts(userId, lastPostId)
-    }
-
-    val (followers, setFollowers) = remember { mutableStateOf(0) }
-
-    // Define a function to update follower count
-    val updateFollowerCount: (Int) -> Unit = { increment ->
-        setFollowers(followers + increment)
     }
 
     AppTheme {
@@ -121,9 +113,7 @@ fun ProfileScreen(
 
                             else -> {}
                         }
-
                         Spacer(modifier = Modifier.height(30.dp))
-
                         LazyVerticalGrid(
                             contentPadding = PaddingValues(bottom = 65.dp),
                             columns = GridCells.Fixed(2), // Define the number of columns

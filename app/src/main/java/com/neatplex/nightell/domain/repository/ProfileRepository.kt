@@ -1,13 +1,13 @@
 package com.neatplex.nightell.domain.repository
 
-import com.neatplex.nightell.data.dto.ShowProfileResponse
+import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.utils.Result
 
 interface ProfileRepository {
-    suspend fun showUserProfile(userId: Int): Result<ShowProfileResponse>
+    suspend fun showUserProfile(userId: Int): Result<Profile>
 
-    suspend fun profile(): Result<ShowProfileResponse>
+    suspend fun profile(): Result<Profile>
 
     suspend fun changeProfileName(name: String): Result<UserUpdated>
 

@@ -4,11 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neatplex.nightell.data.dto.ShowProfileResponse
+import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.domain.repository.FollowRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.ProfileUseCase
 import com.neatplex.nightell.utils.Result
@@ -18,20 +17,26 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val profileUseCase: ProfileUseCase, private val followRepository: FollowRepository, private val postUseCase: PostUseCase) : ViewModel() {
 
-    private val _profileData = MutableLiveData<Result<ShowProfileResponse>>()
-    val profileData: LiveData<Result<ShowProfileResponse>>
+    private val profileUseCase: ProfileUseCase, private val postUseCase: PostUseCase) : ViewModel() {
+
+    private val _profileData = MutableLiveData<Result<Profile>>()
+    val profileData: LiveData<Result<Profile>>
         get() = _profileData
+
     private val _userUpdatedData = MutableLiveData<Result<UserUpdated>>()
     val userUpdatedData: LiveData<Result<UserUpdated>>
         get() = _userUpdatedData
+
     private val _posts = MutableLiveData<List<Post>?>()
     val posts: LiveData<List<Post>?> get() = _posts
+
     var canLoadMore = true // Default to true for initial load
+
     private val _usersList = MutableLiveData<Result<Users?>>()
     val usersList: LiveData<Result<Users?>>
         get() = _usersList
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
@@ -60,20 +65,6 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             val result = profileUseCase.changeProfileUsername(username)
             _userUpdatedData.value = result
-        }
-    }
-
-    fun fetchUserFollowers(userId: Int) {
-        viewModelScope.launch {
-            val result = followRepository.followers(userId)
-            _usersList.value = result
-        }
-    }
-
-    fun fetchUserFollowings(userId: Int) {
-        viewModelScope.launch {
-            val result = followRepository.followings(userId)
-            _usersList.value = result
         }
     }
 

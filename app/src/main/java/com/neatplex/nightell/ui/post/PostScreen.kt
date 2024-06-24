@@ -101,7 +101,7 @@ fun PostScreen(
 
     // Update UI based on likes result
     LaunchedEffect(likesCountResult) {
-        likesCountResult?.let { result ->
+        likesCountResult.let { result ->
             when (result) {
                 is Result.Success -> {
                     val likes = result.data?.likes.orEmpty()

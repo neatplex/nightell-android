@@ -4,7 +4,7 @@ package com.neatplex.nightell.data.api
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.data.dto.FileUploadResponse
 import com.neatplex.nightell.data.dto.Likes
-import com.neatplex.nightell.data.dto.ShowProfileResponse
+import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
@@ -70,7 +70,7 @@ interface ApiService {
 
     // User's Own Profile Info
     @GET("profile")
-    suspend fun showProfile() : Response<ShowProfileResponse>
+    suspend fun showProfile() : Response<Profile>
 
     // Update Profile Name
     @PATCH("profile/name")
@@ -98,7 +98,7 @@ interface ApiService {
 
     // Users Profile Info
     @GET("users/{user_id}")
-    suspend fun showUserProfile(@Path("user_id") userId: Int) : Response<ShowProfileResponse>
+    suspend fun showUserProfile(@Path("user_id") userId: Int) : Response<Profile>
 
     // Search
     @GET("search")
