@@ -5,8 +5,10 @@ import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
@@ -41,8 +44,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
@@ -64,6 +69,7 @@ fun AddPostScreen(
     uploadViewModel: UploadViewModel = hiltViewModel(),
     onLogout: () -> Unit
 ) {
+    var currentStep by rememberSaveable { mutableStateOf(1) }
 
     val uploadFileResults by uploadViewModel.uploadState.observeAsState()
     val uploadPostResult by uploadViewModel.storePostResult.observeAsState()
@@ -82,7 +88,6 @@ fun AddPostScreen(
     var imageId by rememberSaveable { mutableStateOf<Int?>(null) }
 
     val context = LocalContext.current
-
 
     val chooseAudioLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
@@ -122,162 +127,38 @@ fun AddPostScreen(
             .fillMaxSize()
             .background(color = Color.LightGray.copy(alpha = 0.5f))
     ) {
-
         Column(
             modifier = Modifier
                 .padding(30.dp)
                 .align(alignment = Alignment.Center)
+                .border(width = 1.dp, color = Color.White)
+                .background(color = Color.White.copy(alpha = 0.5f))
         ) {
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                Surface(
-                    elevation = 4.dp,
-                    shape = CircleShape,
-                    modifier = Modifier
-                ) {
-
-                    IconButton(
-                        onClick = {
-                            if (audioId != 0) {
-                                chooseImageLauncher.launch("image/*")
-                            } else {
-                                chooseAudioLauncher.launch("audio/*")
-                            }
-                        },
-                        modifier = Modifier
-                            .size(80.dp)
-                    ) {
-                        val horizontalGradientBrush = myHorizontalGradiant()
-
-                        Icon(
-                            modifier = Modifier
-                                .graphicsLayer(alpha = 0.99f)
-                                .drawWithCache {
-                                    onDrawWithContent {
-                                        drawContent()
-                                        drawRect(
-                                            horizontalGradientBrush,
-                                            blendMode = BlendMode.SrcAtop
-                                        )
-                                    }
-                                },
-                            painter = if (audioId != 0) {
-                                painterResource(id = R.drawable.baseline_image_48)
-                            } else {
-                                painterResource(id = R.drawable.baseline_audio_file_48)
-                            },
-                            contentDescription = "Choose File"
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Row(modifier = Modifier
-                .align(alignment = Alignment.CenterHorizontally)
-                .padding(top = 4.dp)) {
-                Text(
-                    text = if (audioId == 0) {
-                        "CHOOSE MP3 AUDIO FILE"
-                    } else {
-                        "CHOOSE JPG IMAGE FILE"
-                    }
+            when (currentStep) {
+                1 -> AudioUploadStep(
+                    selectedAudioName = selectedAudioName,
+                    chooseAudioLauncher = chooseAudioLauncher,
+                    audioId = audioId,
+                    onNext = { if (audioId != 0) currentStep++ }
                 )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(modifier = Modifier.padding(start = 16.dp, end = 16.dp)) {
-                if(audioId != 0){
-                    Text("Audio: $selectedAudioName")
-                }
-                if(imageId != null){
-                    Text("Image: $selectedImageName")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row() {
-                TextField(
-                    value = title,
-                    onValueChange = {
-                        title = it.take(25) // Limiting input to 250 characters
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text("Title", color = Color.Black) // Changing label color
-                    },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        backgroundColor = Color.White.copy(0.5f), // Changing background color
-                        textColor = Color.Black, // Changing text color
-                        focusedBorderColor = Color.White
-                    ),
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text
-                    )
+                2 -> ImageUploadStep(
+                    selectedImageName = selectedImageName,
+                    chooseImageLauncher = chooseImageLauncher,
+                    onNext = { currentStep++ },
+                    onSkip = { currentStep++ }
                 )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row() {
-                TextField(
-                    value = description,
-                    onValueChange = {
-                        description = it.take(250) // Limiting input to 250 characters
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text("Caption", color = Color.Black) // Changing label color
-                    },
-                    colors = TextFieldDefaults.outlinedTextFieldColors(
-                        backgroundColor = Color.White.copy(0.5f), // Changing background color
-                        textColor = Color.Black, // Changing text color
-                        focusedBorderColor = Color.White
-                    ),
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text
-                    )
-                )
-            }
-            // Observe audio upload results
-            when (val result = uploadFileResults) {
-                is Result.Success -> {
-                    result.data?.let {
-                        if (it.file.extension == "MP3") {
-                            audioId = it.file.id
-
-                        } else if (it.file.extension == "JPG") {
-                            imageId = it.file.id
-
-                        }
-                    }
-                }
-                is Result.Error -> {
-                    errorMessage = result.message
-                }
-                else -> {}
-            }
-            if (uploadPostIsLoading || uploadFileIsLoading) {
-                LinearProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    color = MaterialTheme.colors.surface
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-
-                CustomSimpleButton(
-                    onClick = {
+                3 -> TitleAndCaptionStep(
+                    title = title,
+                    description = description,
+                    onTitleChange = { title = it },
+                    onDescriptionChange = { description = it },
+                    onSubmit = {
                         if (selectedAudio != null && title.isNotEmpty()) {
                             uploadViewModel.uploadPost(title, description, audioId, imageId)
                         } else {
                             errorMessage = "Audio file and Title are required!"
                         }
-                    },
-                    text = "Upload Post"
+                    }
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -291,6 +172,31 @@ fun AddPostScreen(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Observe audio and image upload results
+            when (val result = uploadFileResults) {
+                is Result.Success -> {
+                    result.data?.let {
+                        if (it.file.extension.equals("MP3", ignoreCase = true)) {
+                            audioId = it.file.id
+                        } else if (it.file.extension.equals("JPG", ignoreCase = true)) {
+                            imageId = it.file.id
+                        }
+                    }
+                }
+                is Result.Error -> {
+                    errorMessage = result.message
+                }
+                else -> {}
+            }
+
+            if (uploadPostIsLoading || uploadFileIsLoading) {
+                LinearProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    color = MaterialTheme.colors.onPrimary
+                )
+            }
+
             uploadPostResult?.let { result ->
                 when (result) {
                     is Result.Success -> {
@@ -303,7 +209,6 @@ fun AddPostScreen(
                         description = ""
                         audioId = 0
                         imageId = null
-                        // Reset error message
                         errorMessage = ""
 
                         navController.navigate("home") {
@@ -326,6 +231,193 @@ fun AddPostScreen(
     }
 }
 
+@Composable
+fun AudioUploadStep(
+    selectedAudioName: String,
+    chooseAudioLauncher: ActivityResultLauncher<String>,
+    audioId: Int,
+    onNext: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(30.dp)) {
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Surface(
+                elevation = 4.dp,
+                shape = CircleShape,
+                modifier = Modifier
+            ) {
+                IconButton(
+                    onClick = { chooseAudioLauncher.launch("audio/*") },
+                    modifier = Modifier.size(100.dp)
+                ) {
+                    val horizontalGradientBrush = myHorizontalGradiant()
+                    Icon(
+                        modifier = Modifier
+                            .graphicsLayer(alpha = 0.99f)
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent()
+                                    drawRect(horizontalGradientBrush, blendMode = BlendMode.SrcAtop)
+                                }
+                            },
+                        painter = painterResource(id = R.drawable.baseline_audio_file_48),
+                        contentDescription = "Choose Audio File"
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Text("CHOOSE MP3 AUDIO FILE", fontSize = 21.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Text(selectedAudioName)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            CustomSimpleButton(onClick = onNext, text = "Next")
+        }
+    }
+}
+
+@Composable
+fun ImageUploadStep(
+    selectedImageName: String,
+    chooseImageLauncher: ActivityResultLauncher<String>,
+    onNext: () -> Unit,
+    onSkip: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(30.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Text("CHOOSE JPG IMAGE FILE")
+        }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .padding(30.dp)
+        ) {
+
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+                Surface(
+                    elevation = 4.dp,
+                    shape = CircleShape,
+                    modifier = Modifier
+                ) {
+                    IconButton(
+                        onClick = { chooseImageLauncher.launch("image/*") },
+                        modifier = Modifier.size(100.dp)
+                    ) {
+                        val horizontalGradientBrush = myHorizontalGradiant()
+                        Icon(
+                            modifier = Modifier
+                                .graphicsLayer(alpha = 0.99f)
+                                .drawWithCache {
+                                    onDrawWithContent {
+                                        drawContent()
+                                        drawRect(
+                                            horizontalGradientBrush,
+                                            blendMode = BlendMode.SrcAtop
+                                        )
+                                    }
+                                },
+                            painter = painterResource(id = R.drawable.baseline_image_48),
+                            contentDescription = "Choose Image File"
+                        )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+                Text("CHOOSE JPG IMAGE FILE", fontSize = 21.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+                Text(selectedImageName)
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+                CustomSimpleButton(onClick = onNext, text = "Next")
+                Spacer(modifier = Modifier.width(16.dp))
+                CustomSimpleButton(onClick = onSkip, text = "Skip")
+            }
+        }
+    }
+}
+
+@Composable
+fun TitleAndCaptionStep(
+    title: String,
+    description: String,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
+    onSubmit: () -> Unit
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(30.dp)) {
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            TextField(
+                value = title,
+                onValueChange = {
+                    if (it.length <= 25) onTitleChange(it)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text("Title", color = Color.Black) // Changing label color
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    backgroundColor = Color.White.copy(0.5f), // Changing background color
+                    textColor = Color.Black, // Changing text color
+                    focusedBorderColor = Color.White
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            TextField(
+                value = description,
+                onValueChange = {
+                    if (it.length <= 250) onDescriptionChange(it)
+                },
+                modifier = Modifier.fillMaxWidth(),
+                label = {
+                    Text("Caption", color = Color.Black) // Changing label color
+                },
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    backgroundColor = Color.White.copy(0.5f), // Changing background color
+                    textColor = Color.Black, // Changing text color
+                    focusedBorderColor = Color.White
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Text
+                )
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            CustomSimpleButton(onClick = onSubmit, text = "Upload Post")
+        }
+    }
+}
 
 fun getFileNameAndUri(context: Context, uri: Uri): Pair<String?, Uri?> {
     var fileName: String? = null
