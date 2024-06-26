@@ -63,7 +63,6 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-
     Box(modifier = Modifier.fillMaxSize().background(brush = myLinearGradiant())) {
 
         Column(
@@ -173,7 +172,9 @@ fun SignUpScreen(
                         }
                     },
                     modifier = Modifier.clickable {
-                        navController.popBackStack()
+                        navController.navigate("SignIn"){
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -202,7 +203,11 @@ fun TextFieldWithValidation(
 
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = {
+            if (it.length <= 75) {
+                onValueChange(it)
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(
@@ -229,7 +234,8 @@ fun TextFieldWithValidation(
             errorTrailingIconColor = purpleErrorColor, // Change border color when not focused
             errorCursorColor = purpleErrorColor, // Change border color when not focused
             backgroundColor = Color.White.copy(alpha = 0.5f) // Set background color with 50% opacity
-        )
+        ),
+        singleLine = true
     )
     if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
         Text(

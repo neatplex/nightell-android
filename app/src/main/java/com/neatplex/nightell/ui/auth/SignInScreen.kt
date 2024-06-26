@@ -217,7 +217,11 @@ private fun OutlinedTextFieldWithIcon(
 ) {
     OutlinedTextField(
         value = value,
-        onValueChange = onValueChange,
+        onValueChange = {
+            if (it.length <= 75) {
+                onValueChange(it)
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
@@ -232,7 +236,8 @@ private fun OutlinedTextFieldWithIcon(
             focusedBorderColor = Color.White, // Change border color when focused
             unfocusedBorderColor = Color.White, // Change border color when not focused
             backgroundColor = Color.White.copy(alpha = 0.5f) // Set background color with 50% opacity
-        )
+        ),
+        singleLine = true
     )
 }
 
