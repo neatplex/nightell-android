@@ -42,7 +42,8 @@ class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService)
     override suspend fun signInWithGoogle(idToken: String): Result<AuthResponse> {
         // Make API call to your backend to authenticate with Google ID token
         return try {
-            val response = apiService.signInWithGoogle(idToken)
+            val requestBody = mapOf("google_token" to idToken)
+            val response = apiService.signInWithGoogle(requestBody)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error(e.localizedMessage ?: "An error occurred", e)

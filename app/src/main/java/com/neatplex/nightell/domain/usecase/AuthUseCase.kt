@@ -49,7 +49,13 @@ class AuthUseCase @Inject constructor(
     }
 
     suspend fun signInWithGoogle(idToken: String): Result<AuthResponse> {
-        return authRepository.signInWithGoogle(idToken)
+        val result = authRepository.signInWithGoogle(idToken)
+        if (result is Result.Success) {
+            result.data?.let {
+                saveUserInfo(it.token, it.user.id, it.user.email)
+            }
+        }
+        return result
     }
 
     private fun saveUserInfo(token: String, id: Int, email: String) {

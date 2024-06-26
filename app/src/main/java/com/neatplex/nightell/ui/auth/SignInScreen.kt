@@ -60,12 +60,12 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import com.neatplex.nightell.component.CustomBorderedButton
+import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.delay
-
 
 @Composable
 fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
@@ -93,7 +93,9 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(brush = myLinearGradiant())) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(brush = myLinearGradiant())) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -155,8 +157,10 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
 
             CustomBorderedButton(
                 onClick = {
-                    val signInIntent = googleSignInClient.signInIntent
-                    googleSignInLauncher.launch(signInIntent)
+                    googleSignInClient.signOut().addOnCompleteListener {
+                        val signInIntent = googleSignInClient.signInIntent
+                        googleSignInLauncher.launch(signInIntent)
+                    }
                 },
                 text = "Sign In with Google")
 
@@ -249,10 +253,8 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = (authResultState as? Result.Error)?.message ?: "",
-                color = Color.Red,
-                fontSize = 16.sp
+            ErrorText(
+                text = (authResultState as? Result.Error)?.message ?: ""
             )
         }
     }
@@ -280,5 +282,7 @@ private fun handleSignInResult(
         }
     } catch (e: ApiException) {
         // Handle sign-in failure
+        e.printStackTrace() // Log the exception for debugging purposes
+        // Optionally, you can display an error message to the user here
     }
 }
