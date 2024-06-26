@@ -16,7 +16,7 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
     private val USER_ID = "user_id"
     private val USER_EMAIL = "user_email"
 
-    private val _tokenState = MutableStateFlow<String?>(getToken())
+    private val _tokenState = MutableStateFlow(getToken())
     val tokenState: StateFlow<String?> = _tokenState
 
     fun setToken(token: String) {

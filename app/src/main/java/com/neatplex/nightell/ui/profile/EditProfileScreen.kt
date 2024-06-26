@@ -2,6 +2,7 @@ package com.neatplex.nightell.ui.profile
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,19 +31,22 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.NonRestartableComposable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import kotlinx.coroutines.Delay
 import kotlinx.coroutines.delay
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -53,11 +57,9 @@ fun EditProfileScreen(
     navController: NavController,
     sharedViewModel: SharedViewModel
 ) {
-
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val user = sharedViewModel.user
-    val editProfileResult by profileViewModel.userUpdatedData.observeAsState()
-
+    val updateProfileResult by profileViewModel.userUpdatedData.observeAsState()
 
     // State for edited fields
     var editedName by remember { mutableStateOf(user.value!!.name ?: "") }
@@ -67,11 +69,21 @@ fun EditProfileScreen(
     // State for sign-out confirmation dialog
     var showSignOutDialog by remember { mutableStateOf(false) }
 
+    var errorMessage by remember { mutableStateOf("") }
 
     // Track changes in fields
     var isNameChanged by remember { mutableStateOf(false) }
     var isBioChanged by remember { mutableStateOf(false) }
     var isUsernameChanged by remember { mutableStateOf(false) }
+
+    // Track original values
+    val originalName = user.value?.name ?: ""
+    val originalBio = user.value?.bio ?: ""
+    val originalUsername = user.value?.username ?: ""
+
+    // State to track the token deletion process
+    var isTokenDeletionInProgress by remember { mutableStateOf(false) }
+    var shouldNavigateToSplash by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -85,131 +97,146 @@ fun EditProfileScreen(
             )
         },
         content = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                val imageResource = rememberImagePainter(data = R.drawable.default_profile_image)
-
-                Image(
-                    painter = imageResource,
-                    contentDescription = "Profile Image",
+            if (isTokenDeletionInProgress) {
+                // Show a progress bar while the token deletion is in progress
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                Column(
                     modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val imageResource = rememberImagePainter(data = R.drawable.default_profile_image)
 
-                // Text fields to edit name, bio, and username
-                EditableField(
-                    label = "Name",
-                    value = editedName,
-                    onValueChange = {
-                        editedName = it
-                        isNameChanged = true
-                    },
-                    isChanged = isNameChanged,
-                    onSaveClicked = {
-                        if (isNameChanged) {
-                            profileViewModel.updateProfileName(editedName)
+                    Image(
+                        painter = imageResource,
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Text fields to edit name, bio, and username
+                    EditableField(
+                        label = "Name",
+                        value = editedName,
+                        onValueChange = {
+                            editedName = it
+                            isNameChanged = true
+                        },
+                        isChanged = isNameChanged,
+                        onSaveClicked = {
+                            if (isNameChanged) {
+                                profileViewModel.updateProfileName(editedName)
+                                isNameChanged = false
+                            }
+                        },
+                        onCancelClicked = {
+                            editedName = originalName
                             isNameChanged = false
                         }
-                    },
-                    onCancelClicked = {
-                        editedName = user.value?.name ?: ""
-                        isNameChanged = false
-                    }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                EditableField(
-                    label = "Bio",
-                    value = editedBio,
-                    onValueChange = {
-                        editedBio = it
-                        isBioChanged = true
-                    },
-                    isChanged = isBioChanged,
-                    onSaveClicked = {
-                        if (isBioChanged) {
-                            profileViewModel.updateBioOfUser(editedBio)
+                    EditableField(
+                        label = "Bio",
+                        value = editedBio,
+                        onValueChange = {
+                            editedBio = it
+                            isBioChanged = true
+                        },
+                        isChanged = isBioChanged,
+                        onSaveClicked = {
+                            if (isBioChanged) {
+                                profileViewModel.updateBioOfUser(editedBio)
+                                isBioChanged = false
+                            }
+                        },
+                        onCancelClicked = {
+                            editedBio = originalBio
                             isBioChanged = false
                         }
-                    },
-                    onCancelClicked = {
-                        editedBio = user.value?.bio ?: ""
-                        isBioChanged = false
-                    }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                EditableField(
-                    label = "Username",
-                    value = editedUsername,
-                    onValueChange = {
-                        editedUsername = it
-                        isUsernameChanged = true
-                    },
-                    isChanged = isUsernameChanged,
-                    onSaveClicked = {
-                        if (isUsernameChanged) {
+                    EditableField(
+                        label = "Username",
+                        value = editedUsername,
+                        onValueChange = {
                             profileViewModel.updateUsernameOfUser(editedUsername)
+                            editedUsername = it
+                            isUsernameChanged = true
+                        },
+                        isChanged = isUsernameChanged,
+                        onSaveClicked = {
+                            if (isUsernameChanged && editedUsername.length >= 5) {
+                                profileViewModel.updateUsernameOfUser(editedUsername)
+                                isUsernameChanged = false
+                            } else {
+                                errorMessage = "Username shouldn't be less than 5 character."
+                            }
+                        },
+                        onCancelClicked = {
+                            editedUsername = originalUsername
                             isUsernameChanged = false
                         }
-                    },
-                    onCancelClicked = {
-                        editedUsername = user.value?.username ?: ""
-                        isUsernameChanged = false
-                    }
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = {
-                    showSignOutDialog = true
-                }) {
-                    Text(text = "Sign Out")
-                }
-
-                if (showSignOutDialog) {
-                    AlertDialog(
-                        onDismissRequest = {
-                            showSignOutDialog = false
-                        },
-                        title = {
-                            Text(text = "Sign Out")
-                        },
-                        text = {
-                            Text("Are you sure you want to sign out?")
-                        },
-                        confirmButton = {
-                            Button(onClick = {
-                                sharedViewModel.deleteToken()
-                                parentNavController.navigate("splash") {
-                                    popUpTo(0) { inclusive = true }
-                                }
-                            }) {
-                                Text("Yes")
-                            }
-                        },
-                        dismissButton = {
-                            Button(onClick = {
-                                showSignOutDialog = false
-                            }) {
-                                Text("No")
-                            }
-                        }
                     )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Button(onClick = {
+                        showSignOutDialog = true
+                    }) {
+                        Text(text = "Sign Out")
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    ErrorText(text = errorMessage)
+
+                    if (showSignOutDialog) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                showSignOutDialog = false
+                            },
+                            title = {
+                                Text(text = "Sign Out")
+                            },
+                            text = {
+                                Text("Are you sure you want to sign out?")
+                            },
+                            confirmButton = {
+                                Button(onClick = {
+                                    sharedViewModel.deleteToken()
+                                    isTokenDeletionInProgress = true
+                                    showSignOutDialog = false
+                                }) {
+                                    Text("Yes")
+                                }
+                            },
+                            dismissButton = {
+                                Button(onClick = {
+                                    showSignOutDialog = false
+                                }) {
+                                    Text("No")
+                                }
+                            }
+                        )
+                    }
                 }
             }
         }
     )
 
     // Observe update result
-    editProfileResult?.let { result ->
+    updateProfileResult?.let { result ->
         when (result) {
             is Result.Success -> {
                 result.data?.let { updatedUser ->
@@ -219,15 +246,30 @@ fun EditProfileScreen(
             }
 
             is Result.Error -> {
-                // Handle error
+                // Reset to original values on error
+                errorMessage = result.message
             }
 
             is Result.Loading -> {
                 // Show loading indicator
             }
-
-            else -> {}
         }
+    }
+
+    // Navigate to splash screen after token deletion
+    if (shouldNavigateToSplash) {
+        LaunchedEffect(Unit) {
+            parentNavController.navigate("splash") {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    }
+
+    // Observe token deletion state
+    val token by sharedViewModel.tokenState.collectAsState()
+    if (isTokenDeletionInProgress && token == null) {
+        isTokenDeletionInProgress = true
+        shouldNavigateToSplash = true
     }
 }
 
