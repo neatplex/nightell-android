@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,16 +11,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -39,15 +40,21 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.CustomGrayButton
 import com.neatplex.nightell.component.ErrorText
+import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import kotlinx.coroutines.delay
+import com.neatplex.nightell.utils.Validation
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -77,9 +84,9 @@ fun EditProfileScreen(
     var isUsernameChanged by remember { mutableStateOf(false) }
 
     // Track original values
-    val originalName = user.value?.name ?: ""
-    val originalBio = user.value?.bio ?: ""
-    val originalUsername = user.value?.username ?: ""
+    var originalName = user.value?.name ?: ""
+    var originalBio = user.value?.bio ?: ""
+    var originalUsername = user.value?.username ?: ""
 
     // State to track the token deletion process
     var isTokenDeletionInProgress by remember { mutableStateOf(false) }
@@ -112,7 +119,8 @@ fun EditProfileScreen(
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val imageResource = rememberImagePainter(data = R.drawable.default_profile_image)
+                    val imageResource =
+                        rememberImagePainter(data = R.drawable.default_profile_image)
 
                     Image(
                         painter = imageResource,
@@ -122,10 +130,41 @@ fun EditProfileScreen(
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    EditProfileTextFieldWithValidation(
+                        label = "Username",
+                        value = editedUsername,
+                        onValueChange = {
+                            editedUsername = it
+                            isUsernameChanged = true
+                        },
+                        isChanged = isUsernameChanged,
+                        errorText = getUserNameErrorMessage(editedUsername),
+                        isValid = editedUsername.isEmpty() || Validation.isValidUsername(
+                            editedUsername
+                        ),
+                        onSaveClicked = {
+                            if (isUsernameChanged && editedUsername.length >= 5) {
+                                profileViewModel.updateUsernameOfUser(editedUsername)
+                                isUsernameChanged = false
+                            } else {
+                                errorMessage = "Username shouldn't be less than 5 character."
+                            }
+                        },
+                        onCancelClicked = {
+                            editedUsername = originalUsername
+                            isUsernameChanged = false
+                        },
+                        length = 75,
+                        singleLine = true
+                    )
+
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Text fields to edit name, bio, and username
-                    EditableField(
+                    EditProfileTextFieldWithValidation(
                         label = "Name",
                         value = editedName,
                         onValueChange = {
@@ -142,11 +181,14 @@ fun EditProfileScreen(
                         onCancelClicked = {
                             editedName = originalName
                             isNameChanged = false
-                        }
+                        },
+                        errorText = "",
+                        length = 75,
+                        singleLine = true,
+                        isValid = editedName.length <= 75
                     )
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    EditableField(
+                    EditProfileTextFieldWithValidation(
                         label = "Bio",
                         value = editedBio,
                         onValueChange = {
@@ -163,39 +205,19 @@ fun EditProfileScreen(
                         onCancelClicked = {
                             editedBio = originalBio
                             isBioChanged = false
-                        }
+                        },
+                        errorText = "",
+                        length = 156,
+                        singleLine = false,
+                        isValid = editedBio.length <= 156
                     )
+
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    EditableField(
-                        label = "Username",
-                        value = editedUsername,
-                        onValueChange = {
-                            profileViewModel.updateUsernameOfUser(editedUsername)
-                            editedUsername = it
-                            isUsernameChanged = true
-                        },
-                        isChanged = isUsernameChanged,
-                        onSaveClicked = {
-                            if (isUsernameChanged && editedUsername.length >= 5) {
-                                profileViewModel.updateUsernameOfUser(editedUsername)
-                                isUsernameChanged = false
-                            } else {
-                                errorMessage = "Username shouldn't be less than 5 character."
-                            }
-                        },
-                        onCancelClicked = {
-                            editedUsername = originalUsername
-                            isUsernameChanged = false
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(onClick = {
+                    CustomGrayButton(onClick = {
                         showSignOutDialog = true
-                    }) {
-                        Text(text = "Sign Out")
-                    }
+                    },
+                        text = "Sign Out")
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -242,6 +264,10 @@ fun EditProfileScreen(
                 result.data?.let { updatedUser ->
                     // Update user in shared view model
                     sharedViewModel.setUser(updatedUser.user)
+                    originalName = user.value?.name ?: ""
+                    originalBio = user.value?.bio ?: ""
+                    originalUsername = user.value?.username ?: ""
+                    errorMessage = ""
                 }
             }
 
@@ -274,24 +300,60 @@ fun EditProfileScreen(
 }
 
 @Composable
-fun EditableField(
-    label: String,
+fun EditProfileTextFieldWithValidation(
     value: String,
     onValueChange: (String) -> Unit,
     isChanged: Boolean,
     onSaveClicked: () -> Unit,
-    onCancelClicked: () -> Unit
+    onCancelClicked: () -> Unit,
+    label: String,
+    errorText: String,
+    length: Int,
+    isValid: Boolean,
+    singleLine: Boolean,
+    visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label) },
-            modifier = Modifier.weight(1f)
+    val purpleErrorColor = colorResource(id = R.color.purple_light)
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = {
+            if (it.length <= length) {
+                onValueChange(it)
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth(),
+        label = { Text(label) },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = ImeAction.Next
+        ),
+        visualTransformation = visualTransformation,
+        isError = !isValid && value.isNotEmpty(), // Display error when the field is not empty and not valid
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            cursorColor = Color.Black,
+            focusedLabelColor = Color.Gray,
+            unfocusedLabelColor = Color.Gray,// Change text color if needed
+            focusedBorderColor = Color.Black, // Change border color when focused
+            unfocusedBorderColor = Color.Gray,
+            errorBorderColor = purpleErrorColor.copy(alpha = 0.5f), // Change border color when not focused
+            errorLabelColor = purpleErrorColor, // Change border color when not focused
+            errorTrailingIconColor = purpleErrorColor, // Change border color when not focused
+            errorCursorColor = purpleErrorColor, // Change border color when not focused
+            backgroundColor = Color.White.copy(alpha = 0.5f) // Set background color with 50% opacity
+        ),
+        singleLine = singleLine
+    )
+    if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
+        Text(
+            text = errorText,
+            color = purpleErrorColor,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         )
+    } else {
         if (isChanged) {
             IconButton(onClick = onSaveClicked) {
                 Icon(Icons.Filled.Check, contentDescription = "Save")

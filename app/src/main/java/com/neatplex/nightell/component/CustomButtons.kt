@@ -48,6 +48,31 @@ fun CustomSimpleButton(
 }
 
 @Composable
+fun CustomGrayButton(
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(45.dp)
+            .clip(RoundedCornerShape(4.dp)) // Set rounded corners to the Box
+            .background(Color.LightGray)
+            .clickable(onClick = onClick) // Make the whole Box clickable
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.button,
+            color = Color.White,
+            textAlign = TextAlign.Center, // Center text within the Box
+            modifier = Modifier
+                .padding(4.dp) // Add padding to the Text
+                .align(Alignment.Center) // Align the Text to the center of the Box
+        )
+    }
+}
+
+@Composable
 fun CustomGradiantButton(
     text: String,
     onClick: () -> Unit
