@@ -51,7 +51,6 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
     }
 
     override suspend fun changeProfileUsername(username: String): Result<UserUpdated> {
-
         return try {
             val requestBody = mapOf("username" to username)
             val response = apiService.changeProfileUsername(requestBody)
@@ -61,4 +60,12 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
         }
     }
 
+    override suspend fun deleteAccount(): Result<Unit> {
+        return try {
+            val response = apiService.deleteAccount()
+            handleApiResponse(response)
+        } catch (e: Exception) {
+            Result.Error(e.message ?: "An error occurred")
+        }
+    }
 }

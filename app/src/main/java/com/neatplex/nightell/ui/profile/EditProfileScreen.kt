@@ -2,8 +2,12 @@ package com.neatplex.nightell.ui.profile
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -43,9 +47,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
@@ -55,6 +63,7 @@ import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.Validation
+import kotlinx.coroutines.delay
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
@@ -67,6 +76,7 @@ fun EditProfileScreen(
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val user = sharedViewModel.user
     val updateProfileResult by profileViewModel.userUpdatedData.observeAsState()
+    val deleteProfileResult by profileViewModel.accountDeleteResult.observeAsState()
 
     // State for edited fields
     var editedName by remember { mutableStateOf(user.value!!.name ?: "") }
@@ -75,6 +85,7 @@ fun EditProfileScreen(
 
     // State for sign-out confirmation dialog
     var showSignOutDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     var errorMessage by remember { mutableStateOf("") }
 
@@ -212,12 +223,39 @@ fun EditProfileScreen(
                         isValid = editedBio.length <= 156
                     )
 
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    CustomGrayButton(
+                        onClick = {
+                            showSignOutDialog = true
+                        },
+                        text = "Sign Out"
+                    )
+
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    CustomGrayButton(onClick = {
-                        showSignOutDialog = true
-                    },
-                        text = "Sign Out")
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = Color.Gray
+                                )
+                            ) {
+                                append("Do you want to delete your account? ")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    color = colorResource(id = R.color.blue_light),
+                                    textDecoration = TextDecoration.Underline
+                                )
+                            ) {
+                                append("Delete Account")
+                            }
+                        },
+                        modifier = Modifier.clickable {
+                            showDeleteAccountDialog = true
+                        }
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -246,6 +284,33 @@ fun EditProfileScreen(
                             dismissButton = {
                                 Button(onClick = {
                                     showSignOutDialog = false
+                                }) {
+                                    Text("No")
+                                }
+                            }
+                        )
+                    }
+                    if (showDeleteAccountDialog) {
+                        AlertDialog(
+                            onDismissRequest = {
+                                showDeleteAccountDialog = false
+                            },
+                            title = {
+                                Text(text = "Delete My Account!")
+                            },
+                            text = {
+                                Text("Are you sure you want to delete your account?")
+                            },
+                            confirmButton = {
+                                Button(onClick = {
+                                    profileViewModel.deleteAccount()
+                                }) {
+                                    Text("Yes")
+                                }
+                            },
+                            dismissButton = {
+                                Button(onClick = {
+                                    showDeleteAccountDialog = false
                                 }) {
                                     Text("No")
                                 }
@@ -282,19 +347,37 @@ fun EditProfileScreen(
         }
     }
 
+    // Observe delete result
+    deleteProfileResult?.let { result ->
+        when (result) {
+            is Result.Success -> {
+                sharedViewModel.deleteToken()
+                isTokenDeletionInProgress = true
+                showSignOutDialog = false
+            }
+
+            is Result.Error -> {
+                // Reset to original values on error
+                errorMessage = result.message
+            }
+
+            is Result.Loading -> {
+                // Show loading indicator
+            }
+        }
+    }
+
     // Navigate to splash screen after token deletion
     if (shouldNavigateToSplash) {
-        LaunchedEffect(Unit) {
-            parentNavController.navigate("splash") {
-                popUpTo(0) { inclusive = true }
-            }
+        parentNavController.navigate("splash") {
+            popUpTo(0) { inclusive = true }
         }
     }
 
     // Observe token deletion state
     val token by sharedViewModel.tokenState.collectAsState()
     if (isTokenDeletionInProgress && token == null) {
-        isTokenDeletionInProgress = true
+        isTokenDeletionInProgress = false
         shouldNavigateToSplash = true
     }
 }
@@ -314,6 +397,8 @@ fun EditProfileTextFieldWithValidation(
     visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     val purpleErrorColor = colorResource(id = R.color.purple_light)
+    val saveColor = Color.Green
+    val cancelColor = Color.Red
 
     OutlinedTextField(
         value = value,
@@ -355,11 +440,37 @@ fun EditProfileTextFieldWithValidation(
         )
     } else {
         if (isChanged) {
-            IconButton(onClick = onSaveClicked) {
-                Icon(Icons.Filled.Check, contentDescription = "Save")
-            }
-            IconButton(onClick = onCancelClicked) {
-                Icon(Icons.Filled.Close, contentDescription = "Cancel")
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(
+                    onClick = onSaveClicked,
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                        .clip(CircleShape)
+                        .background(saveColor.copy(alpha = 0.2f))
+                ) {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = "Save",
+                        tint = saveColor
+                    )
+                }
+                IconButton(
+                    onClick = onCancelClicked,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .background(cancelColor.copy(alpha = 0.2f))
+                ) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = "Cancel",
+                        tint = cancelColor
+                    )
+                }
             }
         }
     }

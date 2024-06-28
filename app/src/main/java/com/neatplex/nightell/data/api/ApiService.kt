@@ -83,6 +83,10 @@ interface ApiService {
     @PATCH("profile/username")
     suspend fun changeProfileUsername(@Body requestBody: Map<String, String>) : Response<UserUpdated>
 
+    // Delete Account
+    @DELETE("profile")
+    suspend fun deleteAccount() : Response<Unit>
+
     // Like a Post
     @POST("posts/{post_id}/likes")
     suspend fun like(@Path("post_id") postId: Int) : Response<StoreLike>

@@ -33,4 +33,7 @@ class ProfileUseCase @Inject constructor(private val profileRepository: ProfileR
         return result
     }
 
+    suspend fun deleteAccount(): Result<Unit> {
+        return profileRepository.deleteAccount()
+    }
 }
