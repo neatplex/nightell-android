@@ -105,7 +105,7 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
                                 modifier = Modifier.size(16.dp)
                             )
                         }
-                        Column(modifier = Modifier.padding(start = 3.dp)) {
+                        Column(modifier = Modifier.padding(start = 3.dp).width(50.dp)) {
                             Text(
                                 post.likes_count.toString(),
                                 fontSize = 14.sp
@@ -113,7 +113,7 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
                         }
                     }
                     Row(verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 16.dp)) {
+                        modifier = Modifier.padding(start = 8.dp)) {
                         Column {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_message_24),

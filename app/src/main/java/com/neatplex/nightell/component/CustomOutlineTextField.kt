@@ -29,10 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -79,13 +76,12 @@ fun CustomSearchField(
     onSearch: () -> Unit
 ) {
     var text by remember { mutableStateOf(TextFieldValue(value)) }
-    val linearGradientBrush = myLinearGradiant()
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(Color.White)
             .height(50.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .background(color = Color.LightGray.copy(alpha = 0.5f)),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -105,14 +101,7 @@ fun CustomSearchField(
                     imageVector = ImageVector.vectorResource(id = R.drawable.baseline_search_24), // Your pink search icon
                     contentDescription = "Search Icon",
                     modifier = Modifier
-                        .size(32.dp)
-                        .graphicsLayer(alpha = 0.99f)
-                        .drawWithCache {
-                            onDrawWithContent {
-                                drawContent()
-                                drawRect(linearGradientBrush, blendMode = BlendMode.SrcAtop)
-                            }
-                        },
+                        .size(32.dp),
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
@@ -120,7 +109,7 @@ fun CustomSearchField(
                 if (text.text.isEmpty()) {
                     Text(
                         text = "Text Here....",
-                        color = Color.LightGray,
+                        color = Color.Gray,
                         fontSize = 18.sp,
                         modifier = Modifier.align(Alignment.CenterStart)
                     )

@@ -1,6 +1,5 @@
 package com.neatplex.nightell.ui.profile
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,29 +15,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Button
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.OutlinedTextField
+import androidx.compose.material.ButtonDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.compose.material.TopAppBar
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -55,19 +46,17 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import coil.compose.rememberImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.component.CustomGrayButton
 import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.Validation
-import kotlinx.coroutines.delay
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@NonRestartableComposable
 fun EditProfileScreen(
     parentNavController: NavController,
     navController: NavController,
@@ -79,9 +68,9 @@ fun EditProfileScreen(
     val deleteProfileResult by profileViewModel.accountDeleteResult.observeAsState()
 
     // State for edited fields
-    var editedName by remember { mutableStateOf(user.value!!.name ?: "") }
-    var editedBio by remember { mutableStateOf(user.value!!.bio ?: "") }
-    var editedUsername by remember { mutableStateOf(user.value!!.username ?: "") }
+    var editedName by remember { mutableStateOf(user.value!!.name) }
+    var editedBio by remember { mutableStateOf(user.value!!.bio) }
+    var editedUsername by remember { mutableStateOf(user.value!!.username) }
 
     // State for sign-out confirmation dialog
     var showSignOutDialog by remember { mutableStateOf(false) }
@@ -109,213 +98,229 @@ fun EditProfileScreen(
                 title = { Text(text = "Edit Profile") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent, // Transparent to use the Box's background
+                )
             )
         },
-        content = {
+        content = { space ->
             if (isTokenDeletionInProgress) {
                 // Show a progress bar while the token deletion is in progress
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().padding(space)
                 ) {
                     CircularProgressIndicator()
                 }
             } else {
-                Column(
+                Box(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(space)
                 ) {
-                    val imageResource =
-                        rememberImagePainter(data = R.drawable.default_profile_image)
-
-                    Image(
-                        painter = imageResource,
-                        contentDescription = "Profile Image",
+                    Column(
                         modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
-                    )
+                            .fillMaxSize()
+                            .padding(vertical = 16.dp, horizontal = 16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        val imageResource =
+                            rememberAsyncImagePainter(model = R.drawable.default_profile_image)
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Image(
+                            painter = imageResource,
+                            contentDescription = "Profile Image",
+                            modifier = Modifier
+                                .size(120.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
 
-                    EditProfileTextFieldWithValidation(
-                        label = "Username",
-                        value = editedUsername,
-                        onValueChange = {
-                            editedUsername = it
-                            isUsernameChanged = true
-                        },
-                        isChanged = isUsernameChanged,
-                        errorText = getUserNameErrorMessage(editedUsername),
-                        isValid = editedUsername.isEmpty() || Validation.isValidUsername(
-                            editedUsername
-                        ),
-                        onSaveClicked = {
-                            if (isUsernameChanged && editedUsername.length >= 5) {
-                                profileViewModel.updateUsernameOfUser(editedUsername)
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        EditProfileTextFieldWithValidation(
+                            label = "Username",
+                            value = editedUsername,
+                            onValueChange = {
+                                editedUsername = it
+                                isUsernameChanged = true
+                            },
+                            isChanged = isUsernameChanged,
+                            errorText = getUserNameErrorMessage(editedUsername),
+                            isValid = editedUsername.isEmpty() || Validation.isValidUsername(
+                                editedUsername
+                            ),
+                            onSaveClicked = {
+                                if (isUsernameChanged && editedUsername.length >= 5) {
+                                    profileViewModel.updateUsernameOfUser(editedUsername)
+                                    isUsernameChanged = false
+                                } else {
+                                    errorMessage = "Username shouldn't be less than 5 character."
+                                }
+                            },
+                            onCancelClicked = {
+                                editedUsername = originalUsername
                                 isUsernameChanged = false
-                            } else {
-                                errorMessage = "Username shouldn't be less than 5 character."
-                            }
-                        },
-                        onCancelClicked = {
-                            editedUsername = originalUsername
-                            isUsernameChanged = false
-                        },
-                        length = 75,
-                        singleLine = true
-                    )
+                            },
+                            length = 75,
+                            singleLine = true
+                        )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    // Text fields to edit name, bio, and username
-                    EditProfileTextFieldWithValidation(
-                        label = "Name",
-                        value = editedName,
-                        onValueChange = {
-                            editedName = it
-                            isNameChanged = true
-                        },
-                        isChanged = isNameChanged,
-                        onSaveClicked = {
-                            if (isNameChanged) {
-                                profileViewModel.updateProfileName(editedName)
+                        // Text fields to edit name, bio, and username
+                        EditProfileTextFieldWithValidation(
+                            label = "Name",
+                            value = editedName,
+                            onValueChange = {
+                                editedName = it
+                                isNameChanged = true
+                            },
+                            isChanged = isNameChanged,
+                            onSaveClicked = {
+                                if (isNameChanged) {
+                                    profileViewModel.updateProfileName(editedName)
+                                    isNameChanged = false
+                                }
+                            },
+                            onCancelClicked = {
+                                editedName = originalName
                                 isNameChanged = false
-                            }
-                        },
-                        onCancelClicked = {
-                            editedName = originalName
-                            isNameChanged = false
-                        },
-                        errorText = "",
-                        length = 75,
-                        singleLine = true,
-                        isValid = editedName.length <= 75
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    EditProfileTextFieldWithValidation(
-                        label = "Bio",
-                        value = editedBio,
-                        onValueChange = {
-                            editedBio = it
-                            isBioChanged = true
-                        },
-                        isChanged = isBioChanged,
-                        onSaveClicked = {
-                            if (isBioChanged) {
-                                profileViewModel.updateBioOfUser(editedBio)
+                            },
+                            errorText = "",
+                            length = 75,
+                            singleLine = true,
+                            isValid = editedName.length <= 75
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        EditProfileTextFieldWithValidation(
+                            label = "Bio",
+                            value = editedBio,
+                            onValueChange = {
+                                editedBio = it
+                                isBioChanged = true
+                            },
+                            isChanged = isBioChanged,
+                            onSaveClicked = {
+                                if (isBioChanged) {
+                                    profileViewModel.updateBioOfUser(editedBio)
+                                    isBioChanged = false
+                                }
+                            },
+                            onCancelClicked = {
+                                editedBio = originalBio
                                 isBioChanged = false
-                            }
-                        },
-                        onCancelClicked = {
-                            editedBio = originalBio
-                            isBioChanged = false
-                        },
-                        errorText = "",
-                        length = 156,
-                        singleLine = false,
-                        isValid = editedBio.length <= 156
-                    )
+                            },
+                            errorText = "",
+                            length = 156,
+                            singleLine = false,
+                            isValid = editedBio.length <= 156
+                        )
 
-                    Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(32.dp))
 
-                    CustomGrayButton(
-                        onClick = {
-                            showSignOutDialog = true
-                        },
-                        text = "Sign Out"
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = Color.Gray
-                                )
-                            ) {
-                                append("Do you want to delete your account? ")
-                            }
-                            withStyle(
-                                style = SpanStyle(
-                                    color = colorResource(id = R.color.blue_light),
-                                    textDecoration = TextDecoration.Underline
-                                )
-                            ) {
-                                append("Delete Account")
-                            }
-                        },
-                        modifier = Modifier.clickable {
-                            showDeleteAccountDialog = true
+                        androidx.compose.material.Button(
+                            onClick = {
+                                showSignOutDialog = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(CircleShape)
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
+                            )
+                        ) {
+                            androidx.compose.material.Text(text = "Sign Out", color = Color.White)
                         }
-                    )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
 
-                    ErrorText(text = errorMessage)
-
-                    if (showSignOutDialog) {
-                        AlertDialog(
-                            onDismissRequest = {
-                                showSignOutDialog = false
-                            },
-                            title = {
-                                Text(text = "Sign Out")
-                            },
-                            text = {
-                                Text("Are you sure you want to sign out?")
-                            },
-                            confirmButton = {
-                                Button(onClick = {
-                                    sharedViewModel.deleteToken()
-                                    isTokenDeletionInProgress = true
-                                    showSignOutDialog = false
-                                }) {
-                                    Text("Yes")
+                        Text(
+                            buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = Color.Gray
+                                    )
+                                ) {
+                                    append("Do you want to delete your account? ")
+                                }
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = colorResource(id = R.color.blue_light),
+                                        textDecoration = TextDecoration.Underline
+                                    )
+                                ) {
+                                    append("Delete Account")
                                 }
                             },
-                            dismissButton = {
-                                Button(onClick = {
-                                    showSignOutDialog = false
-                                }) {
-                                    Text("No")
-                                }
+                            modifier = Modifier.clickable {
+                                showDeleteAccountDialog = true
                             }
                         )
-                    }
-                    if (showDeleteAccountDialog) {
-                        AlertDialog(
-                            onDismissRequest = {
-                                showDeleteAccountDialog = false
-                            },
-                            title = {
-                                Text(text = "Delete My Account!")
-                            },
-                            text = {
-                                Text("Are you sure you want to delete your account?")
-                            },
-                            confirmButton = {
-                                Button(onClick = {
-                                    profileViewModel.deleteAccount()
-                                }) {
-                                    Text("Yes")
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        ErrorText(text = errorMessage)
+
+                        if (showSignOutDialog) {
+                            AlertDialog(
+                                onDismissRequest = {
+                                    showSignOutDialog = false
+                                },
+                                title = {
+                                    Text(text = "Sign Out")
+                                },
+                                text = {
+                                    Text("Are you sure you want to sign out?")
+                                },
+                                confirmButton = {
+                                    Button(onClick = {
+                                        sharedViewModel.deleteToken()
+                                        isTokenDeletionInProgress = true
+                                        showSignOutDialog = false
+                                    }) {
+                                        Text("Yes")
+                                    }
+                                },
+                                dismissButton = {
+                                    Button(onClick = {
+                                        showSignOutDialog = false
+                                    }) {
+                                        Text("No")
+                                    }
                                 }
-                            },
-                            dismissButton = {
-                                Button(onClick = {
+                            )
+                        }
+                        if (showDeleteAccountDialog) {
+                            AlertDialog(
+                                onDismissRequest = {
                                     showDeleteAccountDialog = false
-                                }) {
-                                    Text("No")
+                                },
+                                title = {
+                                    Text(text = "Delete My Account!")
+                                },
+                                text = {
+                                    Text("Are you sure you want to delete your account?")
+                                },
+                                confirmButton = {
+                                    Button(onClick = {
+                                        profileViewModel.deleteAccount()
+                                    }) {
+                                        Text("Yes")
+                                    }
+                                },
+                                dismissButton = {
+                                    Button(onClick = {
+                                        showDeleteAccountDialog = false
+                                    }) {
+                                        Text("No")
+                                    }
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 }
             }
@@ -368,20 +373,25 @@ fun EditProfileScreen(
     }
 
     // Navigate to splash screen after token deletion
-    if (shouldNavigateToSplash) {
-        parentNavController.navigate("splash") {
-            popUpTo(0) { inclusive = true }
+    LaunchedEffect(shouldNavigateToSplash) {
+        if (shouldNavigateToSplash) {
+            parentNavController.navigate("splash") {
+                popUpTo(0) { inclusive = true }
+            }
         }
     }
 
     // Observe token deletion state
     val token by sharedViewModel.tokenState.collectAsState()
-    if (isTokenDeletionInProgress && token == null) {
-        isTokenDeletionInProgress = false
-        shouldNavigateToSplash = true
+    LaunchedEffect(isTokenDeletionInProgress, token) {
+        if (isTokenDeletionInProgress && token == null) {
+            isTokenDeletionInProgress = false
+            shouldNavigateToSplash = true
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileTextFieldWithValidation(
     value: String,
@@ -416,7 +426,7 @@ fun EditProfileTextFieldWithValidation(
         ),
         visualTransformation = visualTransformation,
         isError = !isValid && value.isNotEmpty(), // Display error when the field is not empty and not valid
-        colors = TextFieldDefaults.outlinedTextFieldColors(
+        colors = OutlinedTextFieldDefaults.colors(
             cursorColor = Color.Black,
             focusedLabelColor = Color.Gray,
             unfocusedLabelColor = Color.Gray,// Change text color if needed
@@ -426,7 +436,6 @@ fun EditProfileTextFieldWithValidation(
             errorLabelColor = purpleErrorColor, // Change border color when not focused
             errorTrailingIconColor = purpleErrorColor, // Change border color when not focused
             errorCursorColor = purpleErrorColor, // Change border color when not focused
-            backgroundColor = Color.White.copy(alpha = 0.5f) // Set background color with 50% opacity
         ),
         singleLine = singleLine
     )

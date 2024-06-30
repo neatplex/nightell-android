@@ -45,7 +45,7 @@ fun SearchScreen(
 
     Column(
         modifier = Modifier
-            .background(color = Color.LightGray.copy(alpha = 0.5f))
+            .background(color = Color.White)
     ) {
 
         Row(

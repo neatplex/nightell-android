@@ -8,24 +8,21 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.neatplex.nightell.R
 import com.neatplex.nightell.navigation.Routes
 import com.neatplex.nightell.navigation.Screens
+import com.neatplex.nightell.ui.theme.feelFree
 import kotlinx.coroutines.delay
 
 @SuppressLint("ResourceAsColor")
@@ -74,12 +71,6 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
             contentAlignment = Alignment.Center
     ) {
         // You can customize the splash screen UI here
-        Image(
-            painter = painterResource(id = R.drawable.nightell_white),
-            contentDescription = null,
-            modifier = Modifier
-                .size(150.dp)
-                .scale(1.5f)
-        )
+        Text(text = "Nightell", fontFamily = feelFree, fontSize = 85.sp, color = Color.White)
     }
 }

@@ -2,6 +2,7 @@ package com.neatplex.nightell.ui.profile
 
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,9 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -58,7 +59,8 @@ fun ProfileScreen(
 ) {
 
     val profileResult by profileViewModel.profileData.observeAsState()
-    val userId = sharedViewModel.user.value!!.id
+    val user = sharedViewModel.user.value
+    val userId = user!!.id
     val posts by profileViewModel.posts.observeAsState(emptyList())
     val isLoading by profileViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
@@ -73,17 +75,23 @@ fun ProfileScreen(
     AppTheme {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(text = "Profile")
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        titleContentColor = Color.White,
-                        actionIconContentColor = Color.White
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(4.dp, clip = false) // Add shadow to the Box
+                        .background(Color.White)
+                ) {
+                    TopAppBar(
+                        title = {
+                            Text(text = user.username, fontWeight = FontWeight.Bold)
+                        },
+                        colors = TopAppBarDefaults.topAppBarColors(
+                            containerColor = Color.Transparent, // Transparent to use the Box's background
+                        )
                     )
-                )
-            }, content = { space ->
+                }
+            },
+                content = { space ->
                 Box(modifier = Modifier.padding(space)) {
                     Column(
                         modifier = Modifier
@@ -92,11 +100,11 @@ fun ProfileScreen(
                     ) {
                         when (val result = profileResult) {
                             is Result.Success -> {
-                                val user = result.data?.user
+                                val responsedUser = result.data?.user
                                 val followers = result.data?.followers_count
                                 val followings = result.data?.followings_count
-                                if (user != null) {
-                                    ShowMyProfile(navController, user, followers!!, followings!!)
+                                if (responsedUser != null) {
+                                    ShowMyProfile(navController, responsedUser, followers!!, followings!!)
                                 }
                             }
 
@@ -173,12 +181,6 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
                         .size(80.dp)
                         .clip(CircleShape),
                     contentScale = ContentScale.Crop
-                )
-
-                Text(
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    text = user.username,
-                    style = TextStyle(fontSize = 18.sp, fontWeight = FontWeight.Bold)
                 )
             }
 

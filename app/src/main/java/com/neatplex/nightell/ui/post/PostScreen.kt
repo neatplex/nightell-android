@@ -6,7 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -91,6 +89,8 @@ fun PostScreen(
     LaunchedEffect(Unit) {
         postViewModel.showLikes(post.id)
     }
+
+    val postDeleteResult by postViewModel.postDeleteResult.observeAsState()
 
     //Observe likes and user info results
     val likesCountResult by postViewModel.showLikesResult.observeAsState()
@@ -161,9 +161,10 @@ fun PostScreen(
     ) {
         Row(modifier = Modifier.fillMaxWidth()) {
             IconButton(onClick = {
-                parentNavController.navigate("home") {
-                    popUpTo("home") { inclusive = true }
-                }
+//                parentNavController.navigate("home") {
+//                    popUpTo("home") { inclusive = true }
+//                }
+                navController.popBackStack()
             }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -214,8 +215,6 @@ fun PostScreen(
                 }
             }
         }
-
-        val scrollState = rememberScrollState()
 
         Column(
             modifier = Modifier
@@ -411,6 +410,12 @@ fun PostScreen(
                     )
                 }
             }
+        }
+    }
+
+    postDeleteResult?.let {
+        if (it is Result.Success) {
+            navController.popBackStack()
         }
     }
 

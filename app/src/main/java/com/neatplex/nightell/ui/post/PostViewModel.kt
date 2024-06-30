@@ -21,6 +21,7 @@ class PostViewModel @Inject constructor(
 
     private val _postDeleteResult = MutableLiveData<Result<Unit>>()
     val postDeleteResult: LiveData<Result<Unit>> get() = _postDeleteResult
+
     private var _storePostResult = MutableLiveData<Result<PostStoreResponse?>>()
     val storePostResult: LiveData<Result<PostStoreResponse?>> get() = _storePostResult
 
