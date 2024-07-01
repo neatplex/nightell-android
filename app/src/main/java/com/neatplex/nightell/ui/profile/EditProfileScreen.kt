@@ -1,9 +1,10 @@
 package com.neatplex.nightell.ui.profile
 
+import android.content.Context
+import android.content.Intent
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,12 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -46,19 +47,23 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import coil.compose.rememberImagePainter
+import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.AlertDialogCustom
+import com.neatplex.nightell.component.CustomCircularProgressIndicator
+import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.Validation
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
-    parentNavController: NavController,
     navController: NavController,
     sharedViewModel: SharedViewModel
 ) {
@@ -90,7 +95,8 @@ fun EditProfileScreen(
 
     // State to track the token deletion process
     var isTokenDeletionInProgress by remember { mutableStateOf(false) }
-    var shouldNavigateToSplash by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -108,21 +114,15 @@ fun EditProfileScreen(
         },
         content = { space ->
             if (isTokenDeletionInProgress) {
-                // Show a progress bar while the token deletion is in progress
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.fillMaxSize().padding(space)
-                ) {
-                    CircularProgressIndicator()
-                }
+                CustomCircularProgressIndicator()
             } else {
                 Box(
                     modifier = Modifier
+                        .fillMaxSize()
                         .padding(space)
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxSize()
                             .padding(vertical = 16.dp, horizontal = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -221,20 +221,11 @@ fun EditProfileScreen(
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        androidx.compose.material.Button(
+                        CustomSimpleButton(
                             onClick = {
                                 showSignOutDialog = true
                             },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(CircleShape)
-                                .height(50.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
-                            )
-                        ) {
-                            androidx.compose.material.Text(text = "Sign Out", color = Color.White)
-                        }
+                            text = "Sign Out")
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -256,9 +247,11 @@ fun EditProfileScreen(
                                     append("Delete Account")
                                 }
                             },
-                            modifier = Modifier.clickable {
-                                showDeleteAccountDialog = true
-                            }
+                            modifier = Modifier
+                                .clickable {
+                                    showDeleteAccountDialog = true
+                                },
+                            fontSize = 15.sp
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -266,59 +259,32 @@ fun EditProfileScreen(
                         ErrorText(text = errorMessage)
 
                         if (showSignOutDialog) {
-                            AlertDialog(
+                            AlertDialogCustom(
                                 onDismissRequest = {
                                     showSignOutDialog = false
                                 },
-                                title = {
-                                    Text(text = "Sign Out")
-                                },
-                                text = {
-                                    Text("Are you sure you want to sign out?")
-                                },
-                                confirmButton = {
-                                    Button(onClick = {
+                                dialogTitle = "Sign Out",
+                                dialogText = "Are you sure you want to sign out?",
+                                onConfirmation = {
                                         sharedViewModel.deleteToken()
                                         isTokenDeletionInProgress = true
                                         showSignOutDialog = false
-                                    }) {
-                                        Text("Yes")
-                                    }
                                 },
-                                dismissButton = {
-                                    Button(onClick = {
-                                        showSignOutDialog = false
-                                    }) {
-                                        Text("No")
-                                    }
-                                }
+                                icon = Icons.AutoMirrored.Filled.ExitToApp
                             )
                         }
+
                         if (showDeleteAccountDialog) {
-                            AlertDialog(
+                            AlertDialogCustom(
                                 onDismissRequest = {
                                     showDeleteAccountDialog = false
                                 },
-                                title = {
-                                    Text(text = "Delete My Account!")
-                                },
-                                text = {
-                                    Text("Are you sure you want to delete your account?")
-                                },
-                                confirmButton = {
-                                    Button(onClick = {
+                                dialogTitle = "Delete My Account!",
+                                dialogText ="Are you sure you want to delete your account?",
+                                onConfirmation = {
                                         profileViewModel.deleteAccount()
-                                    }) {
-                                        Text("Yes")
-                                    }
                                 },
-                                dismissButton = {
-                                    Button(onClick = {
-                                        showDeleteAccountDialog = false
-                                    }) {
-                                        Text("No")
-                                    }
-                                }
+                                icon = Icons.Default.Info
                             )
                         }
                     }
@@ -372,26 +338,29 @@ fun EditProfileScreen(
         }
     }
 
-    // Navigate to splash screen after token deletion
-    LaunchedEffect(shouldNavigateToSplash) {
-        if (shouldNavigateToSplash) {
-            parentNavController.navigate("splash") {
-                popUpTo(0) { inclusive = true }
-            }
-        }
-    }
 
     // Observe token deletion state
     val token by sharedViewModel.tokenState.collectAsState()
     LaunchedEffect(isTokenDeletionInProgress, token) {
-        if (isTokenDeletionInProgress && token == null) {
-            isTokenDeletionInProgress = false
-            shouldNavigateToSplash = true
+        if (isTokenDeletionInProgress && token == "") {
+            delay(2000)
+            signOut(context)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+fun signOut(context: Context) {
+
+    // Restart the application
+    val intent = Intent(context, MainActivity::class.java)
+    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+    context.startActivity(intent)
+
+    if (context is ComponentActivity) {
+        context.finish()
+    }
+}
+
 @Composable
 fun EditProfileTextFieldWithValidation(
     value: String,
@@ -407,8 +376,6 @@ fun EditProfileTextFieldWithValidation(
     visualTransformation: VisualTransformation = VisualTransformation.None
 ) {
     val purpleErrorColor = colorResource(id = R.color.purple_light)
-    val saveColor = Color.Green
-    val cancelColor = Color.Red
 
     OutlinedTextField(
         value = value,
@@ -417,8 +384,7 @@ fun EditProfileTextFieldWithValidation(
                 onValueChange(it)
             }
         },
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
@@ -429,7 +395,7 @@ fun EditProfileTextFieldWithValidation(
         colors = OutlinedTextFieldDefaults.colors(
             cursorColor = Color.Black,
             focusedLabelColor = Color.Gray,
-            unfocusedLabelColor = Color.Gray,// Change text color if needed
+            unfocusedLabelColor = Color.Gray, // Change text color if needed
             focusedBorderColor = Color.Black, // Change border color when focused
             unfocusedBorderColor = Color.Gray,
             errorBorderColor = purpleErrorColor.copy(alpha = 0.5f), // Change border color when not focused
@@ -437,7 +403,24 @@ fun EditProfileTextFieldWithValidation(
             errorTrailingIconColor = purpleErrorColor, // Change border color when not focused
             errorCursorColor = purpleErrorColor, // Change border color when not focused
         ),
-        singleLine = singleLine
+        singleLine = singleLine,
+        trailingIcon = {
+            if (isChanged && isValid) {
+                Row {
+                    IconButton(
+                        onClick = onSaveClicked,
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                    ) {
+                        Icon(
+                            Icons.Filled.Check,
+                            contentDescription = "Save",
+                            tint = Color.Black
+                        )
+                    }
+                }
+            }
+        }
     )
     if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
         Text(
@@ -447,40 +430,5 @@ fun EditProfileTextFieldWithValidation(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         )
-    } else {
-        if (isChanged) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                horizontalArrangement = Arrangement.End
-            ) {
-                IconButton(
-                    onClick = onSaveClicked,
-                    modifier = Modifier
-                        .padding(end = 16.dp)
-                        .clip(CircleShape)
-                        .background(saveColor.copy(alpha = 0.2f))
-                ) {
-                    Icon(
-                        Icons.Filled.Check,
-                        contentDescription = "Save",
-                        tint = saveColor
-                    )
-                }
-                IconButton(
-                    onClick = onCancelClicked,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .background(cancelColor.copy(alpha = 0.2f))
-                ) {
-                    Icon(
-                        Icons.Filled.Close,
-                        contentDescription = "Cancel",
-                        tint = cancelColor
-                    )
-                }
-            }
-        }
     }
 }
