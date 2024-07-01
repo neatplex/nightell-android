@@ -118,7 +118,7 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
                             Icon(
                                 painter = painterResource(id = R.drawable.baseline_message_24),
                                 contentDescription = null,
-                                tint = colorResource(id = R.color.blue),
+                                tint = colorResource(id = R.color.night),
                                 modifier = Modifier
                                     .size(16.dp)
                                     .graphicsLayer {

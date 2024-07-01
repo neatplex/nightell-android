@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
@@ -142,11 +142,7 @@ fun ProfileScreen(
                             }
                             if (isLoading) {
                                 item {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier
-                                            .padding(vertical = 16.dp)
-                                            .align(Alignment.CenterHorizontally)
-                                    )
+                                    CustomCircularProgressIndicator()
                                 }
                             }
                         }
@@ -222,7 +218,7 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 8.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = user.name)
@@ -230,7 +226,7 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         Row(
             modifier = Modifier
                 .width(200.dp)
-                .padding(start = 8.dp)
+                .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = user.bio,
@@ -240,7 +236,7 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 8.dp, top = 8.dp)
+                .padding(horizontal = 8.dp, vertical = 8.dp)
         ) {
 
             CustomSimpleButton(

@@ -7,8 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.sharp.Search
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
@@ -24,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -33,8 +32,8 @@ import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.neatplex.nightell.R
+import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.post.HomePostCard
 import com.neatplex.nightell.ui.theme.feelFree
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -80,13 +79,15 @@ fun HomeScreen(
                         },
                         actions = {
                             IconButton(onClick = {
-                                navController.navigate("search")
+
                             }) {
                                 Icon(
-                                    imageVector = Icons.Sharp.Search,
-                                    contentDescription = "Search",
+                                    painter = painterResource(R.drawable.bookmark),
+                                    contentDescription = "saved audio",
                                     tint = Color.Black,
-                                    modifier = Modifier.size(32.dp).align(Alignment.CenterVertically) // Align icon vertically
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .align(Alignment.CenterVertically) // Align icon vertically
                                 )
                             }
                         },
@@ -100,7 +101,6 @@ fun HomeScreen(
                     modifier = Modifier
                         .padding(space)
                         .pullRefresh(refreshState)
-                        .background(color = Color.LightGray.copy(alpha = 0.5f))
                 ) {
                         Column {
                             // LazyRow for the first 3 posts
@@ -135,11 +135,7 @@ fun HomeScreen(
                                     }
                                     if (isLoading) {
                                         item {
-                                            CircularProgressIndicator(
-                                                modifier = Modifier
-                                                    .padding(vertical = 16.dp)
-                                                    .align(Alignment.CenterHorizontally)
-                                            )
+                                            CustomCircularProgressIndicator()
                                         }
                                     }
                                 }

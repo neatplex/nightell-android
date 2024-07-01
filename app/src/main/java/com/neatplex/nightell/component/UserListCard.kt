@@ -1,5 +1,6 @@
 package com.neatplex.nightell.component
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -17,10 +18,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.rememberImagePainter
+import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.utils.toJson
 
 @Composable
 fun ShowUsers(users: List<User?>?, navController: NavController, viewModel: SharedViewModel) {
@@ -30,7 +32,8 @@ fun ShowUsers(users: List<User?>?, navController: NavController, viewModel: Shar
                 if (viewModel.user.value?.id == user.id) {
 
                 } else {
-                    navController.navigate("userScreen/${user.id}")
+                    val userJson = user.toJson()
+                    navController.navigate("userScreen/${Uri.encode(userJson)}")
                 }
             }
         }
@@ -55,7 +58,7 @@ fun UserCard(user: User, onUserClicked: (User) -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             val imageResource =
-                rememberImagePainter(data = R.drawable.default_profile_image)
+                rememberAsyncImagePainter(model = R.drawable.default_profile_image)
 
             Image(
                 painter = imageResource,

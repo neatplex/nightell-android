@@ -30,44 +30,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.theme.myLinearGradiant
-
-@Composable
-fun MyTitleOutlinedTextField() {
-    var title by remember { mutableStateOf("") }
-
-    OutlinedTextField(
-        value = title,
-        onValueChange = {
-            title = it.take(25) // Limiting input to 25 characters
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .border(
-                BorderStroke(1.dp, Color.White)
-            )
-            .padding(bottom = 1.dp), // Add padding to the bottom to create the appearance of a bottom border
-        label = {
-            Text("Title", color = Color.Black) // Changing label color
-        },
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            backgroundColor = Color.White.copy(alpha = 0.5f), // Changing background color
-            textColor = Color.Black, // Changing text color
-            focusedBorderColor = Color.White
-        ),
-        keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Text
-        )
-    )
-}
 
 @Composable
 fun CustomSearchField(
@@ -98,10 +67,10 @@ fun CustomSearchField(
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.baseline_search_24), // Your pink search icon
+                    painter = painterResource(R.drawable.search), // Your pink search icon
                     contentDescription = "Search Icon",
                     modifier = Modifier
-                        .size(32.dp),
+                        .size(24.dp),
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))

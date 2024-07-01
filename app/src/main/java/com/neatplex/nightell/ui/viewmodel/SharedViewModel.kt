@@ -33,6 +33,5 @@ class SharedViewModel @Inject constructor(
 
     fun deleteToken() {
         tokenManager.deleteToken()
-        // Additional logic if needed after deleting the token
     }
 }

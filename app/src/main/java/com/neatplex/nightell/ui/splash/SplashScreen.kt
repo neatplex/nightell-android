@@ -70,7 +70,6 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
             .fillMaxSize(),
             contentAlignment = Alignment.Center
     ) {
-        // You can customize the splash screen UI here
         Text(text = "Nightell", fontFamily = feelFree, fontSize = 85.sp, color = Color.White)
     }
 }

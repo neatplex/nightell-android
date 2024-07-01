@@ -44,9 +44,11 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
+import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Validation.isValidEmail
 import com.neatplex.nightell.utils.Validation.isValidPassword
@@ -76,40 +78,45 @@ fun SignUpScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                NightellLogo()
+                androidx.compose.material3.Text(
+                    text = "Nightell",
+                    fontFamily = feelFree,
+                    fontSize = 85.sp,
+                    color = Color.White
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             // Username TextField
             TextFieldWithValidation(
                 value = username,
                 onValueChange = { username = it },
-                label = "Username",
+                placeholder = "Username",
                 errorText = getUserNameErrorMessage(username),
                 leadingIcon = Icons.Default.AccountBox,
                 isValid = username.isEmpty() || isValidUsername(username)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Email TextField
             TextFieldWithValidation(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email",
+                placeholder = "Email",
                 errorText = if (email.isNotEmpty() && !isValidEmail(email)) "Invalid email format" else "",
                 leadingIcon = Icons.Default.Email,
                 isValid = email.isEmpty() || isValidEmail(email)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Password TextField
             TextFieldWithValidation(
                 value = password,
                 onValueChange = { password = it },
-                label = "Password",
+                placeholder = "Password",
                 errorText = if (password.isNotEmpty() && !isValidPassword(password)) "Password must be at least 8 characters long" else "",
                 leadingIcon = Icons.Default.Lock,
                 isValid = password.isEmpty() || isValidPassword(password),
@@ -118,7 +125,7 @@ fun SignUpScreen(
                     IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                         Icon(
                             painter = painterResource(id = if (isPasswordVisible) R.drawable.baseline_visibility_24 else R.drawable.baseline_visibility_off_24),
-                            contentDescription = null
+                            contentDescription = "visible/invisible password"
                         )
                     }
                 }
@@ -143,7 +150,7 @@ fun SignUpScreen(
                     backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
                 )
             ) {
-                Text(text = "Sign Up", color = Color.White)
+                Text(text = "Sign In", color = Color.White, fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -192,7 +199,7 @@ fun SignUpScreen(
 fun TextFieldWithValidation(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
+    placeholder: String,
     errorText: String,
     leadingIcon: ImageVector,
     isValid: Boolean,
@@ -209,7 +216,7 @@ fun TextFieldWithValidation(
             }
         },
         modifier = Modifier.fillMaxWidth(),
-        label = { Text(label) },
+        placeholder = { Text(placeholder) },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
             imeAction = ImeAction.Next
@@ -224,23 +231,23 @@ fun TextFieldWithValidation(
         trailingIcon = trailingIcon,
         isError = !isValid && value.isNotEmpty(), // Display error when the field is not empty and not valid
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            cursorColor = Color.Black,
-            focusedLabelColor = Color.White,
-            unfocusedLabelColor = Color.White,// Change text color if needed
+            cursorColor = Color.White,
+            placeholderColor = Color.White.copy(alpha = 0.8f),
+            textColor = Color.White,
+            leadingIconColor = Color.White.copy(alpha = 0.6f),
+            trailingIconColor = Color.White.copy(alpha = 0.6f),
             focusedBorderColor = Color.White, // Change border color when focused
             unfocusedBorderColor = Color.White,
-            errorBorderColor = purpleErrorColor.copy(alpha = 0.5f), // Change border color when not focused
-            errorLabelColor = purpleErrorColor, // Change border color when not focused
-            errorTrailingIconColor = purpleErrorColor, // Change border color when not focused
+            errorBorderColor = purpleErrorColor, // Change border color when not focused
             errorCursorColor = purpleErrorColor, // Change border color when not focused
-            backgroundColor = Color.White.copy(alpha = 0.5f) // Set background color with 50% opacity
+            backgroundColor = Color.Black.copy(alpha = 0.1f) // Set background color with 50% opacity
         ),
         singleLine = true
     )
     if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
         Text(
             text = errorText,
-            color = purpleErrorColor,
+            color = Color.White,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)

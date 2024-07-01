@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -22,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSearchField
 import com.neatplex.nightell.component.post.HomePostCard
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
@@ -84,10 +84,7 @@ fun SearchScreen(
                     }
                     if (isLoading) {
                         item {
-                            CircularProgressIndicator(
-                                modifier = Modifier
-                                    .padding(vertical = 16.dp)
-                            )
+                            CustomCircularProgressIndicator()
                         }
                     }
                 }

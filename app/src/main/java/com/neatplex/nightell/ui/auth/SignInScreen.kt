@@ -3,7 +3,6 @@ package com.neatplex.nightell.ui.auth
 import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Button
@@ -60,9 +58,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
 import com.neatplex.nightell.component.CustomBorderedButton
+import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.navigation.Screens
+import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.delay
@@ -75,6 +75,8 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     var isPasswordVisible by remember { mutableStateOf(false) }
     val authResultState by viewModel.authResult.observeAsState()
     val context = LocalContext.current
+    var isGoogleSignInInProgress by remember { mutableStateOf(false) }
+
 
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -96,6 +98,9 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     Box(modifier = Modifier
         .fillMaxSize()
         .background(brush = myLinearGradiant())) {
+        if (isGoogleSignInInProgress) {
+            CustomCircularProgressIndicator()
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -103,24 +108,29 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            NightellLogo()
+            androidx.compose.material3.Text(
+                text = "Nightell",
+                fontFamily = feelFree,
+                fontSize = 85.sp,
+                color = Color.White
+            )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextFieldWithIcon(
                 value = emailOrUsername,
                 onValueChange = { emailOrUsername = it },
-                label = "Email Or Username",
+                placeholder = "Email Or Username",
                 keyboardType = KeyboardType.Email,
                 leadingIcon = Icons.Default.Person
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextFieldWithIcon(
                 value = password,
                 onValueChange = { password = it },
-                label = "Password",
+                placeholder = "Password",
                 keyboardType = KeyboardType.Password,
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 leadingIcon = Icons.Default.Lock,
@@ -128,7 +138,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
                     IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                         Icon(
                             painter = painterResource(id = if (isPasswordVisible) R.drawable.baseline_visibility_24 else R.drawable.baseline_visibility_off_24),
-                            contentDescription = null
+                            contentDescription = "visible/invisible password"
                         )
                     }
                 }
@@ -150,13 +160,14 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
                     backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
                 )
             ) {
-                Text(text = "Sign In", color = Color.White)
+                Text(text = "Sign In", color = Color.White, fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             CustomBorderedButton(
                 onClick = {
+                    isGoogleSignInInProgress = true
                     googleSignInClient.signOut().addOnCompleteListener {
                         val signInIntent = googleSignInClient.signInIntent
                         googleSignInLauncher.launch(signInIntent)
@@ -197,19 +208,10 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
 }
 
 @Composable
-fun NightellLogo() {
-    Image(
-        painter = painterResource(id = R.drawable.nightell_white),
-        contentDescription = null,
-        modifier = Modifier.size(150.dp)
-    )
-}
-
-@Composable
 private fun OutlinedTextFieldWithIcon(
     value: String,
     onValueChange: (String) -> Unit,
-    label: String,
+    placeholder: String,
     keyboardType: KeyboardType,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     leadingIcon: ImageVector,
@@ -223,19 +225,20 @@ private fun OutlinedTextFieldWithIcon(
             }
         },
         modifier = Modifier.fillMaxWidth(),
-        label = { Text(label) },
+        placeholder = { Text(placeholder) },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         visualTransformation = visualTransformation,
         leadingIcon = { Icon(leadingIcon, contentDescription = null) },
         trailingIcon = trailingIcon,
         colors = TextFieldDefaults.outlinedTextFieldColors(
-            cursorColor = Color.Black,
-            textColor = Color.Black,
-            unfocusedLabelColor = Color.White,
-            focusedLabelColor = Color.White,// Change text color if needed
+            cursorColor = Color.White,
+            placeholderColor = Color.White.copy(alpha = 0.8f),
+            textColor = Color.White,
+            leadingIconColor = Color.White.copy(alpha = 0.6f),
+            trailingIconColor = Color.White.copy(alpha = 0.6f),
             focusedBorderColor = Color.White, // Change border color when focused
             unfocusedBorderColor = Color.White, // Change border color when not focused
-            backgroundColor = Color.White.copy(alpha = 0.5f) // Set background color with 50% opacity
+            backgroundColor = Color.Black.copy(alpha = 0.1f) // Set background color with 50% opacity
         ),
         singleLine = true
     )
@@ -255,7 +258,9 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
 
     if (showError) {
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             ErrorText(

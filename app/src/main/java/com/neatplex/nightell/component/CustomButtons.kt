@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.theme.myHorizontalGradiant
 
@@ -32,7 +33,7 @@ fun CustomSimpleButton(
             .fillMaxWidth()
             .height(45.dp)
             .clip(RoundedCornerShape(4.dp)) // Set rounded corners to the Box
-            .background(colorResource(id = R.color.blue))
+            .background(colorResource(id = R.color.night))
             .clickable(onClick = onClick) // Make the whole Box clickable
     ) {
         Text(
@@ -42,54 +43,6 @@ fun CustomSimpleButton(
             textAlign = TextAlign.Center, // Center text within the Box
             modifier = Modifier
                 .padding(4.dp) // Add padding to the Text
-                .align(Alignment.Center) // Align the Text to the center of the Box
-        )
-    }
-}
-
-@Composable
-fun CustomGrayButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(45.dp)
-            .clip(RoundedCornerShape(4.dp)) // Set rounded corners to the Box
-            .background(Color.LightGray)
-            .clickable(onClick = onClick) // Make the whole Box clickable
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.button,
-            color = Color.White,
-            textAlign = TextAlign.Center, // Center text within the Box
-            modifier = Modifier
-                .padding(4.dp) // Add padding to the Text
-                .align(Alignment.Center) // Align the Text to the center of the Box
-        )
-    }
-}
-
-@Composable
-fun CustomGradiantButton(
-    text: String,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(4.dp)) // Set rounded corners to the Box
-            .background(brush = myHorizontalGradiant())
-            .clickable(onClick = onClick) // Make the whole Box clickable
-    ) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.button,
-            color = Color.White,
-            textAlign = TextAlign.Center, // Center text within the Box
-            modifier = Modifier
-                .padding(16.dp) // Add padding to the Text
                 .align(Alignment.Center) // Align the Text to the center of the Box
         )
     }
@@ -111,7 +64,8 @@ fun CustomBorderedButton(
             text = text,
             style = MaterialTheme.typography.button,
             color = Color.White,
-            textAlign = TextAlign.Center, // Center text within the Box
+            textAlign = TextAlign.Center,
+            fontSize = 16.sp,// Center text within the Box
             modifier = Modifier
                 .padding(4.dp) // Add padding to the Text
                 .align(Alignment.Center) // Align the Text to the center of the Box

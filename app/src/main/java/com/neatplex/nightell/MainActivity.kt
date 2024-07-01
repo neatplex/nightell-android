@@ -36,6 +36,8 @@ class MainActivity : ComponentActivity() {
             AppTheme {
             val listItems = listOf(
                 Screens.Home,
+                Screens.Search,
+                Screens.AddPost,
                 Screens.Profile
             )
 

@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,7 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomSimpleButton
-import com.neatplex.nightell.ui.theme.myHorizontalGradiant
+import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -163,7 +164,7 @@ fun AddPostScreen(
             }
             Spacer(modifier = Modifier.height(16.dp))
             Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                Text(errorMessage, color = Color.Red)
+                Text(errorMessage, color = colorResource(id = R.color.purple_light))
                 if(errorMessage.length > 5){
                     CoroutineScope(Dispatchers.Main).launch {
                         delay(5000)
@@ -243,6 +244,7 @@ fun AudioUploadStep(
             .padding(30.dp)) {
 
         Spacer(modifier = Modifier.height(16.dp))
+
         Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
             Surface(
                 elevation = 4.dp,
@@ -253,7 +255,7 @@ fun AudioUploadStep(
                     onClick = { chooseAudioLauncher.launch("audio/*") },
                     modifier = Modifier.size(100.dp)
                 ) {
-                    val horizontalGradientBrush = myHorizontalGradiant()
+                    val horizontalGradientBrush = myLinearGradiant()
                     Icon(
                         modifier = Modifier
                             .graphicsLayer(alpha = 0.99f)
@@ -269,7 +271,9 @@ fun AudioUploadStep(
                 }
             }
         }
+
         Spacer(modifier = Modifier.height(16.dp))
+
         Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
             Text("CHOOSE MP3 AUDIO FILE", fontSize = 21.sp, fontWeight = FontWeight.Bold)
         }
@@ -291,65 +295,54 @@ fun ImageUploadStep(
     onNext: () -> Unit,
     onSkip: () -> Unit
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(30.dp)
-    ) {
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            Text("CHOOSE JPG IMAGE FILE")
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .padding(30.dp)
-        ) {
 
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                Surface(
-                    elevation = 4.dp,
-                    shape = CircleShape,
-                    modifier = Modifier
+    Column(horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .padding(30.dp)) {
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Surface(
+                elevation = 4.dp,
+                shape = CircleShape,
+                modifier = Modifier
+            ) {
+                IconButton(
+                    onClick = { chooseImageLauncher.launch("image/*") },
+                    modifier = Modifier.size(100.dp)
                 ) {
-                    IconButton(
-                        onClick = { chooseImageLauncher.launch("image/*") },
-                        modifier = Modifier.size(100.dp)
-                    ) {
-                        val horizontalGradientBrush = myHorizontalGradiant()
-                        Icon(
-                            modifier = Modifier
-                                .graphicsLayer(alpha = 0.99f)
-                                .drawWithCache {
-                                    onDrawWithContent {
-                                        drawContent()
-                                        drawRect(
-                                            horizontalGradientBrush,
-                                            blendMode = BlendMode.SrcAtop
-                                        )
-                                    }
-                                },
-                            painter = painterResource(id = R.drawable.baseline_image_48),
-                            contentDescription = "Choose Image File"
-                        )
-                    }
+                    val horizontalGradientBrush = myLinearGradiant()
+                    Icon(
+                        modifier = Modifier
+                            .graphicsLayer(alpha = 0.99f)
+                            .drawWithCache {
+                                onDrawWithContent {
+                                    drawContent()
+                                    drawRect(horizontalGradientBrush, blendMode = BlendMode.SrcAtop)
+                                }
+                            },
+                        painter = painterResource(id = R.drawable.baseline_image_48),
+                        contentDescription = "Choose Image File"
+                    )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                Text("CHOOSE JPG IMAGE FILE", fontSize = 21.sp, fontWeight = FontWeight.Bold)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                Text(selectedImageName)
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                CustomSimpleButton(onClick = onNext, text = "Next")
-                Spacer(modifier = Modifier.width(16.dp))
-                CustomSimpleButton(onClick = onSkip, text = "Skip")
-            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Text("CHOOSE JPG IMAGE FILE", fontSize = 21.sp, fontWeight = FontWeight.Bold)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            Text(selectedImageName)
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
+            CustomSimpleButton(onClick = onNext, text = "Next")
+            Spacer(modifier = Modifier.width(16.dp))
+            CustomSimpleButton(onClick = onSkip, text = "Skip")
         }
     }
 }
@@ -380,7 +373,8 @@ fun TitleAndCaptionStep(
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     backgroundColor = Color.White.copy(0.5f), // Changing background color
                     textColor = Color.Black, // Changing text color
-                    focusedBorderColor = Color.White
+                    focusedBorderColor = Color.White,
+                    cursorColor = Color.Black
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Text
@@ -403,7 +397,8 @@ fun TitleAndCaptionStep(
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     backgroundColor = Color.White.copy(0.5f), // Changing background color
                     textColor = Color.Black, // Changing text color
-                    focusedBorderColor = Color.White
+                    focusedBorderColor = Color.White,
+                    cursorColor = Color.Black
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Text

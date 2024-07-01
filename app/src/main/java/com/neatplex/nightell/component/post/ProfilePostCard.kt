@@ -29,7 +29,7 @@ fun ProfilePostCard(post: Post, onPostClicked: (Post) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onPostClicked(post) },
         elevation = 0.dp
     ) {

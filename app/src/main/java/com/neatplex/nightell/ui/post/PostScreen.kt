@@ -2,6 +2,7 @@ package com.neatplex.nightell.ui.post
 
 
 import android.media.MediaPlayer
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -58,11 +59,11 @@ import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
+import com.neatplex.nightell.utils.toJson
 
 
 @Composable
 fun PostScreen(
-    parentNavController: NavController,
     navController: NavController,
     sharedViewModel: SharedViewModel,
     data: Post?,
@@ -255,7 +256,8 @@ fun PostScreen(
                         .clickable {
                             // Navigate to another page when "Followers" is clicked
                             if (sharedViewModel.user.value?.id != post.user.id) {
-                                navController.navigate("userScreen/${post.user.id}")
+                                val userJson = post.user.toJson()
+                                navController.navigate("userScreen/${Uri.encode(userJson)}")
                             }
                         }
                 )
