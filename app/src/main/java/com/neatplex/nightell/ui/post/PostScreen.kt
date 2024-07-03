@@ -47,6 +47,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
@@ -407,7 +408,7 @@ fun PostScreen(
                 } else {
                     Text(
                         text = editedTitle,
-                        style = MaterialTheme.typography.h5
+                        fontSize = 24.sp
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(

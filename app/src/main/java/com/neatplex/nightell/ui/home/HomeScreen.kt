@@ -36,6 +36,7 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.post.HomePostCard
 import com.neatplex.nightell.ui.theme.feelFree
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
@@ -93,7 +94,8 @@ fun HomeScreen(
 //                        },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent, // Transparent to use the Box's background
-                        ))
+                        )
+                    )
                 }
             },
             content = { space ->
@@ -102,45 +104,45 @@ fun HomeScreen(
                         .padding(space)
                         .pullRefresh(refreshState)
                 ) {
-                        Column {
-                            // LazyRow for the first 3 posts
-                            LazyRow {
-                                itemsIndexed(feed.take(3)) { index, post ->
-                                    RecentPostCard(post = post) { selectedPost ->
+                    Column {
+                        // LazyRow for the first 3 posts
+                        LazyRow {
+                            itemsIndexed(feed.take(3)) { index, post ->
+                                RecentPostCard(post = post) { selectedPost ->
+                                    sharedViewModel.setPost(selectedPost)
+                                    val postJson = selectedPost.toJson()
+                                    navController.navigate(
+                                        "postScreen/${Uri.encode(postJson)}"
+                                    )
+                                }
+                            }
+                        }
+                        // LazyColumn for the remaining posts
+                        LazyColumn(
+                            contentPadding = PaddingValues(bottom = 65.dp),
+                            modifier = Modifier.fillMaxSize(),
+                            content = {
+                                itemsIndexed(feed.drop(3)) { index, post ->
+                                    HomePostCard(post = post) { selectedPost ->
                                         sharedViewModel.setPost(selectedPost)
                                         val postJson = selectedPost.toJson()
                                         navController.navigate(
                                             "postScreen/${Uri.encode(postJson)}"
                                         )
                                     }
+                                    if (index == feed.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
+                                        lastPostId = post.id
+                                        homeViewModel.loadFeed(lastPostId)
+                                    }
+                                }
+                                if (isLoading) {
+                                    item {
+                                        CustomCircularProgressIndicator()
+                                    }
                                 }
                             }
-                            // LazyColumn for the remaining posts
-                            LazyColumn(
-                                contentPadding = PaddingValues(bottom = 65.dp),
-                                modifier = Modifier.fillMaxSize(),
-                                content = {
-                                    itemsIndexed(feed.drop(3)) { index, post ->
-                                        HomePostCard(post = post) { selectedPost ->
-                                            sharedViewModel.setPost(selectedPost)
-                                            val postJson = selectedPost.toJson()
-                                            navController.navigate(
-                                                "postScreen/${Uri.encode(postJson)}"
-                                            )
-                                        }
-                                        if (index == feed.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
-                                            lastPostId = post.id
-                                            homeViewModel.loadFeed(lastPostId)
-                                        }
-                                    }
-                                    if (isLoading) {
-                                        item {
-                                            CustomCircularProgressIndicator()
-                                        }
-                                    }
-                                }
-                            )
-                        }
+                        )
+                    }
 
                     PullRefreshIndicator(
                         refreshing = isRefreshing,
@@ -157,6 +159,7 @@ fun HomeScreen(
         is Result.Success -> {
             result.data?.user?.let { sharedViewModel.setUser(it) }
         }
+
         else -> {
         }
     }

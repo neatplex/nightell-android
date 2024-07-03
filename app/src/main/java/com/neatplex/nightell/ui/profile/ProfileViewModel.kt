@@ -41,6 +41,8 @@ class ProfileViewModel @Inject constructor(
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
+    private val _isRefreshing = MutableLiveData<Boolean>()
+    val isRefreshing: LiveData<Boolean> get() = _isRefreshing
 
     fun fetchProfile() {
         viewModelScope.launch {
@@ -56,6 +58,13 @@ class ProfileViewModel @Inject constructor(
             _userUpdatedData.value = result
         }
     }
+
+    fun refreshProfile(userId : Int) {
+        canLoadMore = true // Allow loading more on refresh
+        _posts.value = emptyList()
+        loadPosts(userId , null)
+    }
+
     fun updateBioOfUser(bio: String){
         viewModelScope.launch {
             val result = profileUseCase.changeProfileBio(bio)

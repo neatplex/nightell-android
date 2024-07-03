@@ -8,12 +8,14 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -120,89 +122,59 @@ fun AddPostScreen(
             }
         }
 
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.LightGray.copy(alpha = 0.5f))
     ) {
-        Box(
-            modifier = Modifier
-                .padding(30.dp)
-                .fillMaxWidth()
-                .weight(1f)
-                .border(width = 1.dp, color = Color.LightGray, shape = RoundedCornerShape(24.dp))
-        ) {
-            when (currentStep) {
-                1 -> AudioUploadStep(
-                    selectedAudioName = selectedAudioName,
-                    chooseAudioLauncher = chooseAudioLauncher,
-                    audioId = audioId,
-                    onNext = { if (audioId != 0) currentStep++ }
-                )
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .align(Alignment.Center)
+            .padding(30.dp)) {
+            Row(
+                modifier = Modifier
+                    .border(width = 1.dp, color = Color.LightGray, shape = RoundedCornerShape(24.dp))
+                    .background(Color.White, shape = RoundedCornerShape(24.dp))
+            ) {
+                when (currentStep) {
+                    1 -> AudioUploadStep(
+                        selectedAudioName = selectedAudioName,
+                        chooseAudioLauncher = chooseAudioLauncher,
+                        audioId = audioId,
+                        onNext = { if (audioId != 0) currentStep++ }
+                    )
 
-                2 -> ImageUploadStep(
-                    selectedImageName = selectedImageName,
-                    chooseImageLauncher = chooseImageLauncher,
-                    imageId = imageId,
-                    onNext = { currentStep++ }
-                )
+                    2 -> ImageUploadStep(
+                        selectedImageName = selectedImageName,
+                        chooseImageLauncher = chooseImageLauncher,
+                        imageId = imageId,
+                        onNext = { currentStep++ }
+                    )
 
-                3 -> TitleAndCaptionStep(
-                    title = title,
-                    description = description,
-                    onTitleChange = { title = it },
-                    onDescriptionChange = { description = it },
-                    onSubmit = {
-                        if (selectedAudio != null && title.isNotEmpty()) {
-                            uploadViewModel.uploadPost(title, description, audioId, imageId)
-                        } else {
-                            errorMessage = "Title is required!"
+                    3 -> TitleAndCaptionStep(
+                        title = title,
+                        description = description,
+                        onTitleChange = { title = it },
+                        onDescriptionChange = { description = it },
+                        onSubmit = {
+                            if (selectedAudio != null && title.isNotEmpty()) {
+                                uploadViewModel.uploadPost(title, description, audioId, imageId)
+                            } else {
+                                errorMessage = "Title is required!"
+                            }
                         }
-                    }
-                )
-
-
-            }
-
-            // Observe audio and image upload results
-            when (val result = uploadFileResults) {
-                is Result.Success -> {
-                    result.data?.let {
-                        if (it.file.extension.equals("MP3", ignoreCase = true)) {
-                            audioId = it.file.id
-                        } else if (it.file.extension.equals("JPG", ignoreCase = true)) {
-                            imageId = it.file.id
-                        }
-                    }
+                    )
                 }
 
-                is Result.Error -> {
-                    errorMessage = result.message
-                }
-
-                else -> {}
-            }
-
-            if (uploadPostIsLoading || uploadFileIsLoading) {
-                LinearProgressIndicator(
-                    color = MaterialTheme.colors.onPrimary
-                )
-            }
-
-            uploadPostResult?.let { result ->
-                when (result) {
+                // Observe audio and image upload results
+                when (val result = uploadFileResults) {
                     is Result.Success -> {
-                        // Clear the state variables
-                        selectedAudio = null
-                        selectedAudioName = ""
-                        selectedImage = null
-                        selectedImageName = ""
-                        title = ""
-                        description = ""
-                        audioId = 0
-                        imageId = null
-                        errorMessage = ""
-
-                        navController.navigate("home") {
-                            popUpTo("home") { inclusive = true }
+                        result.data?.let {
+                            if (it.file.extension.equals("MP3", ignoreCase = true)) {
+                                audioId = it.file.id
+                            } else if (it.file.extension.equals("JPG", ignoreCase = true)) {
+                                imageId = it.file.id
+                            }
                         }
                     }
 
@@ -210,70 +182,103 @@ fun AddPostScreen(
                         errorMessage = result.message
                     }
 
-                    Result.Loading -> {
-                        LinearProgressIndicator(
-                        )
-                    }
+                    else -> {}
                 }
-            }
-        }
 
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 30.dp)
-                .weight(1f)
-                .fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Spacer(modifier = Modifier.height(32.dp))
-                    Text(errorMessage, color = colorResource(id = R.color.purple_light))
-                    if (errorMessage.length > 5) {
-                        CoroutineScope(Dispatchers.Main).launch {
-                            delay(5000)
+                if (uploadPostIsLoading || uploadFileIsLoading) {
+                    LinearProgressIndicator(
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                }
+
+                uploadPostResult?.let { result ->
+                    when (result) {
+                        is Result.Success -> {
+                            // Clear the state variables
+                            selectedAudio = null
+                            selectedAudioName = ""
+                            selectedImage = null
+                            selectedImageName = ""
+                            title = ""
+                            description = ""
+                            audioId = 0
+                            imageId = null
                             errorMessage = ""
+
+                            navController.navigate("home") {
+                                popUpTo("home") { inclusive = true }
+                            }
+                        }
+
+                        is Result.Error -> {
+                            errorMessage = result.message
+                        }
+
+                        Result.Loading -> {
+                            LinearProgressIndicator()
                         }
                     }
                 }
-                if (audioId != 0) {
+            }
+
+            Row {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 8.dp),
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .padding(end = 8.dp),
-                            tint = colorResource(id = R.color.night),
-                            painter = painterResource(id = R.drawable.baseline_audio_file_48),
-                            contentDescription = "Choose Audio File"
-                        )
-                        Text(text = selectedAudioName)
+                        Text(errorMessage, color = colorResource(id = R.color.purple_light))
+                        if (errorMessage.length > 5) {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                delay(5000)
+                                errorMessage = ""
+                            }
+                        }
                     }
-                }
-                if (imageId != null) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
+
+                    if (audioId != 0) {
+                        Row(
                             modifier = Modifier
-                                .size(32.dp)
-                                .padding(end = 8.dp),
-                            tint = colorResource(id = R.color.night),
-                            painter = painterResource(id = R.drawable.baseline_image_48),
-                            contentDescription = "Choose Image File"
-                        )
-                        Text(text = selectedImageName)
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .padding(end = 8.dp),
+                                tint = colorResource(id = R.color.night),
+                                painter = painterResource(id = R.drawable.baseline_audio_file_48),
+                                contentDescription = "Choose Audio File"
+                            )
+                            Text(text = selectedAudioName, fontSize = 17.sp)
+                        }
+                    }
+                    if (imageId != null) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .padding(end = 8.dp),
+                                tint = colorResource(id = R.color.night),
+                                painter = painterResource(id = R.drawable.baseline_image_48),
+                                contentDescription = "Choose Image File"
+                            )
+                            Text(text = selectedImageName, fontSize = 17.sp)
+                        }
                     }
                 }
             }
@@ -297,7 +302,7 @@ fun AudioUploadStep(
         Spacer(modifier = Modifier.height(16.dp))
         Image(
             modifier = Modifier
-                .size(100.dp),
+                .size(128.dp),
             painter = uploadImage,
             contentDescription = "Choose Audio File"
         )
@@ -347,7 +352,7 @@ fun ImageUploadStep(
         Spacer(modifier = Modifier.height(16.dp))
         Image(
             modifier = Modifier
-                .size(80.dp),
+                .size(128.dp),
             painter = uploadImage,
             contentDescription = "Choose Image File"
         )

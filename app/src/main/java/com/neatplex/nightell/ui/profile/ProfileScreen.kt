@@ -20,6 +20,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,7 +54,7 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.toJson
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -64,6 +67,12 @@ fun ProfileScreen(
     val posts by profileViewModel.posts.observeAsState(emptyList())
     val isLoading by profileViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
+    val isRefreshing by profileViewModel.isRefreshing.observeAsState(false)
+
+    val refreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = { profileViewModel.refreshProfile(user!!.id) }
+    )
 
     AppTheme {
         Scaffold(
@@ -85,7 +94,11 @@ fun ProfileScreen(
                 }
             },
             content = { space ->
-                Box(modifier = Modifier.padding(space)) {
+                Box(
+                    modifier = Modifier
+                        .padding(space)
+                        .pullRefresh(refreshState)
+                ) {
                     if (user == null) {
                         // Handle case where user is null
                         Text(
@@ -129,7 +142,7 @@ fun ProfileScreen(
 
                                 else -> {}
                             }
-                            Spacer(modifier = Modifier.height(30.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                             LazyVerticalGrid(
                                 contentPadding = PaddingValues(bottom = 65.dp),
                                 columns = GridCells.Fixed(2), // Define the number of columns
@@ -234,7 +247,7 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         }
         Row(
             modifier = Modifier
-                .width(200.dp)
+                .width(300.dp)
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))

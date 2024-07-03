@@ -159,7 +159,7 @@ fun UserScreen(
                         else -> {}
 
                     }
-                    Spacer(modifier = Modifier.height(30.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     LazyVerticalGrid(
                         contentPadding = PaddingValues(bottom = 65.dp),
                         columns = GridCells.Fixed(2), // Define the number of columns
