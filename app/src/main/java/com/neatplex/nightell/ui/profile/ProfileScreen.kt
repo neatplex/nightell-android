@@ -239,7 +239,8 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         ) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = user.bio,
-                fontSize = 14.sp)
+                fontSize = 13.sp,
+                lineHeight = 16.sp)
         }
 
         Row(

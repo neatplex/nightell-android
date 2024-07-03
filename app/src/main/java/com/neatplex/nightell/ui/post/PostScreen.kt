@@ -43,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -364,7 +365,8 @@ fun PostScreen(
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             backgroundColor = Color.White.copy(0.5f), // Changing background color
                             textColor = Color.Black, // Changing text color
-                            focusedBorderColor = Color.White
+                            focusedBorderColor = Color.White,
+                            cursorColor = colorResource(id = R.color.night)
                         ),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Text
@@ -383,7 +385,8 @@ fun PostScreen(
                         colors = TextFieldDefaults.outlinedTextFieldColors(
                             backgroundColor = Color.White.copy(0.5f), // Changing background color
                             textColor = Color.Black, // Changing text color
-                            focusedBorderColor = Color.White
+                            focusedBorderColor = Color.White,
+                            cursorColor = colorResource(id = R.color.night)
                         ),
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Text

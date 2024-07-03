@@ -180,7 +180,9 @@ fun EditProfileScreen(
                                 isUsernameChanged = false
                             },
                             length = 75,
-                            singleLine = true
+                            singleLine = true,
+                            imeAction = ImeAction.Next,
+                            height = 65
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -207,7 +209,9 @@ fun EditProfileScreen(
                             errorText = "",
                             length = 75,
                             singleLine = true,
-                            isValid = editedName.length <= 75
+                            isValid = editedName.length <= 75,
+                            imeAction = ImeAction.Next,
+                            height = 65
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         EditProfileTextFieldWithValidation(
@@ -231,7 +235,9 @@ fun EditProfileScreen(
                             errorText = "",
                             length = 156,
                             singleLine = false,
-                            isValid = editedBio.length <= 156
+                            isValid = editedBio.length <= 156,
+                            imeAction = ImeAction.Default,
+                            height = 200
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -376,7 +382,9 @@ fun EditProfileTextFieldWithValidation(
     length: Int,
     isValid: Boolean,
     singleLine: Boolean,
-    visualTransformation: VisualTransformation = VisualTransformation.None
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    imeAction : ImeAction,
+    height : Int
 ) {
     val purpleErrorColor = colorResource(id = R.color.purple_light)
 
@@ -387,11 +395,11 @@ fun EditProfileTextFieldWithValidation(
                 onValueChange(it)
             }
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().height(height.dp),
         label = { Text(label) },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Next
+            imeAction = imeAction
         ),
         visualTransformation = visualTransformation,
         isError = !isValid && value.isNotEmpty(), // Display error when the field is not empty and not valid
