@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
@@ -105,6 +106,20 @@ fun EditProfileScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        showSignOutDialog = true
+                    }) {
+                        Icon(
+                            painter = painterResource(R.drawable.logout),
+                            contentDescription = "saved audio",
+                            tint = Color.Black,
+                            modifier = Modifier
+                                .size(26.dp)
+                                .align(Alignment.CenterVertically) // Align icon vertically
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -221,14 +236,6 @@ fun EditProfileScreen(
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        CustomSimpleButton(
-                            onClick = {
-                                showSignOutDialog = true
-                            },
-                            text = "Sign Out")
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
                         Text(
                             buildAnnotatedString {
                                 withStyle(
@@ -251,7 +258,7 @@ fun EditProfileScreen(
                                 .clickable {
                                     showDeleteAccountDialog = true
                                 },
-                            fontSize = 15.sp
+                            fontSize = 13.sp
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -269,9 +276,7 @@ fun EditProfileScreen(
                                         sharedViewModel.deleteToken()
                                         isTokenDeletionInProgress = true
                                         showSignOutDialog = false
-                                },
-                                icon = Icons.AutoMirrored.Filled.ExitToApp
-                            )
+                                })
                         }
 
                         if (showDeleteAccountDialog) {
@@ -283,9 +288,7 @@ fun EditProfileScreen(
                                 dialogText ="Are you sure you want to delete your account?",
                                 onConfirmation = {
                                         profileViewModel.deleteAccount()
-                                },
-                                icon = Icons.Default.Info
-                            )
+                                })
                         }
                     }
                 }

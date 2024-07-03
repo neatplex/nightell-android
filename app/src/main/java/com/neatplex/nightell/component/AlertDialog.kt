@@ -19,12 +19,8 @@ fun AlertDialogCustom(
     onConfirmation: () -> Unit,
     dialogTitle: String,
     dialogText: String,
-    icon: ImageVector,
 ) {
     AlertDialog(
-        icon = {
-            Icon(icon, contentDescription = "Example Icon", Modifier.size(48.dp))
-        },
         title = {
             Text(text = dialogTitle)
         },

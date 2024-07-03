@@ -24,7 +24,7 @@ fun myHorizontalGradiant(): Brush {
 fun myLinearGradiant(): Brush {
     return Brush.linearGradient(
         colors = listOf(
-            Color(0xFF4Da1aB),
+            Color(0xFF4Da1aB ),
             Color(0xFF2D436C),
             Color(0xFFDA03BD)),
         start = androidx.compose.ui.geometry.Offset(0f, 0f),

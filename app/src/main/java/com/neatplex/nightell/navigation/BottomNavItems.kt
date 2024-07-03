@@ -72,7 +72,7 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                 NavigationBar(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(65.dp)
+                        .height(50.dp)
                         .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
                         .background(Color.White), // Use primary color from the theme
                     containerColor = Color.White// Ensure the background color is set
@@ -87,7 +87,7 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                                 Icon(
                                     painter = icon,
                                     contentDescription = null,
-                                    modifier = Modifier.size(26.dp),
+                                    modifier = Modifier.size(22.dp),
                                     tint = if (isSelected) Color.Black else Color.Black.copy(alpha = 0.5f)
                                 )
                             },

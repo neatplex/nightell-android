@@ -7,8 +7,9 @@ import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,14 +19,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
@@ -38,22 +36,22 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.CustomBorderedButton
+import com.neatplex.nightell.component.CustomLinkButton
 import com.neatplex.nightell.component.CustomSimpleButton
-import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -114,7 +112,8 @@ fun AddPostScreen(
                 val fileExtension = fileName?.substringAfterLast('.', "")
                 val file = uriToFile(context, selectedImage!!)
                 if (fileExtension.equals("jpg", ignoreCase = true) ||
-                    fileExtension.equals("jpeg", ignoreCase = true)) {
+                    fileExtension.equals("jpeg", ignoreCase = true)
+                ) {
                     selectedImageName = fileName!!
                     uploadViewModel.uploadFile(file!!, "JPG")
                 } else {
@@ -123,17 +122,15 @@ fun AddPostScreen(
             }
         }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.LightGray.copy(alpha = 0.5f))
+    Column(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .padding(30.dp)
-                .align(alignment = Alignment.Center)
-                .border(width = 1.dp, color = Color.White)
-                .background(color = Color.White.copy(alpha = 0.5f))
+                .fillMaxWidth()
+                .weight(1f)
+                .border(width = 1.dp, color = Color.LightGray, shape = RoundedCornerShape(24.dp))
         ) {
             when (currentStep) {
                 1 -> AudioUploadStep(
@@ -142,12 +139,14 @@ fun AddPostScreen(
                     audioId = audioId,
                     onNext = { if (audioId != 0) currentStep++ }
                 )
+
                 2 -> ImageUploadStep(
                     selectedImageName = selectedImageName,
                     chooseImageLauncher = chooseImageLauncher,
-                    onNext = { currentStep++ },
-                    onSkip = { currentStep++ }
+                    imageId = imageId,
+                    onNext = { currentStep++ }
                 )
+
                 3 -> TitleAndCaptionStep(
                     title = title,
                     description = description,
@@ -157,22 +156,13 @@ fun AddPostScreen(
                         if (selectedAudio != null && title.isNotEmpty()) {
                             uploadViewModel.uploadPost(title, description, audioId, imageId)
                         } else {
-                            errorMessage = "Audio file and Title are required!"
+                            errorMessage = "Title is required!"
                         }
                     }
                 )
+
+
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-                Text(errorMessage, color = colorResource(id = R.color.purple_light))
-                if(errorMessage.length > 5){
-                    CoroutineScope(Dispatchers.Main).launch {
-                        delay(5000)
-                        errorMessage = ""
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Observe audio and image upload results
             when (val result = uploadFileResults) {
@@ -185,15 +175,16 @@ fun AddPostScreen(
                         }
                     }
                 }
+
                 is Result.Error -> {
                     errorMessage = result.message
                 }
+
                 else -> {}
             }
 
             if (uploadPostIsLoading || uploadFileIsLoading) {
                 LinearProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
                     color = MaterialTheme.colors.onPrimary
                 )
             }
@@ -223,8 +214,68 @@ fun AddPostScreen(
 
                     Result.Loading -> {
                         LinearProgressIndicator(
-                            modifier = Modifier.align(Alignment.CenterHorizontally)
                         )
+                    }
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .padding(horizontal = 30.dp)
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Spacer(modifier = Modifier.height(32.dp))
+                    Text(errorMessage, color = colorResource(id = R.color.purple_light))
+                    if (errorMessage.length > 5) {
+                        CoroutineScope(Dispatchers.Main).launch {
+                            delay(5000)
+                            errorMessage = ""
+                        }
+                    }
+                }
+                if (audioId != 0) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(end = 8.dp),
+                            tint = colorResource(id = R.color.night),
+                            painter = painterResource(id = R.drawable.baseline_audio_file_48),
+                            contentDescription = "Choose Audio File"
+                        )
+                        Text(text = selectedAudioName)
+                    }
+                }
+                if (imageId != null) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier
+                                .size(32.dp)
+                                .padding(end = 8.dp),
+                            tint = colorResource(id = R.color.night),
+                            painter = painterResource(id = R.drawable.baseline_image_48),
+                            contentDescription = "Choose Image File"
+                        )
+                        Text(text = selectedImageName)
                     }
                 }
             }
@@ -239,51 +290,45 @@ fun AudioUploadStep(
     audioId: Int,
     onNext: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(30.dp)) {
+    val uploadImage = rememberAsyncImagePainter(model = R.drawable.upload)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Image(
+            modifier = Modifier
+                .size(100.dp),
+            painter = uploadImage,
+            contentDescription = "Choose Audio File"
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            Surface(
-                elevation = 4.dp,
-                shape = CircleShape,
-                modifier = Modifier
-            ) {
-                IconButton(
-                    onClick = { chooseAudioLauncher.launch("audio/*") },
-                    modifier = Modifier.size(100.dp)
-                ) {
-                    val horizontalGradientBrush = myLinearGradiant()
-                    Icon(
-                        modifier = Modifier
-                            .graphicsLayer(alpha = 0.99f)
-                            .drawWithCache {
-                                onDrawWithContent {
-                                    drawContent()
-                                    drawRect(horizontalGradientBrush, blendMode = BlendMode.SrcAtop)
-                                }
-                            },
-                        painter = painterResource(id = R.drawable.baseline_audio_file_48),
-                        contentDescription = "Choose Audio File"
-                    )
-                }
-            }
-        }
+        Text("Choose mp3 audio file", fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            Text("CHOOSE MP3 AUDIO FILE", fontSize = 21.sp, fontWeight = FontWeight.Bold)
-        }
+        Text(selectedAudioName)
+
         Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            Text(selectedAudioName)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            CustomSimpleButton(onClick = onNext, text = "Next")
+
+        CustomBorderedButton(
+            onClick = { chooseAudioLauncher.launch("audio/*") },
+            text = "Select file"
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        if (audioId != 0) {
+            CustomLinkButton(
+                onClick = onNext,
+                text = "Next",
+                color = colorResource(id = R.color.night)
+            )
+        } else {
+            CustomLinkButton(onClick = onNext, text = "Next", color = Color.LightGray)
         }
     }
 }
@@ -292,57 +337,52 @@ fun AudioUploadStep(
 fun ImageUploadStep(
     selectedImageName: String,
     chooseImageLauncher: ActivityResultLauncher<String>,
-    onNext: () -> Unit,
-    onSkip: () -> Unit
+    imageId: Int?,
+    onNext: () -> Unit
 ) {
-
-    Column(horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .padding(30.dp)) {
+    val uploadImage = rememberAsyncImagePainter(model = R.drawable.upload)
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp)
+    ) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Image(
+            modifier = Modifier
+                .size(80.dp),
+            painter = uploadImage,
+            contentDescription = "Choose Image File"
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            Surface(
-                elevation = 4.dp,
-                shape = CircleShape,
-                modifier = Modifier
-            ) {
-                IconButton(
-                    onClick = { chooseImageLauncher.launch("image/*") },
-                    modifier = Modifier.size(100.dp)
-                ) {
-                    val horizontalGradientBrush = myLinearGradiant()
-                    Icon(
-                        modifier = Modifier
-                            .graphicsLayer(alpha = 0.99f)
-                            .drawWithCache {
-                                onDrawWithContent {
-                                    drawContent()
-                                    drawRect(horizontalGradientBrush, blendMode = BlendMode.SrcAtop)
-                                }
-                            },
-                        painter = painterResource(id = R.drawable.baseline_image_48),
-                        contentDescription = "Choose Image File"
-                    )
-                }
-            }
-        }
+        Text("Choose jpeg image file", fontSize = 18.sp, fontWeight = FontWeight.Bold)
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            Text("CHOOSE JPG IMAGE FILE", fontSize = 21.sp, fontWeight = FontWeight.Bold)
-        }
+        Text(selectedImageName)
+
         Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            Text(selectedImageName)
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            CustomSimpleButton(onClick = onNext, text = "Next")
-            Spacer(modifier = Modifier.width(16.dp))
-            CustomSimpleButton(onClick = onSkip, text = "Skip")
+
+        CustomBorderedButton(
+            onClick = { chooseImageLauncher.launch("image/*") },
+            text = "Select file"
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        if (imageId != 0) {
+            CustomLinkButton(
+                onClick = onNext,
+                text = "Next",
+                color = colorResource(id = R.color.night)
+            )
+        } else {
+            CustomLinkButton(
+                onClick = onNext,
+                text = "Skip",
+                color = colorResource(id = R.color.night)
+            )
         }
     }
 }
@@ -355,9 +395,11 @@ fun TitleAndCaptionStep(
     onDescriptionChange: (String) -> Unit,
     onSubmit: () -> Unit
 ) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally,
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
-            .padding(30.dp)) {
+            .padding(30.dp)
+    ) {
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
@@ -373,7 +415,7 @@ fun TitleAndCaptionStep(
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     backgroundColor = Color.White.copy(0.5f), // Changing background color
                     textColor = Color.Black, // Changing text color
-                    focusedBorderColor = Color.White,
+                    focusedBorderColor = colorResource(id = R.color.night),
                     cursorColor = Color.Black
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -390,14 +432,16 @@ fun TitleAndCaptionStep(
                 onValueChange = {
                     if (it.length <= 250) onDescriptionChange(it)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
                 label = {
                     Text("Caption", color = Color.Black) // Changing label color
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     backgroundColor = Color.White.copy(0.5f), // Changing background color
                     textColor = Color.Black, // Changing text color
-                    focusedBorderColor = Color.White,
+                    focusedBorderColor = colorResource(id = R.color.night),
                     cursorColor = Color.Black
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(

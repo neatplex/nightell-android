@@ -57,7 +57,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.neatplex.nightell.component.CustomBorderedButton
+import com.neatplex.nightell.component.CustomBorderedCircleButton
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.data.dto.AuthResponse
@@ -165,7 +165,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            CustomBorderedButton(
+            CustomBorderedCircleButton(
                 onClick = {
                     isGoogleSignInInProgress = true
                     googleSignInClient.signOut().addOnCompleteListener {

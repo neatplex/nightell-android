@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,17 +61,9 @@ fun ProfileScreen(
 
     val profileResult by profileViewModel.profileData.observeAsState()
     val user = sharedViewModel.user.value
-    val userId = user!!.id
     val posts by profileViewModel.posts.observeAsState(emptyList())
     val isLoading by profileViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
-
-
-    // trigger the profile loading
-    LaunchedEffect(Unit) {
-        profileViewModel.fetchProfile()
-        profileViewModel.loadPosts(userId, lastPostId)
-    }
 
     AppTheme {
         Scaffold(
@@ -83,7 +76,7 @@ fun ProfileScreen(
                 ) {
                     TopAppBar(
                         title = {
-                            Text(text = user.username, fontWeight = FontWeight.Bold)
+                            Text(text = user?.username ?: "Profile", fontWeight = FontWeight.Bold)
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent, // Transparent to use the Box's background
@@ -91,58 +84,74 @@ fun ProfileScreen(
                     )
                 }
             },
-                content = { space ->
+            content = { space ->
                 Box(modifier = Modifier.padding(space)) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp)
-                    ) {
-                        when (val result = profileResult) {
-                            is Result.Success -> {
-                                val responsedUser = result.data?.user
-                                val followers = result.data?.followers_count
-                                val followings = result.data?.followings_count
-                                if (responsedUser != null) {
-                                    ShowMyProfile(navController, responsedUser, followers!!, followings!!)
-                                }
-                            }
-
-                            is Result.Error -> {
-                                // Handle error state
-                                Text(
-                                    text = "Error in loading profile: ${result.message}",
-                                    color = Color.Red
-                                )
-                            }
-
-                            is Result.Loading -> {
-                            }
-
-                            else -> {}
+                    if (user == null) {
+                        // Handle case where user is null
+                        Text(
+                            text = "Unable to load data. Please check your internet connection.",
+                            color = colorResource(id = R.color.purple_light),
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    } else {
+                        // trigger the profile loading
+                        LaunchedEffect(Unit) {
+                            profileViewModel.fetchProfile()
+                            profileViewModel.loadPosts(user.id, lastPostId)
                         }
-                        Spacer(modifier = Modifier.height(30.dp))
-                        LazyVerticalGrid(
-                            contentPadding = PaddingValues(bottom = 65.dp),
-                            columns = GridCells.Fixed(2), // Define the number of columns
-                            modifier = Modifier.fillMaxSize(),
+
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
                         ) {
-                            itemsIndexed(posts!!) { index, post ->
-                                ProfilePostCard(post = post) { selectedPost ->
-                                    sharedViewModel.setPost(selectedPost)
-                                    val postJson = selectedPost.toJson()
-                                    navController.navigate(
-                                        "postScreen/${Uri.encode(postJson)}"
+                            when (val result = profileResult) {
+                                is Result.Success -> {
+                                    val responsedUser = result.data?.user
+                                    val followers = result.data?.followers_count
+                                    val followings = result.data?.followings_count
+                                    if (responsedUser != null) {
+                                        ShowMyProfile(navController, responsedUser, followers!!, followings!!)
+                                    }
+                                }
+
+                                is Result.Error -> {
+                                    // Handle error state
+                                    Text(
+                                        text = "Error in loading profile: ${result.message}",
+                                        color = Color.Red
                                     )
                                 }
-                                if (index == posts!!.size - 1 && !isLoading && profileViewModel.canLoadMore) {
-                                    lastPostId = post.id
-                                    profileViewModel.loadPosts(userId,lastPostId)
-                                }
-                            }
-                            if (isLoading) {
-                                item {
+
+                                is Result.Loading -> {
+                                    // Show loading indicator
                                     CustomCircularProgressIndicator()
+                                }
+
+                                else -> {}
+                            }
+                            Spacer(modifier = Modifier.height(30.dp))
+                            LazyVerticalGrid(
+                                contentPadding = PaddingValues(bottom = 65.dp),
+                                columns = GridCells.Fixed(2), // Define the number of columns
+                                modifier = Modifier.fillMaxSize(),
+                            ) {
+                                itemsIndexed(posts!!) { index, post ->
+                                    ProfilePostCard(post = post) { selectedPost ->
+                                        sharedViewModel.setPost(selectedPost)
+                                        val postJson = selectedPost.toJson()
+                                        navController.navigate(
+                                            "postScreen/${Uri.encode(postJson)}"
+                                        )
+                                    }
+                                    if (index == posts!!.size - 1 && !isLoading && profileViewModel.canLoadMore) {
+                                        lastPostId = post.id
+                                        profileViewModel.loadPosts(user.id, lastPostId)
+                                    }
+                                }
+                                if (isLoading) {
+                                    item {
+                                        CustomCircularProgressIndicator()
+                                    }
                                 }
                             }
                         }
@@ -160,7 +169,7 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -236,7 +245,7 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
 
             CustomSimpleButton(
@@ -245,7 +254,7 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
                         launchSingleTop = true
                     }
                 },
-                text = "Edit Profile"
+                text = "My Profile"
             )
         }
     }
