@@ -281,14 +281,13 @@ fun ShowProfile(
         }
         Row(
             modifier = Modifier
-                .width(200.dp)
+                .width(300.dp)
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = user.bio,
-                fontSize = 14.sp
-            )
+            Text(text = user.bio,
+                fontSize = 13.sp,
+                lineHeight = 16.sp)
         }
 
         Row(

@@ -2,9 +2,11 @@ package com.neatplex.nightell.component.post
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -44,12 +47,14 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
         elevation = 0.dp
     ) {
         Row(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-
-            Column(
+            Box(
                 modifier = Modifier
-                    .weight(1f)
+                    .size(128.dp)
+                    .shadow(1.dp, RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
             ) {
 
                 val imageResource = if (post.image != null) {
@@ -61,8 +66,7 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
                     painter = imageResource,
                     contentDescription = "Story Image",
                     modifier = Modifier
-                        .size(95.dp)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -70,11 +74,8 @@ fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
 
             Column(
                 modifier = Modifier
-                    .weight(2f)
-                    .padding(8.dp)
+                    .padding(start = 32.dp)
             ) {
-                Spacer(modifier = Modifier.width(16.dp))
-
                 Text(
                     text = post.title,
                     style = MaterialTheme.typography.body1,

@@ -78,20 +78,20 @@ fun HomeScreen(
                                 modifier = Modifier.padding(bottom = 10.dp)
                             )
                         },
-//                        actions = {
-//                            IconButton(onClick = {
-//
-//                            }) {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.bookmark),
-//                                    contentDescription = "saved audio",
-//                                    tint = Color.Black,
-//                                    modifier = Modifier
-//                                        .size(28.dp)
-//                                        .align(Alignment.CenterVertically) // Align icon vertically
-//                                )
-//                            }
-//                        },
+                        actions = {
+                            IconButton(onClick = {
+
+                            }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.bookmark),
+                                    contentDescription = "saved audio",
+                                    tint = Color.Black,
+                                    modifier = Modifier
+                                        .size(28.dp)
+                                        .align(Alignment.CenterVertically) // Align icon vertically
+                                )
+                            }
+                        },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = Color.Transparent, // Transparent to use the Box's background
                         )
