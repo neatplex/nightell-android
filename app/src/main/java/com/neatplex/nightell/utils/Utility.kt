@@ -8,6 +8,6 @@ fun <A> String.fromJson(type: Class<A>) : A{
 }
 
 //convert object to string
-fun <A> A.toJson() : String?{
+fun <A> A.toJson() : String{
     return Gson().toJson(this)
 }

@@ -14,7 +14,7 @@ android {
         applicationId = "com.neatplex.nightell"
         minSdk = 25
         targetSdk = 34
-        versionCode = 2
+        versionCode = 3
         versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -85,25 +85,25 @@ dependencies {
 
 
     // Retrofit and Coroutines
-    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation ("com.squareup.okhttp3:okhttp:4.10.0")
-    implementation ("com.squareup.okhttp3:logging-interceptor:4.9.1")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
     // Google auth
     implementation("com.google.android.gms:play-services-auth:21.2.0")
 
     // Coroutines
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
 
 
     // Shared Preferences
-    implementation ("androidx.preference:preference-ktx:1.2.1")
+    implementation("androidx.preference:preference-ktx:1.2.1")
 
     // Coil loading images
-    implementation ("io.coil-kt:coil-compose:2.2.2")
+    implementation("io.coil-kt:coil-compose:2.2.2")
 
 
     // Dependency Injection
@@ -114,41 +114,46 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
-    // Lifecycle
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation ("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation ("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
-    implementation ("androidx.compose.runtime:runtime-livedata:1.6.0")
+    // Room Database
+    implementation("androidx.room:room-runtime:2.5.2")
+    kapt("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-ktx:2.5.2")
 
-    implementation ("androidx.compose.material:material:1.6.1")
+    // Lifecycle
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.compose.runtime:runtime-livedata:1.6.0")
+
+    implementation("androidx.compose.material:material:1.6.1")
 
     // Exo Player
-    implementation ("androidx.media3:media3-exoplayer:1.3.1")
-    implementation ("androidx.media3:media3-ui:1.3.1")
-    implementation ("androidx.media3:media3-common:1.3.1")
-    implementation ("androidx.media3:media3-session:1.3.1")
+    implementation("androidx.media3:media3-exoplayer:1.3.1")
+    implementation("androidx.media3:media3-ui:1.3.1")
+    implementation("androidx.media3:media3-common:1.3.1")
+    implementation("androidx.media3:media3-session:1.3.1")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
     // Glide
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
     //Pull To Refresh
-    implementation ("com.google.accompanist:accompanist-swiperefresh:0.35.1-alpha")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.35.1-alpha")
 
     // Local Unit Tests
-    testImplementation ("org.jetbrains.kotlin:kotlin-test-junit:1.5.30")
-    testImplementation ("org.mockito:mockito-core:3.11.2")
-    testImplementation ("org.mockito.kotlin:mockito-kotlin:3.2.0")
-    testImplementation ("org.mockito:mockito-inline:3.11.2")
-    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.30")
+    testImplementation("org.mockito:mockito-core:3.11.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
+    testImplementation("org.mockito:mockito-inline:3.11.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
 
-    testImplementation ("junit:junit:4.13.2")
-    testImplementation ("androidx.test:core:1.5.0")
-    testImplementation ("androidx.arch.core:core-testing:2.2.0")
-    testImplementation ("com.google.truth:truth:1.1.3")
-    testImplementation ("com.squareup.okhttp3:mockwebserver:4.9.1")
-    debugImplementation ("androidx.compose.ui:ui-test-manifest:1.6.7")
-    testImplementation ("io.mockk:mockk:1.10.5")
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.test:core:1.5.0")
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("com.google.truth:truth:1.1.3")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
+    debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.7")
+    testImplementation("io.mockk:mockk:1.10.5")
 
     // Instrumentation Tests
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.37")

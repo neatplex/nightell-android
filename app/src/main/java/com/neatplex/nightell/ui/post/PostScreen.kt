@@ -55,14 +55,15 @@ import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.media.BottomPlayerUI
 import com.neatplex.nightell.component.media.formatTime
 import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.domain.model.PostEntity
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.DatabaseViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
 import com.neatplex.nightell.utils.toJson
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,12 +72,13 @@ fun PostScreen(
     sharedViewModel: SharedViewModel,
     data: Post?,
     mediaViewModel: MediaViewModel,
-    startService: () -> Unit
+    startService: () -> Unit,
 ) {
     var changeState by remember { mutableStateOf(0) }
 
     // Initialize ViewModels
     val postViewModel: PostViewModel = hiltViewModel()
+    val databaseViewModel : DatabaseViewModel = hiltViewModel()
 
     // Retrieve necessary data
     val post = data!!
@@ -89,10 +91,25 @@ fun PostScreen(
     var likeId by remember { mutableStateOf<Int?>(null) }
     var icon by remember { mutableStateOf(Icons.Filled.FavoriteBorder) }
 
+    // Bookmark state variables
+    var isBookmarked by remember { mutableStateOf(false) }
+    var bookmarkIcon by remember { mutableStateOf(R.drawable.bookmark_border) }
+
     // Fetch likes and user info
     LaunchedEffect(Unit) {
         postViewModel.showLikes(post.id)
     }
+
+    // Load the bookmark state from the database
+    LaunchedEffect(post.id) {
+        post.let {
+            databaseViewModel.getPostById(it.id) { postEntity ->
+                isBookmarked = postEntity != null
+                bookmarkIcon = if (isBookmarked) R.drawable.bookmark else R.drawable.bookmark_border
+            }
+        }
+    }
+
 
     val postDeleteResult by postViewModel.postDeleteResult.observeAsState()
 
@@ -214,11 +231,19 @@ fun PostScreen(
                                 }
                             } else {
                                 IconButton(onClick = {
+                                    val entity = PostEntity(postId,post.toJson())
+                                    if(!isBookmarked){
+                                        databaseViewModel.savePost(entity)
+                                        isBookmarked = true
+                                    } else {
+                                        databaseViewModel.unsavePost(entity)
+                                        isBookmarked = false
+                                    }
 
                                 }) {
                                     Icon(
-                                        painter = painterResource(R.drawable.bookmark_border),
-                                        contentDescription = "saved audio",
+                                        painter = painterResource(bookmarkIcon),
+                                        contentDescription = "save audio",
                                         tint = Color.Black,
                                         modifier = Modifier
                                             .size(28.dp)
@@ -458,4 +483,3 @@ fun PostScreen(
         }
     }
 }
-
