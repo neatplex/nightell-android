@@ -70,7 +70,7 @@ import com.neatplex.nightell.utils.toJson
 fun PostScreen(
     navController: NavController,
     sharedViewModel: SharedViewModel,
-    data: Post?,
+    data: Post,
     mediaViewModel: MediaViewModel,
     startService: () -> Unit,
 ) {
@@ -81,7 +81,7 @@ fun PostScreen(
     val databaseViewModel : DatabaseViewModel = hiltViewModel()
 
     // Retrieve necessary data
-    val post = data!!
+    val post = data
     val userId = sharedViewModel.user.value!!.id
     val menuExpanded = remember { mutableStateOf(false) }
 
@@ -235,11 +235,12 @@ fun PostScreen(
                                     if(!isBookmarked){
                                         databaseViewModel.savePost(entity)
                                         isBookmarked = true
+                                        bookmarkIcon = R.drawable.bookmark
                                     } else {
                                         databaseViewModel.unsavePost(entity)
                                         isBookmarked = false
+                                        bookmarkIcon = R.drawable.bookmark_border
                                     }
-
                                 }) {
                                     Icon(
                                         painter = painterResource(bookmarkIcon),

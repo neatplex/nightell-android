@@ -32,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.setValue
@@ -62,31 +61,28 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
-fun AddPostScreen(
+fun UploadPostScreen(
     tokenState: String?,
     navController: NavController,
     uploadViewModel: UploadViewModel = hiltViewModel(),
     onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
     var currentStep by rememberSaveable { mutableStateOf(1) }
-
-    val uploadFileResults by uploadViewModel.uploadState.observeAsState()
-    val uploadPostResult by uploadViewModel.storePostResult.observeAsState()
-    val uploadPostIsLoading by uploadViewModel.isLoading.observeAsState(false)
-    val uploadFileIsLoading by uploadViewModel.isLoading.observeAsState(false)
-
-    var selectedAudio by remember { mutableStateOf<Uri?>(null) }
-    var selectedAudioName by remember { mutableStateOf("") }
-    var selectedImage by remember { mutableStateOf<Uri?>(null) }
-    var selectedImageName by remember { mutableStateOf("") }
-
+    var selectedAudio by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var selectedAudioName by rememberSaveable { mutableStateOf("") }
+    var selectedImage by rememberSaveable { mutableStateOf<Uri?>(null) }
+    var selectedImageName by rememberSaveable { mutableStateOf("") }
     var title by rememberSaveable { mutableStateOf("") }
     var errorMessage by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var audioId by rememberSaveable { mutableStateOf(0) }
     var imageId by rememberSaveable { mutableStateOf<Int?>(null) }
 
-    val context = LocalContext.current
+    val uploadFileResults by uploadViewModel.uploadState.observeAsState()
+    val uploadPostResult by uploadViewModel.storePostResult.observeAsState()
+    val uploadPostIsLoading by uploadViewModel.isLoading.observeAsState(false)
+    val uploadFileIsLoading by uploadViewModel.isLoading.observeAsState(false)
 
     val chooseAudioLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
@@ -185,12 +181,6 @@ fun AddPostScreen(
                     else -> {}
                 }
 
-                if (uploadPostIsLoading || uploadFileIsLoading) {
-                    LinearProgressIndicator(
-                        color = MaterialTheme.colors.onPrimary
-                    )
-                }
-
                 uploadPostResult?.let { result ->
                     when (result) {
                         is Result.Success -> {
@@ -222,6 +212,13 @@ fun AddPostScreen(
             }
 
             Row {
+
+                if (uploadPostIsLoading || uploadFileIsLoading) {
+                    LinearProgressIndicator(
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()

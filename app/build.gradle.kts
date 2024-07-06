@@ -134,6 +134,9 @@ dependencies {
     implementation("androidx.media3:media3-session:1.3.1")
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
 
+    // WorkManager
+    implementation ("androidx.work:work-runtime-ktx:2.7.1")
+
     // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
 

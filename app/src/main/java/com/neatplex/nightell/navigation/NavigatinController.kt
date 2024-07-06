@@ -13,7 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.upload.AddPostScreen
+import com.neatplex.nightell.ui.upload.UploadPostScreen
 import com.neatplex.nightell.ui.profile.EditProfileScreen
 import com.neatplex.nightell.ui.user.FollowerScreen
 import com.neatplex.nightell.ui.user.FollowingScreen
@@ -59,7 +59,7 @@ fun BottomNavHost(
         }
 
         composable(Screens.AddPost.route) {
-            AddPostScreen(tokenState, navController,
+            UploadPostScreen(tokenState, navController,
                 onLogout = {
                 }
             )
