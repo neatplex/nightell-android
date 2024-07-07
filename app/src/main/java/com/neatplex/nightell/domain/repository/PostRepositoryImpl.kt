@@ -3,7 +3,7 @@ package com.neatplex.nightell.domain.repository
 import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.data.dto.PostUpdateRequest
 import com.neatplex.nightell.data.dto.PostUploadRequest
-import com.neatplex.nightell.data.dto.PostStoreResponse
+import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.api.ApiService
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.handleApiResponse
@@ -30,7 +30,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse> {
+    override suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostDetailResponse> {
         val request = PostUploadRequest(title,description, audioId, imageId)
         return try {
             val response = apiService.uploadPost(request)
@@ -40,7 +40,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
         }
     }
 
-    override suspend fun editPost(title: String, description: String, postId: Int) : Result<PostStoreResponse> {
+    override suspend fun editPost(title: String, description: String, postId: Int) : Result<PostDetailResponse> {
         val request = PostUpdateRequest(title,description)
         return try {
             val response = apiService.updatePost(postId, request)
@@ -57,6 +57,15 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Error("Error deleting post", null)
+        }
+    }
+
+    override suspend fun getPostById(postId: Int): Result<PostDetailResponse> {
+        return try {
+            val response = apiService.getPostById(postId)
+            handleApiResponse(response)
+        } catch (e: Exception) {
+            Result.Error("Error editing post", null)
         }
     }
 

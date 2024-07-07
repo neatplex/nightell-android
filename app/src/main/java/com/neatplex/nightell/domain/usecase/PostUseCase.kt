@@ -1,6 +1,6 @@
 package com.neatplex.nightell.domain.usecase
 
-import com.neatplex.nightell.data.dto.PostStoreResponse
+import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.repository.PostRepository
 import com.neatplex.nightell.utils.Result
@@ -29,11 +29,11 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
         }
     }
 
-    suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostStoreResponse> {
+    suspend fun uploadPost(title: String, description: String?, audioId: Int, imageId: Int?): Result<PostDetailResponse> {
         return postRepository.uploadPost(title, description, audioId, imageId)
     }
 
-    suspend fun editPost(postId: Int, newTitle: String, newDescription: String): Result<PostStoreResponse> {
+    suspend fun editPost(postId: Int, newTitle: String, newDescription: String): Result<PostDetailResponse> {
         return postRepository.editPost(newTitle, newDescription, postId)
     }
 
@@ -49,5 +49,9 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
         } else {
             Result.Error("Error loading searched posts", null)
         }
+    }
+
+    suspend fun getPostDetail(postId: Int) : Result<PostDetailResponse> {
+        return postRepository.getPostById(postId)
     }
 }

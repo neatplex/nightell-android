@@ -1,6 +1,5 @@
 package com.neatplex.nightell.ui.profile
 
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,7 +51,6 @@ import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.utils.toJson
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
@@ -151,9 +149,9 @@ fun ProfileScreen(
                                 itemsIndexed(posts!!) { index, post ->
                                     ProfilePostCard(post = post) { selectedPost ->
                                         sharedViewModel.setPost(selectedPost)
-                                        val postJson = selectedPost.toJson()
+                                        val postId = post.id
                                         navController.navigate(
-                                            "postScreen/${Uri.encode(postJson)}"
+                                            "postScreen/${postId}"
                                         )
                                     }
                                     if (index == posts!!.size - 1 && !isLoading && profileViewModel.canLoadMore) {

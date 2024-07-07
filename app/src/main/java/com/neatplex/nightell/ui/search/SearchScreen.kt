@@ -72,9 +72,9 @@ fun SearchScreen(
                     itemsIndexed(posts!!) { index, post ->
                         HomePostCard(post = post) { selectedPost ->
                             sharedViewModel.setPost(selectedPost)
-                            val postJson = selectedPost.toJson()
+                            val postId = post.id
                             navController.navigate(
-                                "postScreen/${Uri.encode(postJson)}"
+                                "postScreen/${postId}"
                             )
                         }
                         if (index == posts!!.size - 1 && !isLoading) {

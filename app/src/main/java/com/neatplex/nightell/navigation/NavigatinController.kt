@@ -89,18 +89,6 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
         }
 
         composable(
-            route = "postScreen/{post}",
-            arguments = listOf(navArgument("post") {
-                type = NavType.StringType
-            })
-        ) { backStackEntry ->
-            val postString = backStackEntry.arguments?.getString("post") ?: ""
-            val post = postString.fromJson(Post::class.java)
-            PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel,
-                startService = startService)
-        }
-
-        composable(
             "userScreen/{user}",
             arguments = listOf(navArgument("user") {
                 type = NavType.StringType
@@ -109,6 +97,17 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
             val userString = backStackEntry.arguments?.getString("user") ?: ""
             val user = userString.fromJson(User::class.java)
             UserScreen(navController = homeNavController, data = user, sharedViewModel = sharedViewModel)
+        }
+
+        composable(
+            route = "postScreen/{postId}",
+            arguments = listOf(navArgument("postId") {
+                type = NavType.IntType
+            })
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getInt("postId") ?: -1
+            PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
+                startService = startService)
         }
 
         composable(
@@ -149,14 +148,13 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
         }
 
         composable(
-            route = "postScreen/{post}",
-            arguments = listOf(navArgument("post") {
-                type = NavType.StringType
+            route = "postScreen/{postId}",
+            arguments = listOf(navArgument("postId") {
+                type = NavType.IntType
             })
         ) { backStackEntry ->
-            val postString = backStackEntry.arguments?.getString("post") ?: ""
-            val post = postString.fromJson(Post::class.java)
-            PostScreen(navController = searchNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel,
+            val postId = backStackEntry.arguments?.getInt("postId") ?: -1
+            PostScreen(navController = searchNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
                 startService = startService)
         }
 
@@ -204,14 +202,14 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
         }
 
         composable(
-            route = "postScreen/{post}",
-            arguments = listOf(navArgument("post") {
-                type = NavType.StringType
+            route = "postScreen/{postId}",
+            arguments = listOf(navArgument("postId") {
+                type = NavType.IntType
             })
         ) { backStackEntry ->
-            val postString = backStackEntry.arguments?.getString("post") ?: ""
-            val post = postString.fromJson(Post::class.java)
-            PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, data = post, mediaViewModel = mediaViewModel, startService = startService)
+            val postId = backStackEntry.arguments?.getInt("postId") ?: -1
+            PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
+                startService = startService)
         }
 
         composable(

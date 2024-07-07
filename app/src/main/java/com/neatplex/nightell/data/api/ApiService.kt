@@ -12,7 +12,7 @@ import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.data.dto.PostUpdateRequest
 import com.neatplex.nightell.data.dto.StoreLike
 import com.neatplex.nightell.data.dto.PostUploadRequest
-import com.neatplex.nightell.data.dto.PostStoreResponse
+import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.data.dto.Users
 import okhttp3.MultipartBody
@@ -50,7 +50,7 @@ interface ApiService {
 
     // Upload Post
     @POST("posts")
-    suspend fun uploadPost(@Body request: PostUploadRequest) : Response<PostStoreResponse>
+    suspend fun uploadPost(@Body request: PostUploadRequest) : Response<PostDetailResponse>
 
     // User Profile Posts
     @GET("users/{user_id}/posts")
@@ -61,7 +61,7 @@ interface ApiService {
     @PUT("posts/{post_id}")
     suspend fun updatePost(@Path("post_id") postId: Int,
                            @Body request : PostUpdateRequest
-    ) : Response<PostStoreResponse>
+    ) : Response<PostDetailResponse>
 
     // Delete Post
     @DELETE("posts/{post_id}")
@@ -86,6 +86,10 @@ interface ApiService {
     // Delete Account
     @DELETE("profile")
     suspend fun deleteAccount() : Response<Unit>
+
+    // Get Post by id
+    @GET("posts/{post_id}")
+    suspend fun getPostById(@Path("post_id") postId: Int) : Response<PostDetailResponse>
 
     // Like a Post
     @POST("posts/{post_id}/likes")

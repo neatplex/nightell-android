@@ -1,6 +1,5 @@
 package com.neatplex.nightell.ui.home
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -31,7 +30,6 @@ import com.neatplex.nightell.component.post.RecentPostCard
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.toJson
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.post.HomePostCard
@@ -80,7 +78,7 @@ fun HomeScreen(
                         },
                         actions = {
                             IconButton(onClick = {
-
+                                navController.navigate("bookmark")
                             }) {
                                 Icon(
                                     painter = painterResource(R.drawable.bookmark),
@@ -110,9 +108,9 @@ fun HomeScreen(
                             itemsIndexed(feed.take(3)) { index, post ->
                                 RecentPostCard(post = post) { selectedPost ->
                                     sharedViewModel.setPost(selectedPost)
-                                    val postJson = selectedPost.toJson()
+                                    val postId = post.id
                                     navController.navigate(
-                                        "postScreen/${Uri.encode(postJson)}"
+                                        "postScreen/${postId}"
                                     )
                                 }
                             }
@@ -125,9 +123,9 @@ fun HomeScreen(
                                 itemsIndexed(feed.drop(3)) { index, post ->
                                     HomePostCard(post = post) { selectedPost ->
                                         sharedViewModel.setPost(selectedPost)
-                                        val postJson = selectedPost.toJson()
+                                        val postId = post.id
                                         navController.navigate(
-                                            "postScreen/${Uri.encode(postJson)}"
+                                            "postScreen/${postId}"
                                         )
                                     }
                                     if (index == feed.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
@@ -163,5 +161,4 @@ fun HomeScreen(
         else -> {
         }
     }
-
 }
