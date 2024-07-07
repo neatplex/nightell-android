@@ -92,6 +92,10 @@ fun BookmarkedScreen(
                             content = {
                                 itemsIndexed(savedPostList) { index, post ->
                                     SavedPostCard(post = post) {
+                                        val postId = it.id
+                                        navController.navigate(
+                                            "postScreen/${postId}"
+                                        )
                                     }
 
                                 }
