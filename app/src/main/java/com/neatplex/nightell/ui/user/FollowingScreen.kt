@@ -29,7 +29,9 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun FollowingScreen(navController: NavController, userId: Int, sharedViewModel : SharedViewModel) {
+fun FollowingScreen(navController: NavController,
+                    userId: Int,
+                    sharedViewModel : SharedViewModel) {
     val userViewModel : UserViewModel = hiltViewModel()
     val usersObserve by userViewModel.usersList.observeAsState()
     LaunchedEffect(Unit) {
