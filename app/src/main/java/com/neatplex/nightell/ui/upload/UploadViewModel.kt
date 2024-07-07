@@ -5,7 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.FileUploadResponse
-import com.neatplex.nightell.data.dto.PostStoreResponse
+import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.domain.repository.FileRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.utils.Result
@@ -17,8 +17,8 @@ import javax.inject.Inject
 @HiltViewModel
 class UploadViewModel @Inject constructor(private val postUseCase: PostUseCase, private val fileRepository: FileRepository) : ViewModel() {
 
-    private var _storePostResult = MutableLiveData<Result<PostStoreResponse>>()
-    val storePostResult: LiveData<Result<PostStoreResponse>> get() = _storePostResult
+    private var _storePostResult = MutableLiveData<Result<PostDetailResponse>>()
+    val storePostResult: LiveData<Result<PostDetailResponse>> get() = _storePostResult
 
     private val _uploadState = MutableLiveData<Result<FileUploadResponse>>()
     val uploadState: LiveData<Result<FileUploadResponse>> get() = _uploadState
