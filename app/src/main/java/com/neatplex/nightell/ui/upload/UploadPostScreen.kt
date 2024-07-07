@@ -125,6 +125,7 @@ fun AddPostScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .padding(bottom = 16.dp)
             .background(Color.LightGray.copy(alpha = 0.5f))
     ) {
         Column(modifier = Modifier
@@ -185,12 +186,6 @@ fun AddPostScreen(
                     else -> {}
                 }
 
-                if (uploadPostIsLoading || uploadFileIsLoading) {
-                    LinearProgressIndicator(
-                        color = MaterialTheme.colors.onPrimary
-                    )
-                }
-
                 uploadPostResult?.let { result ->
                     when (result) {
                         is Result.Success -> {
@@ -226,6 +221,13 @@ fun AddPostScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                 ) {
+
+                    if (uploadPostIsLoading || uploadFileIsLoading) {
+                        LinearProgressIndicator(
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    }
+
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
