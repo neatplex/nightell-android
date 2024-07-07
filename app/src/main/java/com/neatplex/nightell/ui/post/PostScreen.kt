@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -64,6 +66,7 @@ import com.neatplex.nightell.ui.viewmodel.DatabaseViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
 import com.neatplex.nightell.utils.toJson
+import java.io.IOException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -231,13 +234,15 @@ fun PostScreen(
                                 }
                             } else {
                                 IconButton(onClick = {
-                                    val entity = PostEntity(postId,post.toJson())
+                                    val entity = PostEntity(postId,post.title,post.user.username,post.image?.path)
                                     if(!isBookmarked){
                                         databaseViewModel.savePost(entity)
                                         isBookmarked = true
+                                        bookmarkIcon = R.drawable.bookmark
                                     } else {
                                         databaseViewModel.unsavePost(entity)
                                         isBookmarked = false
+                                        bookmarkIcon = R.drawable.bookmark_border
                                     }
 
                                 }) {
@@ -322,7 +327,9 @@ fun PostScreen(
                                         postViewModel.deleteLike(id)
                                     }
                                     isLiked = false
-                                    likesCount--
+                                    if(likesCount > 1){
+                                        likesCount--
+                                    }
                                     icon = Icons.Filled.FavoriteBorder
                                 }
                             }) {
@@ -360,11 +367,15 @@ fun PostScreen(
                                 )
                             } else {
                                 var totalDuration by remember { mutableStateOf(0L) }
-
-                                val mediaPlayer = MediaPlayer().apply {
-                                    setDataSource(audioPath)
-                                    prepare()
-                                    totalDuration = duration.toLong()
+                                val mediaPlayer = MediaPlayer()
+                                try {
+                                    mediaPlayer.setDataSource(audioPath)
+                                    mediaPlayer.prepare()
+                                    totalDuration = mediaPlayer.duration.toLong()
+                                } catch (e: IOException) {
+                                    e.printStackTrace()
+                                    // Handle the error, e.g., show an error message to the user
+                                    // You can also log the error for debugging purposes
                                 }
                                 totalDuration = mediaPlayer.duration.toLong()
                                 BottomPlayerUI(
@@ -394,7 +405,8 @@ fun PostScreen(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 32.dp)
+                                .verticalScroll(rememberScrollState())
+                                .padding(horizontal = 16.dp, vertical = 24.dp)
                         ) {
                             if (isEditing) {
                                 TextField(
@@ -463,6 +475,7 @@ fun PostScreen(
                                     text = editedDescription
                                 )
                             }
+                            Spacer(modifier = Modifier.height(40.dp))
                         }
                     }
                 }

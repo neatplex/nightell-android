@@ -21,6 +21,7 @@ import com.neatplex.nightell.ui.home.HomeScreen
 import com.neatplex.nightell.ui.auth.SignInScreen
 import com.neatplex.nightell.ui.profile.ProfileScreen
 import com.neatplex.nightell.ui.auth.SignUpScreen
+import com.neatplex.nightell.ui.bookmark.BookmarkedScreen
 import com.neatplex.nightell.ui.splash.SplashScreen
 import com.neatplex.nightell.ui.post.PostScreen
 import com.neatplex.nightell.ui.search.SearchScreen
@@ -128,6 +129,10 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
         ) { backStackEntry ->
             val userId = backStackEntry.arguments?.getInt("userId") ?: -1
             FollowingScreen(navController = homeNavController, userId, sharedViewModel = sharedViewModel)
+        }
+
+        composable("bookmark") {
+            BookmarkedScreen(navController = homeNavController)
         }
     }
 }

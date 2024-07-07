@@ -17,7 +17,7 @@ class DatabaseRepository @Inject constructor(private val postDao: SavedPostDao) 
         return postDao.getPostById(id)
     }
 
-    fun getAllPosts(): List<PostEntity> {
+    suspend fun getAllPosts(): List<PostEntity> {
         return postDao.getAllPosts()
     }
 }

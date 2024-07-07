@@ -19,5 +19,5 @@ interface SavedPostDao {
     suspend fun getPostById(id: Int): PostEntity?
 
     @Query("SELECT * FROM posts")
-    fun getAllPosts(): List<PostEntity>
+    suspend fun getAllPosts(): List<PostEntity>
 }

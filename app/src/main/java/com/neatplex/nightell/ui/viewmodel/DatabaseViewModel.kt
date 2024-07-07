@@ -29,9 +29,10 @@ class DatabaseViewModel @Inject constructor(private val repository: DatabaseRepo
         }
     }
 
-    fun getAllPosts(onResult: (List<PostEntity>) -> Unit) {
+    fun getAllPosts(callback: (List<PostEntity>) -> Unit) {
         viewModelScope.launch {
-            onResult(repository.getAllPosts())
+            val posts = repository.getAllPosts()
+            callback(posts)
         }
     }
 }
