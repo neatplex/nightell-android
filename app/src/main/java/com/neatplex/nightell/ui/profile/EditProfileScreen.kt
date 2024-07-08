@@ -358,6 +358,7 @@ fun EditProfileScreen(
     }
 }
 
+
 fun signOut(context: Context) {
 
     // Restart the application

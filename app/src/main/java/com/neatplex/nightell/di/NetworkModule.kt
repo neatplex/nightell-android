@@ -9,7 +9,6 @@ import com.neatplex.nightell.domain.repository.PostRepository
 import com.neatplex.nightell.domain.repository.PostRepositoryImpl
 import com.neatplex.nightell.domain.repository.ProfileRepository
 import com.neatplex.nightell.domain.repository.ProfileRepositoryImpl
-import com.neatplex.nightell.ui.callback.LogoutCallback
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.TokenManager
 import dagger.Binds

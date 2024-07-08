@@ -7,6 +7,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
@@ -15,6 +16,7 @@ import com.neatplex.nightell.navigation.BottomNavigationScreen
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.service.MediaService
 import com.neatplex.nightell.ui.theme.AppTheme
+import com.neatplex.nightell.ui.viewmodel.LogoutViewModel
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -24,6 +26,7 @@ class MainActivity : ComponentActivity() {
 
     private val tokenManager by lazy { TokenManager(applicationContext) }
     private val mediaViewModel: MediaViewModel by viewModels()
+    private val logoutViewModel: LogoutViewModel by viewModels()
     private var isServiceRunning = false
 
     @SuppressLint(
@@ -35,6 +38,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AppContent()
+        }
+
+        // Observe logoutViewModel
+        logoutViewModel.logoutEvent.observe(this) {
+            showLogoutDialog()
         }
     }
 
@@ -83,5 +91,19 @@ class MainActivity : ComponentActivity() {
             }
             isServiceRunning = true
         }
+    }
+
+    private fun showLogoutDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Session Expired")
+            .setMessage("Your session has expired. Please log in again.")
+            .setPositiveButton("Logout") { _, _ ->
+                // Handle logout
+                tokenManager.deleteToken()
+                startActivity(Intent(this, MainActivity::class.java))
+                finish()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 }
