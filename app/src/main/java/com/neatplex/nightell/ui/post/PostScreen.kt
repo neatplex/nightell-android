@@ -6,6 +6,7 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TextField
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -249,7 +251,7 @@ fun PostScreen(
                                                 postViewModel.deletePost(post!!.id)
                                                 menuExpanded.value = false
                                                 navController.previousBackStackEntry?.savedStateHandle?.set(
-                                                    "postDeleted",
+                                                    "postChanged",
                                                     true
                                                 )
                                                 navController.popBackStack()
@@ -329,7 +331,13 @@ fun PostScreen(
                                             sharedViewModel.user.value?.id?.let { userId ->
                                                 if (userId != post?.user?.id) {
                                                     val userJson = post!!.user.toJson()
-                                                    navController.navigate("userScreen/${Uri.encode(userJson)}")
+                                                    navController.navigate(
+                                                        "userScreen/${
+                                                            Uri.encode(
+                                                                userJson
+                                                            )
+                                                        }"
+                                                    )
                                                 }
                                             }
                                         }
@@ -517,6 +525,30 @@ fun PostScreen(
         postUpdateResult?.let {
             if (it is Result.Success) {
                 isEditing = false
+                navController.previousBackStackEntry?.savedStateHandle?.set(
+                    "postChanged",
+                    true
+                )
+            }
+        }
+    } else {
+        Box(modifier = Modifier.fillMaxSize()){
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .padding(end = 8.dp),
+                    tint = colorResource(id = R.color.night),
+                    imageVector = Icons.Filled.Info,
+                    contentDescription = "Choose Audio File"
+                )
+                Text(text = "This post isn't available anymore!", fontSize = 17.sp)
             }
         }
     }

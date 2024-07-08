@@ -47,6 +47,19 @@ fun HomeScreen(
     val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
     val profileResult by homeViewModel.profileData.observeAsState()
     var lastPostId by remember { mutableStateOf<Int?>(null) }
+    // Observe changes in the savedStateHandle
+    val postChanged = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<Boolean>("postChanged")?.observeAsState()
+
+    LaunchedEffect(postChanged?.value) {
+        if (postChanged?.value == true) {
+            // Refresh the feed when a post is deleted
+            homeViewModel.refreshFeed()
+            navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
+        }
+    }
+
     val refreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = { homeViewModel.refreshFeed() }

@@ -72,6 +72,18 @@ fun ProfileScreen(
         onRefresh = { profileViewModel.refreshProfile(user!!.id) }
     )
 
+    // Observe changes in the savedStateHandle
+    val postChanged = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getLiveData<Boolean>("postChanged")?.observeAsState()
+    LaunchedEffect(postChanged?.value) {
+        if (postChanged?.value == true) {
+            // Refresh the feed when a post is deleted
+            profileViewModel.refreshProfile(user!!.id)
+            navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
+        }
+    }
+
     AppTheme {
         Scaffold(
             topBar = {
