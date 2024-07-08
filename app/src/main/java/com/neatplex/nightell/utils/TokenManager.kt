@@ -3,7 +3,9 @@ package com.neatplex.nightell.utils
 import android.content.Context
 import android.content.SharedPreferences
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
@@ -19,6 +21,9 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
     private val _tokenState = MutableStateFlow(getToken())
     val tokenState: StateFlow<String?> = _tokenState
 
+    private val _logoutEvent = MutableSharedFlow<Unit>()
+    val logoutEvent: SharedFlow<Unit> get() = _logoutEvent
+
     fun setToken(token: String) {
         sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
         _tokenState.value = token
@@ -32,6 +37,7 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
     fun deleteToken() {
         sharedPreferences.edit().remove(TOKEN_KEY).apply()
         _tokenState.value = ""
+        _logoutEvent.tryEmit(Unit) // Trigger logout event
     }
 
     fun setId(id: Int) {

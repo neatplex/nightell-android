@@ -70,9 +70,10 @@ abstract class NetworkModule {
 
         @Provides
         @Singleton
-        fun provideAuthInterceptor(tokenManager: TokenManager): AuthInterceptor {
+        fun provideAuthInterceptor(
+            tokenManager: TokenManager,
+        ): AuthInterceptor {
             return AuthInterceptor(tokenManager)
-
         }
     }
 }
@@ -100,6 +101,7 @@ class AuthInterceptor @Inject constructor(private val tokenManager: TokenManager
 
         if (response.code == 401 && !newRequest.url.encodedPath.contains("sign")) {
             Log.d("AuthInterceptor", "Triggering logout dialog")
+            tokenManager.deleteToken()
         }
 
         return response

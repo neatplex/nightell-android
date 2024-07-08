@@ -10,23 +10,23 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavHost
 import com.neatplex.nightell.navigation.BottomNavigationScreen
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.service.MediaService
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.ui.viewmodel.LogoutViewModel
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val tokenManager by lazy { TokenManager(applicationContext) }
     private val mediaViewModel: MediaViewModel by viewModels()
-    private val logoutViewModel: LogoutViewModel by viewModels()
     private var isServiceRunning = false
 
     @SuppressLint(
@@ -40,9 +40,10 @@ class MainActivity : ComponentActivity() {
             AppContent()
         }
 
-        // Observe logoutViewModel
-        logoutViewModel.logoutEvent.observe(this) {
-            showLogoutDialog()
+        lifecycleScope.launch {
+            tokenManager.logoutEvent.collect {
+                showLogoutDialog()
+            }
         }
     }
 
