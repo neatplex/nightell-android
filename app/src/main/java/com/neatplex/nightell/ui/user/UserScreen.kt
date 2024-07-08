@@ -168,9 +168,9 @@ fun UserScreen(
                         itemsIndexed(posts) { index, post ->
                             ProfilePostCard(post = post) { selectedPost ->
                                 sharedViewModel.setPost(selectedPost)
-                                val postJson = selectedPost.toJson()
+                                val postId = selectedPost.id
                                 navController.navigate(
-                                    "postScreen/${Uri.encode(postJson)}"
+                                    "postScreen/${postId}"
                                 )
                             }
                             if (index == posts.size - 1 && !isLoading && userViewModel.canLoadMore) {
