@@ -20,6 +20,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,15 +41,9 @@ import com.neatplex.nightell.ui.viewmodel.DatabaseViewModel
 fun BookmarkedScreen(
     navController: NavController
 ){
-    var savedPostList by remember { mutableStateOf<List<PostEntity>>(emptyList()) }
-    val databaseViewModel: DatabaseViewModel = hiltViewModel()
 
-    // Load the bookmark state from the database
-    LaunchedEffect(Unit) {
-        databaseViewModel.getAllPosts { postEntityList ->
-            savedPostList = postEntityList
-        }
-    }
+    val databaseViewModel: DatabaseViewModel = hiltViewModel()
+    val savedPostList by databaseViewModel.savedPosts.collectAsState()
 
     AppTheme {
         Scaffold(
@@ -84,13 +79,12 @@ fun BookmarkedScreen(
                             modifier = Modifier.fillMaxSize(),
                             content = {
                                 itemsIndexed(savedPostList) { index, post ->
-                                    SavedPostCard(post = post) {
+                                    SavedPostCard(post = post, onPostClicked = {
                                         val postId = it.id
-                                        navController.navigate(
-                                            "postScreen/${postId}"
-                                        )
-                                    }
-
+                                        navController.navigate("postScreen/$postId")
+                                    }, onDeleteClicked = {
+                                        databaseViewModel.unsavePost(it)
+                                    })
                                 }
                             }
                         )

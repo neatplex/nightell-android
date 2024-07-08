@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.neatplex.nightell.domain.model.PostEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SavedPostDao {
@@ -19,5 +20,5 @@ interface SavedPostDao {
     suspend fun getPostById(id: Int): PostEntity?
 
     @Query("SELECT * FROM posts")
-    suspend fun getAllPosts(): List<PostEntity>
+    fun getAllPosts(): Flow<List<PostEntity>>
 }

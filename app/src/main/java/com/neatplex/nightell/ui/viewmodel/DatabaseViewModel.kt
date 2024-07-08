@@ -5,11 +5,25 @@ import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.domain.model.PostEntity
 import com.neatplex.nightell.domain.repository.DatabaseRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DatabaseViewModel @Inject constructor(private val repository: DatabaseRepository) : ViewModel() {
+
+    private val _savedPosts = MutableStateFlow<List<PostEntity>>(emptyList())
+    val savedPosts: StateFlow<List<PostEntity>> get() = _savedPosts
+
+    init {
+        viewModelScope.launch {
+            repository.getAllPosts().collect { posts ->
+                _savedPosts.value = posts
+            }
+        }
+    }
 
     fun savePost(post: PostEntity) {
         viewModelScope.launch {
@@ -20,19 +34,13 @@ class DatabaseViewModel @Inject constructor(private val repository: DatabaseRepo
     fun unsavePost(post: PostEntity) {
         viewModelScope.launch {
             repository.deletePost(post)
+            _savedPosts.value = repository.getAllPosts().first()
         }
     }
 
     fun getPostById(id: Int, onResult: (PostEntity?) -> Unit) {
         viewModelScope.launch {
             onResult(repository.getPostById(id))
-        }
-    }
-
-    fun getAllPosts(callback: (List<PostEntity>) -> Unit) {
-        viewModelScope.launch {
-            val posts = repository.getAllPosts()
-            callback(posts)
         }
     }
 }
