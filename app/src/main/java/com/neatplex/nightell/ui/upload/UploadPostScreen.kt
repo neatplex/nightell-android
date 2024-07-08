@@ -95,9 +95,14 @@ fun AddPostScreen(
                 selectedAudio = mainUri
                 val fileExtension = fileName?.substringAfterLast('.', "")
                 val file = uriToFile(context, selectedAudio!!)
+                val fileSize = getFileSize(context, selectedAudio!!)
                 if (fileExtension.equals("mp3", ignoreCase = true)) {
-                    selectedAudioName = fileName!!
-                    uploadViewModel.uploadFile(file!!, "MP3")
+                    if (fileSize <= 5 * 1024 * 1024) {
+                        selectedAudioName = fileName!!
+                        uploadViewModel.uploadFile(file!!, "MP3")
+                    } else {
+                        errorMessage = "Audio file must be less than 5MB!"
+                    }
                 } else {
                     errorMessage = "Only .mp3 type is allowed for post audio!"
                 }
@@ -110,12 +115,17 @@ fun AddPostScreen(
                 val (fileName, mainUri) = getFileNameAndUri(context, imageUri)
                 selectedImage = mainUri
                 val fileExtension = fileName?.substringAfterLast('.', "")
+                val fileSize = getFileSize(context, selectedAudio!!)
                 val file = uriToFile(context, selectedImage!!)
                 if (fileExtension.equals("jpg", ignoreCase = true) ||
                     fileExtension.equals("jpeg", ignoreCase = true)
                 ) {
-                    selectedImageName = fileName!!
-                    uploadViewModel.uploadFile(file!!, "JPG")
+                    if (fileSize <= 2 * 1024 * 1024) {
+                        selectedImageName = fileName!!
+                        uploadViewModel.uploadFile(file!!, "JPG")
+                    } else {
+                        errorMessage = "Audio file must be less than 2MB!"
+                    }
                 } else {
                     errorMessage = "Only .jpg type is allowed for post image!"
                 }
@@ -125,16 +135,21 @@ fun AddPostScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 16.dp)
             .background(Color.LightGray.copy(alpha = 0.5f))
     ) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .align(Alignment.Center)
-            .padding(30.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.Center)
+                .padding(30.dp)
+        ) {
             Row(
                 modifier = Modifier
-                    .border(width = 1.dp, color = Color.LightGray, shape = RoundedCornerShape(24.dp))
+                    .border(
+                        width = 1.dp,
+                        color = Color.LightGray,
+                        shape = RoundedCornerShape(24.dp)
+                    )
                     .background(Color.White, shape = RoundedCornerShape(24.dp))
             ) {
                 when (currentStep) {
@@ -199,7 +214,6 @@ fun AddPostScreen(
                             audioId = 0
                             imageId = null
                             errorMessage = ""
-
                             navController.navigate("home") {
                                 popUpTo("home") { inclusive = true }
                             }
@@ -222,16 +236,24 @@ fun AddPostScreen(
                         .fillMaxWidth()
                 ) {
 
-                    if (uploadPostIsLoading || uploadFileIsLoading) {
-                        LinearProgressIndicator(
-                            color = MaterialTheme.colors.onPrimary
-                        )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (uploadPostIsLoading || uploadFileIsLoading) {
+                            LinearProgressIndicator(
+                                color = MaterialTheme.colors.onPrimary
+                            )
+                        }
                     }
 
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 16.dp),
+                            .padding(vertical = 8.dp),
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -247,8 +269,7 @@ fun AddPostScreen(
                     if (audioId != 0) {
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -266,8 +287,7 @@ fun AddPostScreen(
                     if (imageId != null) {
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                .fillMaxWidth(),
                             horizontalArrangement = Arrangement.Start,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -335,6 +355,7 @@ fun AudioUploadStep(
         } else {
             CustomLinkButton(onClick = onNext, text = "Next", color = Color.LightGray)
         }
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -389,6 +410,7 @@ fun ImageUploadStep(
                 color = colorResource(id = R.color.night)
             )
         }
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -460,6 +482,7 @@ fun TitleAndCaptionStep(
         Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
             CustomSimpleButton(onClick = onSubmit, text = "Upload Post")
         }
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
@@ -486,4 +509,17 @@ fun uriToFile(context: Context, uri: Uri): File? {
         }
     }
     return tempFile
+}
+
+fun getFileSize(context: Context, uri: Uri): Long {
+    var fileSize: Long = 0
+    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+        if (cursor.moveToFirst()) {
+            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+            if (!cursor.isNull(sizeIndex)) {
+                fileSize = cursor.getLong(sizeIndex)
+            }
+        }
+    }
+    return fileSize
 }
