@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavHost
 import com.neatplex.nightell.navigation.BottomNavigationScreen
@@ -22,35 +23,46 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val tokenManager by lazy { TokenManager(applicationContext) }
-
-    private val mediaViewModel : MediaViewModel by viewModels()
+    private val mediaViewModel: MediaViewModel by viewModels()
     private var isServiceRunning = false
 
-    @SuppressLint("UnusedMaterialScaffoldPaddingParameter",
+    @SuppressLint(
+        "UnusedMaterialScaffoldPaddingParameter",
         "UnusedMaterial3ScaffoldPaddingParameter"
     )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            AppTheme {
+            AppContent()
+        }
+    }
+
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    @Composable
+    fun AppContent() {
+
+        AppTheme {
             val listItems = listOf(
                 Screens.Home,
                 Screens.Search,
                 Screens.AddPost,
                 Screens.Profile
             )
-
             window.statusBarColor = getColor(R.color.black)
             val rootNavController = rememberNavController()
 
             Scaffold(
                 bottomBar = {
-                    BottomNavigationScreen(rootNavController,listItems)
+                    BottomNavigationScreen(rootNavController, listItems)
                 }
             ) {
-                BottomNavHost(navController = rootNavController, tokenManager = tokenManager, mediaViewModel = mediaViewModel, startService = ::startService)
-                }
+                BottomNavHost(
+                    navController = rootNavController,
+                    tokenManager = tokenManager,
+                    mediaViewModel = mediaViewModel,
+                    startService = ::startService
+                )
             }
         }
     }
@@ -61,10 +73,10 @@ class MainActivity : ComponentActivity() {
         isServiceRunning = false
     }
 
-    private fun startService(){
-        if(!isServiceRunning){
+    private fun startService() {
+        if (!isServiceRunning) {
             val intent = Intent(this, MediaService::class.java)
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 startForegroundService(intent)
             } else {
                 startService(intent)
@@ -72,5 +84,4 @@ class MainActivity : ComponentActivity() {
             isServiceRunning = true
         }
     }
-
 }

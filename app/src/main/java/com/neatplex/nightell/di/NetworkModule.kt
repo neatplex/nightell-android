@@ -1,13 +1,15 @@
 package com.neatplex.nightell.di
 
 import android.content.Context
+import android.util.Log
 import com.neatplex.nightell.data.api.ApiService
-import com.neatplex.nightell.domain.repository.PostRepository
-import com.neatplex.nightell.domain.repository.PostRepositoryImpl
 import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.domain.repository.AuthRepositoryImpl
+import com.neatplex.nightell.domain.repository.PostRepository
+import com.neatplex.nightell.domain.repository.PostRepositoryImpl
 import com.neatplex.nightell.domain.repository.ProfileRepository
 import com.neatplex.nightell.domain.repository.ProfileRepositoryImpl
+import com.neatplex.nightell.ui.callback.LogoutCallback
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.TokenManager
 import dagger.Binds
@@ -74,7 +76,6 @@ abstract class NetworkModule {
 
         }
     }
-
 }
 
 class AuthInterceptor @Inject constructor(private val tokenManager: TokenManager) : Interceptor {
@@ -96,19 +97,16 @@ class AuthInterceptor @Inject constructor(private val tokenManager: TokenManager
             originalRequest
         }
 
-        return chain.proceed(newRequest)
+        var response = chain.proceed(newRequest)
+
+        if (response.code == 401 && !newRequest.url.encodedPath.contains("sign")) {
+            Log.d("AuthInterceptor", "Triggering logout dialog")
+        }
+
+        return response
     }
 
     private fun requiresAuthorization(request: Request): Boolean {
-        // Implement your logic to determine if the request requires Authorization header
-        // For example, check the URL or method
-        val requiresAuthorization = when {
-            request.url.encodedPath.contains("sign-up") ||
-                    request.url.encodedPath.contains("sign-in") -> false
-
-            else -> true
-        }
-        return requiresAuthorization
+        return !request.url.encodedPath.contains("sign")
     }
-
 }

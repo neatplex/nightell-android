@@ -531,7 +531,7 @@ fun PostScreen(
                 )
             }
         }
-    } else {
+    } else if(!isPostExist){
         Box(modifier = Modifier.fillMaxSize()){
             Row(
                 modifier = Modifier

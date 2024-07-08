@@ -110,12 +110,7 @@ fun ProfileScreen(
                         .pullRefresh(refreshState)
                 ) {
                     if (user == null) {
-                        // Handle case where user is null
-                        Text(
-                            text = "Unable to load data. Please check your internet connection.",
-                            color = colorResource(id = R.color.purple_light),
-                            modifier = Modifier.padding(16.dp)
-                        )
+
                     } else {
                         // trigger the profile loading
                         LaunchedEffect(Unit) {
