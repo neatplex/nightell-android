@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.TextFieldWithValidation
 import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Validation.isValidEmail
@@ -192,66 +193,6 @@ fun SignUpScreen(
             authResultState?.let { AuthResult(it, navController) }
 
         }
-    }
-}
-
-@Composable
-fun TextFieldWithValidation(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    errorText: String,
-    leadingIcon: ImageVector,
-    isValid: Boolean,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: (@Composable () -> Unit)? = null
-) {
-    val purpleErrorColor = colorResource(id = R.color.purple_light)
-
-    OutlinedTextField(
-        value = value,
-        onValueChange = {
-            if (it.length <= 75) {
-                onValueChange(it)
-            }
-        },
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder) },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Next
-        ),
-        visualTransformation = visualTransformation,
-        leadingIcon = {
-            Icon(
-                imageVector = leadingIcon,
-                contentDescription = null
-            )
-        },
-        trailingIcon = trailingIcon,
-        isError = !isValid && value.isNotEmpty(), // Display error when the field is not empty and not valid
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            cursorColor = Color.White,
-            placeholderColor = Color.White.copy(alpha = 0.8f),
-            textColor = Color.White,
-            leadingIconColor = Color.White.copy(alpha = 0.6f),
-            trailingIconColor = Color.White.copy(alpha = 0.6f),
-            focusedBorderColor = Color.White, // Change border color when focused
-            unfocusedBorderColor = Color.White,
-            errorBorderColor = purpleErrorColor, // Change border color when not focused
-            errorCursorColor = purpleErrorColor, // Change border color when not focused
-            backgroundColor = Color.Black.copy(alpha = 0.1f) // Set background color with 50% opacity
-        ),
-        singleLine = true
-    )
-    if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
-        Text(
-            text = errorText,
-            color = Color.White,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        )
     }
 }
 

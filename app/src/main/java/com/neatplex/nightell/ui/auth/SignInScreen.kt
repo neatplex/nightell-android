@@ -60,6 +60,7 @@ import com.google.android.gms.tasks.Task
 import com.neatplex.nightell.component.CustomBorderedCircleButton
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.ErrorText
+import com.neatplex.nightell.component.OutlinedTextFieldWithIcon
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.feelFree
@@ -205,43 +206,6 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
             authResultState?.let { AuthResult(it, navController) }
         }
     }
-}
-
-@Composable
-private fun OutlinedTextFieldWithIcon(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    keyboardType: KeyboardType,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    leadingIcon: ImageVector,
-    trailingIcon: (@Composable () -> Unit)? = null
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = {
-            if (it.length <= 75) {
-                onValueChange(it)
-            }
-        },
-        modifier = Modifier.fillMaxWidth(),
-        placeholder = { Text(placeholder) },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        visualTransformation = visualTransformation,
-        leadingIcon = { Icon(leadingIcon, contentDescription = null) },
-        trailingIcon = trailingIcon,
-        colors = TextFieldDefaults.outlinedTextFieldColors(
-            cursorColor = Color.White,
-            placeholderColor = Color.White.copy(alpha = 0.8f),
-            textColor = Color.White,
-            leadingIconColor = Color.White.copy(alpha = 0.6f),
-            trailingIconColor = Color.White.copy(alpha = 0.6f),
-            focusedBorderColor = Color.White, // Change border color when focused
-            unfocusedBorderColor = Color.White, // Change border color when not focused
-            backgroundColor = Color.Black.copy(alpha = 0.1f) // Set background color with 50% opacity
-        ),
-        singleLine = true
-    )
 }
 
 @Composable
