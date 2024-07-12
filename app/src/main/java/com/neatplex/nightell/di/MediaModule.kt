@@ -59,4 +59,7 @@ class MediaModule {
         return MediaServiceHandler(player)
     }
 
+    @Provides
+    @Singleton
+    fun provideContext(@ApplicationContext context: Context): Context = context
 }

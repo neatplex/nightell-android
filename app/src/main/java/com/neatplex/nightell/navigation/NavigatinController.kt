@@ -11,8 +11,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.upload.AddPostScreen
 import com.neatplex.nightell.ui.profile.EditProfileScreen
 import com.neatplex.nightell.ui.user.FollowerScreen
@@ -36,7 +36,7 @@ fun BottomNavHost(
     navController: NavHostController,
     tokenManager: TokenManager,
     mediaViewModel : MediaViewModel,
-    startService: () -> Unit
+    serviceManager: ServiceManager
 ) {
 
     val tokenState by tokenManager.tokenState.collectAsState()
@@ -56,7 +56,7 @@ fun BottomNavHost(
         }
 
         composable(Screens.Home.route) {
-            HomeNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, startService = startService, tokenState)
+            HomeNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, serviceManager = serviceManager)
         }
 
         composable(Screens.AddPost.route) {
@@ -67,18 +67,18 @@ fun BottomNavHost(
         }
 
         composable(Screens.Search.route) {
-            SearchNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, startService = startService)
+            SearchNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, serviceManager = serviceManager)
         }
 
         composable(Screens.Profile.route) {
-            ProfileNavHost(sharedViewModel, mediaViewModel = mediaViewModel, startService = startService,tokenState)
+            ProfileNavHost(sharedViewModel, mediaViewModel = mediaViewModel, serviceManager = serviceManager)
         }
 
     }
 }
 
 @Composable
-fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit, tokenState: String?){
+fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, serviceManager: ServiceManager){
 
     val homeNavController = rememberNavController()
 
@@ -107,7 +107,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                startService = startService)
+                startService = serviceManager::startMediaService)
         }
 
         composable(
@@ -137,7 +137,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
 }
 
 @Composable
-fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit){
+fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, serviceManager: ServiceManager){
 
     val searchNavController = rememberNavController()
 
@@ -155,7 +155,7 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = searchNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                startService = startService)
+                startService = serviceManager::startMediaService)
         }
 
         composable(
@@ -192,7 +192,7 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
 }
 
 @Composable
-fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, startService: () -> Unit, tokenState: String?){
+fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel, serviceManager: ServiceManager){
 
     val profileNavController = rememberNavController()
 
@@ -209,7 +209,7 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                startService = startService)
+                startService = serviceManager::startMediaService)
         }
 
         composable(

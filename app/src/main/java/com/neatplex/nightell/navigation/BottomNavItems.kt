@@ -74,15 +74,14 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                         .fillMaxWidth()
                         .height(50.dp)
                         .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
-                        .background(Color.White), // Use primary color from the theme
-                    containerColor = Color.White// Ensure the background color is set
+                        .background(Color.White),
+                    containerColor = Color.White
                 ) {
                     items.forEachIndexed { index, item ->
                         val isSelected = item.route == currentDestination?.route
                         val icon = painterResource(id = item.icon)
                         BottomNavigationItem(
-                            modifier = Modifier
-                                .fillMaxHeight(),
+                            modifier = Modifier.fillMaxHeight(),
                             icon = {
                                 Icon(
                                     painter = icon,

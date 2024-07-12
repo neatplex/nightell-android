@@ -27,7 +27,6 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
     fun setToken(token: String) {
         sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
         _tokenState.value = token
-
     }
 
     fun getToken(): String? {

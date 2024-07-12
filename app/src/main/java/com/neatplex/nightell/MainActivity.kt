@@ -1,110 +1,71 @@
 package com.neatplex.nightell
 
 import android.annotation.SuppressLint
-import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavHost
 import com.neatplex.nightell.navigation.BottomNavigationScreen
 import com.neatplex.nightell.navigation.Screens
-import com.neatplex.nightell.service.MediaService
+import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private val tokenManager by lazy { TokenManager(applicationContext) }
-    private val mediaViewModel: MediaViewModel by viewModels()
-    private var isServiceRunning = false
+    @Inject lateinit var tokenManager: TokenManager
+    @Inject lateinit var serviceManager: ServiceManager
 
-    @SuppressLint(
-        "UnusedMaterialScaffoldPaddingParameter",
-        "UnusedMaterial3ScaffoldPaddingParameter"
-    )
+    private val mediaViewModel: MediaViewModel by viewModels()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            AppContent()
-        }
-
-        lifecycleScope.launch {
-            tokenManager.logoutEvent.collect {
-                showLogoutDialog()
-            }
+            AppContent(tokenManager, mediaViewModel, serviceManager)
         }
     }
-
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-    @Composable
-    fun AppContent() {
-
-        AppTheme {
-            val listItems = listOf(
-                Screens.Home,
-                Screens.Search,
-                Screens.AddPost,
-                Screens.Profile
-            )
-            window.statusBarColor = getColor(R.color.black)
-            val rootNavController = rememberNavController()
-
-            Scaffold(
-                bottomBar = {
-                    BottomNavigationScreen(rootNavController, listItems)
-                }
-            ) {
-                BottomNavHost(
-                    navController = rootNavController,
-                    tokenManager = tokenManager,
-                    mediaViewModel = mediaViewModel,
-                    startService = ::startService
-                )
-            }
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
-        stopService(Intent(this, MediaService::class.java))
-        isServiceRunning = false
+        serviceManager.stopMediaService()
     }
+}
 
-    private fun startService() {
-        if (!isServiceRunning) {
-            val intent = Intent(this, MediaService::class.java)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(intent)
-            } else {
-                startService(intent)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun AppContent(
+    tokenManager: TokenManager,
+    mediaViewModel: MediaViewModel,
+    serviceManager: ServiceManager
+) {
+    AppTheme {
+        val listItems = listOf(
+            Screens.Home,
+            Screens.Search,
+            Screens.AddPost,
+            Screens.Profile
+        )
+        val rootNavController = rememberNavController()
+
+        Scaffold(
+            bottomBar = {
+                BottomNavigationScreen(rootNavController, listItems)
             }
-            isServiceRunning = true
+        ) {
+            BottomNavHost(
+                navController = rootNavController,
+                tokenManager = tokenManager,
+                mediaViewModel = mediaViewModel,
+                serviceManager = serviceManager
+            )
         }
-    }
-
-    private fun showLogoutDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Session Expired")
-            .setMessage("Your session has expired. Please log in again.")
-            .setPositiveButton("Logout") { _, _ ->
-                // Handle logout
-                tokenManager.deleteToken()
-                startActivity(Intent(this, MainActivity::class.java))
-                finish()
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 }
