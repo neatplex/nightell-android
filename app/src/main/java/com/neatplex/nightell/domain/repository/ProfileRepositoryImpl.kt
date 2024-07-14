@@ -14,7 +14,7 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
             val response = apiService.showProfile()
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 
@@ -23,7 +23,7 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
             val response = apiService.showUserProfile(userId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
 
         }
     }
@@ -35,7 +35,7 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
             val response = apiService.changeProfileName(requestBody)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 
@@ -46,7 +46,7 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
             val response = apiService.changeProfileBio(requestBody)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 
@@ -56,7 +56,7 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
             val response = apiService.changeProfileUsername(requestBody)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 
@@ -65,7 +65,7 @@ class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiServi
             val response = apiService.deleteAccount()
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 }

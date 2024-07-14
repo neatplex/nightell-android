@@ -194,7 +194,7 @@ fun AddPostScreen(
                         }
                     }
 
-                    is Result.Error -> {
+                    is Result.Failure -> {
                         errorMessage = result.message
                     }
 
@@ -219,7 +219,7 @@ fun AddPostScreen(
                             }
                         }
 
-                        is Result.Error -> {
+                        is Result.Failure -> {
                             errorMessage = result.message
                         }
 

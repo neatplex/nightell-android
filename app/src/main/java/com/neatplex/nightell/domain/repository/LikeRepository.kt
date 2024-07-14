@@ -14,7 +14,7 @@ class LikeRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.like(postId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 
@@ -23,7 +23,7 @@ class LikeRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.getLikes(postId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 
@@ -32,7 +32,7 @@ class LikeRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.deleteLike(likeId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 }

@@ -17,7 +17,7 @@ class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.register(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "An error occurred", e)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -26,7 +26,7 @@ class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.loginWithEmail(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "An error occurred", e)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -35,7 +35,7 @@ class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.loginWithUsername(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "An error occurred", e)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -46,7 +46,7 @@ class AuthRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.signInWithGoogle(requestBody)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.localizedMessage ?: "An error occurred", e)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 }

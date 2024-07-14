@@ -45,9 +45,6 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.TextFieldWithValidation
 import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
-import com.neatplex.nightell.utils.Validation.isValidEmail
-import com.neatplex.nightell.utils.Validation.isValidPassword
-import com.neatplex.nightell.utils.Validation.isValidUsername
 
 @Composable
 fun SignUpScreen(
@@ -90,7 +87,7 @@ fun SignUpScreen(
                 placeholder = "Username",
                 errorText = getUserNameErrorMessage(username),
                 leadingIcon = Icons.Default.AccountBox,
-                isValid = username.isEmpty() || isValidUsername(username)
+                isValid = username.isEmpty() || authViewModel.isValidUsername(username)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -100,9 +97,9 @@ fun SignUpScreen(
                 value = email,
                 onValueChange = { email = it },
                 placeholder = "Email",
-                errorText = if (email.isNotEmpty() && !isValidEmail(email)) "Invalid email format" else "",
+                errorText = if (email.isNotEmpty() && !authViewModel.isValidEmail(email)) "Invalid email format" else "",
                 leadingIcon = Icons.Default.Email,
-                isValid = email.isEmpty() || isValidEmail(email)
+                isValid = email.isEmpty() || authViewModel.isValidEmail(email)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -112,9 +109,9 @@ fun SignUpScreen(
                 value = password,
                 onValueChange = { password = it },
                 placeholder = "Password",
-                errorText = if (password.isNotEmpty() && !isValidPassword(password)) "Password must be at least 8 characters long" else "",
+                errorText = if (password.isNotEmpty() && !authViewModel.isValidPassword(password)) "Password must be at least 8 characters long" else "",
                 leadingIcon = Icons.Default.Lock,
-                isValid = password.isEmpty() || isValidPassword(password),
+                isValid = password.isEmpty() || authViewModel.isValidPassword(password),
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
@@ -132,7 +129,7 @@ fun SignUpScreen(
             Button(
                 onClick = {
                     if (username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() &&
-                        isValidUsername(username) && isValidEmail(email) && isValidPassword(password)
+                        authViewModel.isValidUsername(username) && authViewModel.isValidEmail(email) && authViewModel.isValidPassword(password)
                     ) {
                         authViewModel.registerUser(username, email, password)
                     }

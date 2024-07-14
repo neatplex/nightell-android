@@ -209,7 +209,7 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
     var showError by remember { mutableStateOf(false) }
 
     LaunchedEffect(authResultState) {
-        if (authResultState is Result.Error) {
+        if (authResultState is Result.Failure) {
             showError = true
             delay(5000) // Show error for 5 seconds
             showError = false
@@ -224,7 +224,7 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
             contentAlignment = Alignment.Center
         ) {
             ErrorText(
-                text = (authResultState as? Result.Error)?.message ?: ""
+                text = (authResultState as? Result.Failure)?.message ?: ""
             )
         }
     }

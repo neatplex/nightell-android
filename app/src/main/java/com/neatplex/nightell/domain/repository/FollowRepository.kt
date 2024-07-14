@@ -14,7 +14,7 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.follow(userId, friendId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
 
         }
     }
@@ -24,7 +24,7 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.unfollow(userId, friendId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
 
         }
     }
@@ -34,7 +34,7 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.userFollowers(userId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
 
         }
     }
@@ -44,7 +44,7 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.userFollowings(userId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 }

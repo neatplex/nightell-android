@@ -14,8 +14,8 @@ android {
         applicationId = "com.neatplex.nightell"
         minSdk = 25
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.0.1"
+        versionCode = 5
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -142,9 +142,9 @@ dependencies {
 
     // Local Unit Tests
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.30")
-    testImplementation("org.mockito:mockito-core:3.11.2")
+    testImplementation("org.mockito:mockito-core:4.3.1")
     testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
-    testImplementation("org.mockito:mockito-inline:3.11.2")
+    testImplementation("org.mockito:mockito-inline:4.3.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.2")
 
     testImplementation("junit:junit:4.13.2")

@@ -25,7 +25,7 @@ class FileRepository @Inject constructor(private val apiService: ApiService) {
             val response = apiService.uploadFile(filePart, extensionPart)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error("Error uploading file", null)
+            Result.Failure("Error uploading file", null)
         }
     }
 }

@@ -16,7 +16,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.showFeed(lastId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error("Error fetching posts", null)
+            Result.Failure("Error fetching posts", null)
         }
     }
 
@@ -25,7 +25,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.showUserPosts(userId,lastId)
             handleApiResponse(response)
         }catch (e: Exception){
-            Result.Error("Error fetching posts", null)
+            Result.Failure("Error fetching posts", null)
 
         }
     }
@@ -36,7 +36,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.uploadPost(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error("Error uploading post", null)
+            Result.Failure("Error uploading post", null)
         }
     }
 
@@ -46,7 +46,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.updatePost(postId, request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error("Error editing post", null)
+            Result.Failure("Error editing post", null)
         }
 
     }
@@ -56,7 +56,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.deletePost(postId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error("Error deleting post", null)
+            Result.Failure("Error deleting post", null)
         }
     }
 
@@ -65,7 +65,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.getPostById(postId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Error("Error editing post", null)
+            Result.Failure("Error editing post", null)
         }
     }
 
@@ -75,7 +75,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             handleApiResponse(response)
         }
         catch (e: Exception){
-            Result.Error(e.message ?: "An error occurred")
+            Result.Failure(e.message ?: "An error occurred")
         }
     }
 }

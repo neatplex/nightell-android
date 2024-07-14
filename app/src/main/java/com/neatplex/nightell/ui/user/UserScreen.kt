@@ -1,6 +1,5 @@
 package com.neatplex.nightell.ui.user
 
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,7 +49,6 @@ import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.toJson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,7 +142,7 @@ fun UserScreen(
                             )
                         }
 
-                        is Result.Error -> {
+                        is Result.Failure -> {
                             // Handle error state
                             Text(
                                 text = "Error in loading profile: ${result.message}",

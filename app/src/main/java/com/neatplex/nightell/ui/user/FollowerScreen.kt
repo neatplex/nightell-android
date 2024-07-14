@@ -75,7 +75,7 @@ fun FollowerScreen(navController: NavController, userId: Int, sharedViewModel : 
                                 }
                             }
 
-                            is Result.Error -> {
+                            is Result.Failure -> {
                                 // Handle error
                             }
 

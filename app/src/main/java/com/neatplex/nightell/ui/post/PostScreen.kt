@@ -100,7 +100,7 @@ fun PostScreen(
                     isPostExist = true
                     post = result.data!!.post
                 }
-                is Result.Error -> {
+                is Result.Failure -> {
                     isPostExist = false
                     // Handle error case
                 }
@@ -166,7 +166,7 @@ fun PostScreen(
                         icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
                         likeId = if (isLiked) likes.find { it.user_id == userId }?.id else null
                     }
-                    is Result.Error -> {
+                    is Result.Failure -> {
                         // Handle error case
                     }
                     else -> {

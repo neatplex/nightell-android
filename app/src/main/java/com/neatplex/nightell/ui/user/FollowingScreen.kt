@@ -79,7 +79,7 @@ fun FollowingScreen(navController: NavController,
                                 }
                             }
 
-                            is Result.Error -> {
+                            is Result.Failure -> {
                                 // Handle error
                             }
 

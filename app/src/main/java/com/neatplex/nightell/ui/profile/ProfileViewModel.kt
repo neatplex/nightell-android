@@ -11,14 +11,17 @@ import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.ProfileUseCase
 import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.utils.Validation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-
-    private val profileUseCase: ProfileUseCase, private val postUseCase: PostUseCase) : ViewModel() {
+    private val profileUseCase: ProfileUseCase,
+    private val postUseCase: PostUseCase,
+    private val validation: Validation
+) : ViewModel() {
 
     private val _profileData = MutableLiveData<Result<Profile>>()
     val profileData: LiveData<Result<Profile>> get() = _profileData
@@ -103,5 +106,9 @@ class ProfileViewModel @Inject constructor(
             _accountDeleteResult.value = Result.Loading
             _accountDeleteResult.value = profileUseCase.deleteAccount()
         }
+    }
+
+    fun isValidUsername(username: String): Boolean {
+        return validation.isValidUsername(username)
     }
 }

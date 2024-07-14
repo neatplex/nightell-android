@@ -18,9 +18,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,12 +52,10 @@ import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.AlertDialogCustom
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
-import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.Validation
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -164,7 +160,7 @@ fun EditProfileScreen(
                             },
                             isChanged = isUsernameChanged,
                             errorText = getUserNameErrorMessage(editedUsername),
-                            isValid = editedUsername.isEmpty() || Validation.isValidUsername(
+                            isValid = editedUsername.isEmpty() || profileViewModel.isValidUsername(
                                 editedUsername
                             ),
                             onSaveClicked = {
@@ -316,7 +312,7 @@ fun EditProfileScreen(
                 }
             }
 
-            is Result.Error -> {
+            is Result.Failure -> {
                 // Reset to original values on error
                 errorMessage = result.message
             }
@@ -336,7 +332,7 @@ fun EditProfileScreen(
                 showSignOutDialog = false
             }
 
-            is Result.Error -> {
+            is Result.Failure -> {
                 // Reset to original values on error
                 errorMessage = result.message
             }

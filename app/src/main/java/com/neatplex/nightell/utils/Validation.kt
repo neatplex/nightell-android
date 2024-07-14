@@ -1,6 +1,6 @@
 package com.neatplex.nightell.utils
 
-object Validation {
+class Validation {
 
     fun isValidEmail(email: String): Boolean {
         // Add your email validation logic here
@@ -18,5 +18,4 @@ object Validation {
         val regex = Regex("^[a-z][a-z0-9_]*\$")
         return regex.matches(username) && username.length >= 5
     }
-
 }

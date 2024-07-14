@@ -15,7 +15,7 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
             val newFeed = result.data?.posts ?: emptyList()
             Result.Success(newFeed)
         } else {
-            Result.Error("Error loading feed", null)
+            Result.Failure("Error loading feed", null)
         }
     }
 
@@ -25,7 +25,7 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
             val newFeed = result.data?.posts ?: emptyList()
             Result.Success(newFeed)
         } else {
-            Result.Error("Error loading feed", null)
+            Result.Failure("Error loading feed", null)
         }
     }
 
@@ -47,7 +47,7 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
             val newFeed = result.data?.posts ?: emptyList()
             Result.Success(newFeed)
         } else {
-            Result.Error("Error loading searched posts", null)
+            Result.Failure("Error loading searched posts", null)
         }
     }
 
