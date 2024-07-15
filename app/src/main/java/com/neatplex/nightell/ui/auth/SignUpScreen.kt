@@ -58,14 +58,12 @@ fun SignUpScreen(
     var isPasswordVisible by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize().background(brush = myLinearGradiant())) {
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center
         ) {
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -152,26 +150,11 @@ fun SignUpScreen(
                 horizontalArrangement = Arrangement.Center
             ) {
                 // Sign In Text
-                Text(
-                    buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                color = Color.White
-                            )
-                        ) {
-                            append("Do you have an account? ")
-                        }
-                        withStyle(
-                            style = SpanStyle(
-                                color = colorResource(id = R.color.blue_light),
-                                textDecoration = TextDecoration.Underline
-                            )
-                        ) {
-                            append("Sign In!")
-                        }
-                    },
-                    modifier = Modifier.clickable {
-                        navController.navigate("SignIn"){
+                CenteredTextWithClickablePart(
+                    normalText = "Do you have an account? ",
+                    clickableText = "Sign In!",
+                    onClick = {
+                        navController.navigate("SignIn") {
                             popUpTo(0) { inclusive = true }
                         }
                     }
@@ -194,5 +177,25 @@ fun getUserNameErrorMessage(username: String): String {
         !Regex("^[a-z_][a-z0-9_]*$").matches(username) -> "Username can only contain lowercase letters, numbers, and underscores"
         username.length < 5 -> "Username must be at least 5 characters long"
         else -> ""
+    }
+}
+
+@Composable
+fun CenteredTextWithClickablePart(normalText: String, clickableText: String, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            buildAnnotatedString {
+                withStyle(style = SpanStyle(color = Color.White)) {
+                    append(normalText)
+                }
+                withStyle(style = SpanStyle(color = colorResource(id = R.color.blue_light), textDecoration = TextDecoration.Underline)) {
+                    append(clickableText)
+                }
+            },
+            modifier = Modifier.clickable(onClick = onClick)
+        )
     }
 }

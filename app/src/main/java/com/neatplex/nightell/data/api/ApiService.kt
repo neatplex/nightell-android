@@ -108,8 +108,8 @@ interface ApiService {
     suspend fun showUserProfile(@Path("user_id") userId: Int) : Response<Profile>
 
     // Search
-    @GET("search")
-    suspend fun search(@Query("q") query: String,
+    @GET("search/posts")
+    suspend fun searchPost(@Query("q") query: String,
                        @Query("lastId") lastId: Int?): Response<PostCollection>
 
     // Show Followers
