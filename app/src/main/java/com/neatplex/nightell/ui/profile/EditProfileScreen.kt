@@ -242,7 +242,7 @@ fun EditProfileScreen(
                             buildAnnotatedString {
                                 withStyle(
                                     style = SpanStyle(
-                                        color = Color.Gray
+                                        color = Color.DarkGray
                                     )
                                 ) {
                                     append("Do you want to delete your account? ")
@@ -272,7 +272,7 @@ fun EditProfileScreen(
                                 onDismissRequest = {
                                     showSignOutDialog = false
                                 },
-                                dialogTitle = "Sign Out",
+                                dialogTitle = "Sign Out!",
                                 dialogText = "Are you sure you want to sign out?",
                                 onConfirmation = {
                                         sharedViewModel.deleteToken()
@@ -286,7 +286,7 @@ fun EditProfileScreen(
                                 onDismissRequest = {
                                     showDeleteAccountDialog = false
                                 },
-                                dialogTitle = "Delete My Account!",
+                                dialogTitle = "Delete Account!",
                                 dialogText ="Are you sure you want to delete your account?",
                                 onConfirmation = {
                                         profileViewModel.deleteAccount()
