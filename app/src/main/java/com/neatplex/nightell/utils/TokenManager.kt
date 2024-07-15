@@ -35,7 +35,7 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
 
     fun deleteToken() {
         sharedPreferences.edit().remove(TOKEN_KEY).apply()
-        _tokenState.value = ""
+        _tokenState.value = null
         _logoutEvent.tryEmit(Unit) // Trigger logout event
     }
 

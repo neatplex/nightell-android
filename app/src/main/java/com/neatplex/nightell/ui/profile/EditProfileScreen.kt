@@ -347,7 +347,7 @@ fun EditProfileScreen(
     // Observe token deletion state
     val token by sharedViewModel.tokenState.collectAsState()
     LaunchedEffect(isTokenDeletionInProgress, token) {
-        if (isTokenDeletionInProgress && token == "") {
+        if (isTokenDeletionInProgress && token.isNullOrEmpty()) {
             delay(2000)
             signOut(context)
         }
