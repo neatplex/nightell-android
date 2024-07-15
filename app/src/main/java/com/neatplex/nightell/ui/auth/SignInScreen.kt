@@ -4,7 +4,6 @@ import android.app.Activity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,12 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -39,15 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -59,7 +46,6 @@ import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.component.OutlinedTextFieldWithIcon
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.navigation.Screens
-import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.delay
@@ -85,18 +71,69 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        isGoogleSignInInProgress = false  // Reset the flag here
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             handleSignInResult(task, viewModel)
+        } else {
+            // Handle the case where the user closed the Google Sign-In launcher without completing sign-in
+            // Optionally, you can show an error message or handle this case as needed
         }
     }
 
+    SignInContent(
+        emailOrUsername = emailOrUsername,
+        password = password,
+        isPasswordVisible = isPasswordVisible,
+        onEmailOrUsernameChange = { emailOrUsername = it },
+        onPasswordChange = { password = it },
+        onPasswordVisibilityChange = { isPasswordVisible = it },
+        onSignInClick = {
+            if (emailOrUsername.isNotEmpty() && password.isNotEmpty()) {
+                viewModel.loginUser(emailOrUsername, password)
+            }
+        },
+        onGoogleSignInClick = {
+            isGoogleSignInInProgress = true
+            googleSignInClient.signOut().addOnCompleteListener {
+                val signInIntent = googleSignInClient.signInIntent
+                googleSignInLauncher.launch(signInIntent)
+            }
+        },
+        onSignUpClick = {
+            navController.navigate("SignUp")
+        },
+        isGoogleSignInInProgress = isGoogleSignInInProgress,
+        authResultState = authResultState,
+        navController = navController
+    )
+    // Handle authentication result
+    authResultState?.let { AuthResult(it, navController) }
+}
+
+@Composable
+fun SignInContent(
+    emailOrUsername: String,
+    password: String,
+    isPasswordVisible: Boolean,
+    onEmailOrUsernameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onPasswordVisibilityChange: (Boolean) -> Unit,
+    onSignInClick: () -> Unit,
+    onGoogleSignInClick: () -> Unit,
+    onSignUpClick: () -> Unit,
+    isGoogleSignInInProgress: Boolean,
+    authResultState: Result<AuthResponse?>?,
+    navController: NavController
+) {
     Box(modifier = Modifier
         .fillMaxSize()
         .background(brush = myLinearGradiant())) {
+
         if (isGoogleSignInInProgress) {
             CustomCircularProgressIndicator()
         }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -104,18 +141,13 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            androidx.compose.material3.Text(
-                text = "Nightell",
-                fontFamily = feelFree,
-                fontSize = 85.sp,
-                color = Color.White
-            )
+            Header()
 
             Spacer(modifier = Modifier.height(32.dp))
 
             OutlinedTextFieldWithIcon(
                 value = emailOrUsername,
-                onValueChange = { emailOrUsername = it },
+                onValueChange = onEmailOrUsernameChange,
                 placeholder = "Email Or Username",
                 keyboardType = KeyboardType.Email,
                 leadingIcon = Icons.Default.Person
@@ -125,13 +157,13 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
 
             OutlinedTextFieldWithIcon(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = onPasswordChange,
                 placeholder = "Password",
                 keyboardType = KeyboardType.Password,
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 leadingIcon = Icons.Default.Lock,
                 trailingIcon = {
-                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    IconButton(onClick = { onPasswordVisibilityChange(!isPasswordVisible) }) {
                         Icon(
                             painter = painterResource(id = if (isPasswordVisible) R.drawable.baseline_visibility_24 else R.drawable.baseline_visibility_off_24),
                             contentDescription = "visible/invisible password"
@@ -142,49 +174,22 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = {
-                    if (emailOrUsername.isNotEmpty() && password.isNotEmpty()) {
-                        viewModel.loginUser(emailOrUsername, password)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(CircleShape)
-                    .height(50.dp),
-                colors = ButtonDefaults.buttonColors(
-                    backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
-                )
-            ) {
-                Text(text = "Sign In", color = Color.White, fontSize = 16.sp)
-            }
+            SignUpButton(onSignInClick, "Sign In")
 
             Spacer(modifier = Modifier.height(16.dp))
 
             CustomBorderedCircleButton(
-                onClick = {
-                    isGoogleSignInInProgress = true
-                    googleSignInClient.signOut().addOnCompleteListener {
-                        val signInIntent = googleSignInClient.signInIntent
-                        googleSignInLauncher.launch(signInIntent)
-                    }
-                },
-                text = "Sign In with Google")
+                onClick = onGoogleSignInClick,
+                text = "Sign In with Google"
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             CenteredTextWithClickablePart(
                 normalText = "Don't you have an account? ",
                 clickableText = "Sign Up!",
-                onClick = {
-                    navController.navigate("SignUp")
-                }
+                onClick = onSignUpClick
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Handle authentication result
-            authResultState?.let { AuthResult(it, navController) }
         }
     }
 }
@@ -205,7 +210,7 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
+                .padding(top = 32.dp),
             contentAlignment = Alignment.Center
         ) {
             ErrorText(

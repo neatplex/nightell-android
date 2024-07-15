@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Button
+import androidx.compose.material.ButtonDefaults
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
@@ -57,31 +58,60 @@ fun SignUpScreen(
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize().background(brush = myLinearGradiant())) {
+    SignUpContent(
+        authViewModel = authViewModel,
+        email = email,
+        username = username,
+        password = password,
+        isPasswordVisible = isPasswordVisible,
+        onEmailChange = { email = it },
+        onUsernameChange = { username = it },
+        onPasswordChange = { password = it },
+        onPasswordVisibilityChange = { isPasswordVisible = it },
+        onSignUpClick = {
+            if (isInputValid(username, email, password, authViewModel)) {
+                authViewModel.registerUser(username, email, password)
+            }
+        },
+        onSignInClick = {
+            navController.navigate("SignIn") {
+                popUpTo(0) { inclusive = true }
+            }
+        }
+    )
+    // Handle authentication result
+    authResultState?.let { AuthResult(it, navController) }
+}
+
+@Composable
+fun SignUpContent(
+    authViewModel: AuthViewModel,
+    email: String,
+    username: String,
+    password: String,
+    isPasswordVisible: Boolean,
+    onEmailChange: (String) -> Unit,
+    onUsernameChange: (String) -> Unit,
+    onPasswordChange: (String) -> Unit,
+    onPasswordVisibilityChange: (Boolean) -> Unit,
+    onSignUpClick: () -> Unit,
+    onSignInClick: () -> Unit
+) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .background(brush = myLinearGradiant())) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                androidx.compose.material3.Text(
-                    text = "Nightell",
-                    fontFamily = feelFree,
-                    fontSize = 85.sp,
-                    color = Color.White
-                )
-            }
-
+            Header()
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Username TextField
             TextFieldWithValidation(
                 value = username,
-                onValueChange = { username = it },
+                onValueChange = onUsernameChange,
                 placeholder = "Username",
                 errorText = getUserNameErrorMessage(username),
                 leadingIcon = Icons.Default.AccountBox,
@@ -90,10 +120,9 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Email TextField
             TextFieldWithValidation(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = onEmailChange,
                 placeholder = "Email",
                 errorText = if (email.isNotEmpty() && !authViewModel.isValidEmail(email)) "Invalid email format" else "",
                 leadingIcon = Icons.Default.Email,
@@ -102,17 +131,16 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Password TextField
             TextFieldWithValidation(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = onPasswordChange,
                 placeholder = "Password",
                 errorText = if (password.isNotEmpty() && !authViewModel.isValidPassword(password)) "Password must be at least 8 characters long" else "",
                 leadingIcon = Icons.Default.Lock,
                 isValid = password.isEmpty() || authViewModel.isValidPassword(password),
                 visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    IconButton(onClick = { onPasswordVisibilityChange(!isPasswordVisible) }) {
                         Icon(
                             painter = painterResource(id = if (isPasswordVisible) R.drawable.baseline_visibility_24 else R.drawable.baseline_visibility_off_24),
                             contentDescription = "visible/invisible password"
@@ -123,51 +151,60 @@ fun SignUpScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sign Up Button
-            Button(
-                onClick = {
-                    if (username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() &&
-                        authViewModel.isValidUsername(username) && authViewModel.isValidEmail(email) && authViewModel.isValidPassword(password)
-                    ) {
-                        authViewModel.registerUser(username, email, password)
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(CircleShape)
-                    .height(50.dp),
-                colors = androidx.compose.material.ButtonDefaults.buttonColors(
-                    backgroundColor = colorResource(id = R.color.purple), // Set button background color to transparent
-                )
-            ) {
-                Text(text = "Sign In", color = Color.White, fontSize = 16.sp)
-            }
-
+            SignUpButton(onSignUpClick,"Sign Up")
             Spacer(modifier = Modifier.height(16.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                // Sign In Text
-                CenteredTextWithClickablePart(
-                    normalText = "Do you have an account? ",
-                    clickableText = "Sign In!",
-                    onClick = {
-                        navController.navigate("SignIn") {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                )
-            }
-
+            CenteredTextWithClickablePart(
+                normalText = "Do you have an account? ",
+                clickableText = "Sign In!",
+                onClick = onSignInClick
+            )
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Handle authentication result
-            authResultState?.let { AuthResult(it, navController) }
-
         }
     }
+}
+
+@Composable
+fun Header() {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Nightell",
+            fontFamily = feelFree,
+            fontSize = 85.sp,
+            color = Color.White
+        )
+    }
+}
+
+@Composable
+fun SignUpButton(onClick: () -> Unit, text : String) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(CircleShape)
+            .height(50.dp),
+        colors = ButtonDefaults.buttonColors(
+            backgroundColor = colorResource(id = R.color.purple)
+        )
+    ) {
+        Text(text = text, color = Color.White, fontSize = 16.sp)
+    }
+}
+
+fun isInputValid(
+    username: String,
+    email: String,
+    password: String,
+    authViewModel: AuthViewModel
+): Boolean {
+    return username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() &&
+            authViewModel.isValidUsername(username) && authViewModel.isValidEmail(email) && authViewModel.isValidPassword(
+        password
+    )
 }
 
 fun getUserNameErrorMessage(username: String): String {
@@ -191,7 +228,12 @@ fun CenteredTextWithClickablePart(normalText: String, clickableText: String, onC
                 withStyle(style = SpanStyle(color = Color.White)) {
                     append(normalText)
                 }
-                withStyle(style = SpanStyle(color = colorResource(id = R.color.blue_light), textDecoration = TextDecoration.Underline)) {
+                withStyle(
+                    style = SpanStyle(
+                        color = colorResource(id = R.color.blue_light),
+                        textDecoration = TextDecoration.Underline
+                    )
+                ) {
                     append(clickableText)
                 }
             },

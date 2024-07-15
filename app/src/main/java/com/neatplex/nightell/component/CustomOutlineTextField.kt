@@ -192,7 +192,8 @@ fun TextFieldWithValidation(
             trailingIconColor = Color.White.copy(alpha = 0.6f),
             focusedBorderColor = Color.White, // Change border color when focused
             unfocusedBorderColor = Color.White,
-            errorBorderColor = purpleErrorColor, // Change border color when not focused
+            errorBorderColor = purpleErrorColor,
+            errorTrailingIconColor = purpleErrorColor,// Change border color when not focused
             errorCursorColor = purpleErrorColor, // Change border color when not focused
             backgroundColor = Color.Black.copy(alpha = 0.1f) // Set background color with 50% opacity
         ),
