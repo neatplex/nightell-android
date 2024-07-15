@@ -16,7 +16,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.showFeed(lastId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Failure("Error fetching posts", null)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -25,7 +25,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.showUserPosts(userId,lastId)
             handleApiResponse(response)
         }catch (e: Exception){
-            Result.Failure("Error fetching posts", null)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
 
         }
     }
@@ -36,7 +36,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.uploadPost(request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Failure("Error uploading post", null)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -46,7 +46,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.updatePost(postId, request)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Failure("Error editing post", null)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
 
     }
@@ -56,7 +56,7 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.deletePost(postId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Failure("Error deleting post", null)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
@@ -65,17 +65,17 @@ class PostRepositoryImpl @Inject constructor(private val apiService: ApiService)
             val response = apiService.getPostById(postId)
             handleApiResponse(response)
         } catch (e: Exception) {
-            Result.Failure("Error editing post", null)
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 
     override suspend fun search(query: String, lastId: Int?): Result<PostCollection> {
         return try {
-            val response = apiService.search(query, lastId)
+            val response = apiService.searchPost(query, lastId)
             handleApiResponse(response)
         }
         catch (e: Exception){
-            Result.Failure(e.message ?: "An error occurred")
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }
     }
 }

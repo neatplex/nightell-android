@@ -74,7 +74,6 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     val context = LocalContext.current
     var isGoogleSignInInProgress by remember { mutableStateOf(false) }
 
-
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(context.getString(R.string.web_client_id))
@@ -174,28 +173,14 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                buildAnnotatedString {
-                    withStyle(
-                        style = SpanStyle(
-                            color = Color.White
-                        )
-                    ) {
-                        append("Don't you have an account? ")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            color = colorResource(id = R.color.blue_light),
-                            textDecoration = TextDecoration.Underline
-                        )
-                    ) {
-                        append("Sign Up!")
-                    }
-                },
-                modifier = Modifier.clickable {
-                    navController.navigate("signUp")
+            CenteredTextWithClickablePart(
+                normalText = "Don't you have an account? ",
+                clickableText = "Sign Up!",
+                onClick = {
+                    navController.navigate("SignUp")
                 }
             )
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Handle authentication result
