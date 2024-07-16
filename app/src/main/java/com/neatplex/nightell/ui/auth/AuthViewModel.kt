@@ -27,16 +27,8 @@ class AuthViewModel @Inject constructor(
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            when (val result = authUseCase.register(username, email, password)) {
-                is Result.Success -> {
-                    result.data?.let {
-                        _authResult.value = Result.Success(it)
-                    }
-                }
-                is Result.Failure -> {
-                    _authResult.value = result
-                }
-            }
+            val result = authUseCase.register(username, email, password)
+            _authResult.value = result
             _isLoading.value = false
         }
     }
@@ -44,16 +36,8 @@ class AuthViewModel @Inject constructor(
     fun loginUser(emailOrUsername: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            when (val result = authUseCase.login(emailOrUsername, password)) {
-                is Result.Success -> {
-                    result.data?.let {
-                        _authResult.value = Result.Success(it)
-                    }
-                }
-                is Result.Failure -> {
-                    _authResult.value = result
-                }
-            }
+            val result = authUseCase.login(emailOrUsername, password)
+            _authResult.value = result
             _isLoading.value = false
         }
     }
@@ -62,16 +46,8 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                when (val result = authUseCase.signInWithGoogle(idToken)) {
-                    is Result.Success -> {
-                        result.data?.let {
-                            _authResult.value = Result.Success(it)
-                        }
-                    }
-                    is Result.Failure -> {
-                        _authResult.value = result
-                    }
-                }
+                val result = authUseCase.signInWithGoogle(idToken)
+                _authResult.value = result
                 _isLoading.value = false
             } catch (e: Exception) {
                 _isLoading.value = false
