@@ -17,7 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.*
 import org.junit.rules.TestRule
@@ -95,7 +95,7 @@ class PostViewModelTest {
     private val like = Like(1,user,"2023-01-01T00:00:00Z",1,1,mockPost)
 
     @Test
-    fun `test getPostDetail success`() = runBlockingTest {
+    fun `test getPostDetail success`() = runTest {
         val postDetailResponse = PostDetailResponse(mockPost)
         `when`(postUseCase.getPostDetail(1)).thenReturn(Result.Success(postDetailResponse))
 
@@ -110,7 +110,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test getPostDetail failure`() = runBlockingTest {
+    fun `test getPostDetail failure`() = runTest {
         `when`(postUseCase.getPostDetail(1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.postDetailResult.observeForever(postDetailObserver)
@@ -124,7 +124,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test updatePost success`() = runBlockingTest {
+    fun `test updatePost success`() = runTest {
         val postDetailResponse = PostDetailResponse(mockPost)
         `when`(postUseCase.editPost(1, "title", "description")).thenReturn(Result.Success(postDetailResponse))
 
@@ -139,7 +139,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test updatePost failure`() = runBlockingTest {
+    fun `test updatePost failure`() = runTest {
         `when`(postUseCase.editPost(1, "title", "description")).thenReturn(Result.Failure("Error", null))
 
         postViewModel.postUpdateResult.observeForever(postUpdateObserver)
@@ -153,7 +153,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test deletePost success`() = runBlockingTest {
+    fun `test deletePost success`() = runTest {
         `when`(postUseCase.deletePost(1)).thenReturn(Result.Success(Unit))
 
         postViewModel.postDeleteResult.observeForever(postDeleteObserver)
@@ -167,7 +167,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test deletePost failure`() = runBlockingTest {
+    fun `test deletePost failure`() = runTest {
         `when`(postUseCase.deletePost(1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.postDeleteResult.observeForever(postDeleteObserver)
@@ -181,7 +181,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test like success`() = runBlockingTest {
+    fun `test like success`() = runTest {
         val storeLike = StoreLike(like)
         `when`(likeRepository.like(1)).thenReturn(Result.Success(storeLike))
 
@@ -196,7 +196,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test like failure`() = runBlockingTest {
+    fun `test like failure`() = runTest {
         `when`(likeRepository.like(1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.likeResult.observeForever(likeObserver)
@@ -210,7 +210,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test showLikes success`() = runBlockingTest {
+    fun `test showLikes success`() = runTest {
         val likes = Likes(listOf(like))
         `when`(likeRepository.showLikes(1)).thenReturn(Result.Success(likes))
 
@@ -225,7 +225,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test showLikes failure`() = runBlockingTest {
+    fun `test showLikes failure`() = runTest {
         `when`(likeRepository.showLikes(1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.showLikesResult.observeForever(showLikesObserver)
@@ -239,7 +239,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test deleteLike success`() = runBlockingTest {
+    fun `test deleteLike success`() = runTest {
         `when`(likeRepository.deleteLike(1)).thenReturn(Result.Success(Unit))
 
         postViewModel.unlikeResult.observeForever(unlikeObserver)
@@ -253,7 +253,7 @@ class PostViewModelTest {
     }
 
     @Test
-    fun `test deleteLike failure`() = runBlockingTest {
+    fun `test deleteLike failure`() = runTest {
         `when`(likeRepository.deleteLike(1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.unlikeResult.observeForever(unlikeObserver)

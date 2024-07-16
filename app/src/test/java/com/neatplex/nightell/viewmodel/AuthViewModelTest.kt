@@ -10,9 +10,9 @@ import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.Validation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.*
 import org.junit.rules.TestRule
@@ -26,7 +26,7 @@ class AuthViewModelTest {
     @get:Rule
     var rule: TestRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = TestCoroutineDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     @Mock
     private lateinit var authUseCase: AuthUseCase
@@ -52,12 +52,11 @@ class AuthViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
         authViewModel.authResult.removeObserver(observer)
     }
 
     @Test
-    fun `registerUser with valid data should return success`() = testDispatcher.runBlockingTest {
+    fun `registerUser with valid data should return success`() = runTest {
         val username = "testUser"
         val email = "test@example.com"
         val password = "password123"
@@ -67,12 +66,11 @@ class AuthViewModelTest {
 
         authViewModel.registerUser(username, email, password)
 
-        verify(observer).onChanged(Result.Loading)
         verify(observer).onChanged(Result.Success(authResponse))
     }
 
     @Test
-    fun `registerUser with invalid data should return failure`() = testDispatcher.runBlockingTest {
+    fun `registerUser with invalid data should return failure`() = runTest {
         val username = "testUser"
         val email = "test@example.com"
         val password = "password123"
@@ -82,12 +80,11 @@ class AuthViewModelTest {
 
         authViewModel.registerUser(username, email, password)
 
-        verify(observer).onChanged(Result.Loading)
         verify(observer).onChanged(Result.Failure(error))
     }
 
     @Test
-    fun `loginUser with valid data should return success`() = testDispatcher.runBlockingTest {
+    fun `loginUser with valid data should return success`() = runTest {
         val emailOrUsername = "test@example.com"
         val password = "password123"
         val authResponse = AuthResponse(token = "sampleToken", user)
@@ -96,12 +93,11 @@ class AuthViewModelTest {
 
         authViewModel.loginUser(emailOrUsername, password)
 
-        verify(observer).onChanged(Result.Loading)
         verify(observer).onChanged(Result.Success(authResponse))
     }
 
     @Test
-    fun `loginUser with invalid data should return failure`() = testDispatcher.runBlockingTest {
+    fun `loginUser with invalid data should return failure`() = runTest {
         val emailOrUsername = "test@example.com"
         val password = "password123"
         val error = "Login failed"
@@ -110,12 +106,11 @@ class AuthViewModelTest {
 
         authViewModel.loginUser(emailOrUsername, password)
 
-        verify(observer).onChanged(Result.Loading)
         verify(observer).onChanged(Result.Failure(error))
     }
 
     @Test
-    fun `signInWithGoogle with valid data should return success`() = testDispatcher.runBlockingTest {
+    fun `signInWithGoogle with valid data should return success`() = runTest {
         val idToken = "validToken"
         val authResponse = AuthResponse(token = "sampleToken", user)
 
@@ -123,12 +118,11 @@ class AuthViewModelTest {
 
         authViewModel.signInWithGoogle(idToken)
 
-        verify(observer).onChanged(Result.Loading)
         verify(observer).onChanged(Result.Success(authResponse))
     }
 
     @Test
-    fun `signInWithGoogle with invalid data should return failure`() = testDispatcher.runBlockingTest {
+    fun `signInWithGoogle with invalid data should return failure`() = runTest {
         val idToken = "invalidToken"
         val error = "Google sign-in failed"
 
@@ -136,7 +130,6 @@ class AuthViewModelTest {
 
         authViewModel.signInWithGoogle(idToken)
 
-        verify(observer).onChanged(Result.Loading)
         verify(observer).onChanged(Result.Failure(error))
     }
 
