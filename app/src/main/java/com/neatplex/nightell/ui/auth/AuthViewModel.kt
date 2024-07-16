@@ -27,8 +27,7 @@ class AuthViewModel @Inject constructor(
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = authUseCase.register(username, email, password)
-            _authResult.value = result
+            _authResult.value = authUseCase.register(username, email, password)
             _isLoading.value = false
         }
     }
@@ -36,8 +35,7 @@ class AuthViewModel @Inject constructor(
     fun loginUser(emailOrUsername: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = authUseCase.login(emailOrUsername, password)
-            _authResult.value = result
+            _authResult.value = authUseCase.login(emailOrUsername, password)
             _isLoading.value = false
         }
     }
@@ -46,8 +44,7 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                val result = authUseCase.signInWithGoogle(idToken)
-                _authResult.value = result
+                _authResult.value = authUseCase.signInWithGoogle(idToken)
                 _isLoading.value = false
             } catch (e: Exception) {
                 _isLoading.value = false
