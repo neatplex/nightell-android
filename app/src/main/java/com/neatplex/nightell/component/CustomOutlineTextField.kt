@@ -20,7 +20,10 @@ import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,7 +57,7 @@ fun CustomSearchField(
             .clip(RoundedCornerShape(8.dp))
             .height(50.dp)
             .fillMaxWidth()
-            .background(color = Color.LightGray.copy(alpha = 0.5f)),
+            .background(color = Color.LightGray.copy(alpha = 0.3f)),
         contentAlignment = Alignment.CenterStart
     ) {
         Row(
@@ -203,6 +206,80 @@ fun TextFieldWithValidation(
         Text(
             text = errorText,
             color = Color.White,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
+fun EditProfileTextFieldWithValidation(
+    value: String,
+    onValueChange: (String) -> Unit,
+    isChanged: Boolean,
+    onSaveClicked: () -> Unit,
+    onCancelClicked: () -> Unit,
+    label: String,
+    errorText: String,
+    length: Int,
+    isValid: Boolean,
+    singleLine: Boolean,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    imeAction : ImeAction,
+    height : Int
+) {
+    val purpleErrorColor = colorResource(id = R.color.purple_light)
+
+    androidx.compose.material3.OutlinedTextField(
+        value = value,
+        onValueChange = {
+            if (it.length <= length) {
+                onValueChange(it)
+            }
+        },
+        modifier = Modifier.fillMaxWidth().height(height.dp),
+        label = { androidx.compose.material3.Text(label) },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Text,
+            imeAction = imeAction
+        ),
+        visualTransformation = visualTransformation,
+        isError = !isValid && value.isNotEmpty(), // Display error when the field is not empty and not valid
+        colors = OutlinedTextFieldDefaults.colors(
+            cursorColor = Color.Black,
+            focusedLabelColor = Color.Black,
+            unfocusedLabelColor = Color.Gray, // Change text color if needed
+            focusedBorderColor = Color.Black, // Change border color when focused
+            unfocusedBorderColor = Color.Gray,
+            errorBorderColor = purpleErrorColor.copy(alpha = 0.5f), // Change border color when not focused
+            errorLabelColor = purpleErrorColor, // Change border color when not focused
+            errorTrailingIconColor = purpleErrorColor, // Change border color when not focused
+            errorCursorColor = purpleErrorColor, // Change border color when not focused
+        ),
+        singleLine = singleLine,
+        trailingIcon = {
+            if (isChanged && isValid) {
+                Row {
+                    IconButton(
+                        onClick = onSaveClicked,
+                        modifier = Modifier
+                            .padding(end = 8.dp)
+                    ) {
+                        androidx.compose.material3.Icon(
+                            Icons.Filled.Check,
+                            contentDescription = "Save",
+                            tint = Color.Black
+                        )
+                    }
+                }
+            }
+        }
+    )
+    if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
+        androidx.compose.material3.Text(
+            text = errorText,
+            color = purpleErrorColor,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)

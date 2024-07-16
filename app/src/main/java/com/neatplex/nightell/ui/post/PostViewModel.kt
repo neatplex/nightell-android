@@ -40,7 +40,7 @@ class PostViewModel @Inject constructor(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    fun editPost(postId: Int, newTitle: String, newDescription: String) {
+    fun updatePost(postId: Int, newTitle: String, newDescription: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _postUpdateResult.value = postUseCase.editPost(postId, newTitle, newDescription)

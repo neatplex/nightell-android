@@ -100,24 +100,16 @@ fun PostScreen(
                     isPostExist = true
                     post = result.data!!.post
                 }
+
                 is Result.Failure -> {
                     isPostExist = false
                     // Handle error case
-                }
-                else -> {
                 }
             }
         }
     }
 
-    // Show loading indicator while loading
-    if (postDetailResult is Result.Loading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
-        }
-    }
-
-    // Render UI when post exists
+// Render UI when post exists
     if (isPostExist && post != null) {
         val mainPost: Post = post!!
         val databaseViewModel: DatabaseViewModel = hiltViewModel()
@@ -166,9 +158,11 @@ fun PostScreen(
                         icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
                         likeId = if (isLiked) likes.find { it.user_id == userId }?.id else null
                     }
+
                     is Result.Failure -> {
                         // Handle error case
                     }
+
                     else -> {
                     }
                 }
@@ -262,7 +256,12 @@ fun PostScreen(
                                     }
                                 } else {
                                     IconButton(onClick = {
-                                        val entity = PostEntity(postId, post!!.title, post!!.user.username, post!!.image?.path)
+                                        val entity = PostEntity(
+                                            postId,
+                                            post!!.title,
+                                            post!!.user.username,
+                                            post!!.image?.path
+                                        )
                                         if (!isBookmarked) {
                                             databaseViewModel.savePost(entity)
                                             isBookmarked = true
@@ -349,14 +348,14 @@ fun PostScreen(
 
                                 IconButton(onClick = {
                                     if (!isLiked) {
-                                        if(likesCountNew <= likesCount) {
+                                        if (likesCountNew <= likesCount) {
                                             likesCountNew++
                                         }
                                         postViewModel.like(post!!.id)
                                         isLiked = true
                                         icon = Icons.Filled.Favorite
                                     } else {
-                                        if(likesCountNew >= 1) {
+                                        if (likesCountNew >= 1) {
                                             likesCountNew--
                                         }
                                         likeId?.let { id ->
@@ -386,7 +385,9 @@ fun PostScreen(
 
                                 if (isSame) {
                                     BottomPlayerUI(
-                                        durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
+                                        durationString = mediaViewModel.formatDuration(
+                                            mediaViewModel.duration
+                                        ),
                                         playResourceProvider = {
                                             if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
                                         },
@@ -450,7 +451,10 @@ fun PostScreen(
                                         },
                                         modifier = Modifier.fillMaxWidth(),
                                         label = {
-                                            Text("Title", color = Color.Black) // Changing label color
+                                            Text(
+                                                "Title",
+                                                color = Color.Black
+                                            ) // Changing label color
                                         },
                                         colors = TextFieldDefaults.outlinedTextFieldColors(
                                             backgroundColor = Color.White.copy(0.5f), // Changing background color
@@ -471,7 +475,10 @@ fun PostScreen(
                                         },
                                         modifier = Modifier.fillMaxWidth(),
                                         label = {
-                                            Text("Caption", color = Color.Black) // Changing label color
+                                            Text(
+                                                "Caption",
+                                                color = Color.Black
+                                            ) // Changing label color
                                         },
                                         colors = TextFieldDefaults.outlinedTextFieldColors(
                                             backgroundColor = Color.White.copy(0.5f), // Changing background color
@@ -487,7 +494,7 @@ fun PostScreen(
                                     CustomSimpleButton(
                                         onClick = {
                                             if (editedTitle != post!!.title || editedDescription != post!!.description) {
-                                                postViewModel.editPost(
+                                                postViewModel.updatePost(
                                                     post!!.id,
                                                     editedTitle,
                                                     editedDescription
@@ -531,8 +538,8 @@ fun PostScreen(
                 )
             }
         }
-    } else if(!isPostExist){
-        Box(modifier = Modifier.fillMaxSize()){
+    } else if (!isPostExist) {
+        Box(modifier = Modifier.fillMaxSize()) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()

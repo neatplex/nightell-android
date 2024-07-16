@@ -58,7 +58,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     var isPasswordVisible by remember { mutableStateOf(false) }
     val authResultState by viewModel.authResult.observeAsState()
     val context = LocalContext.current
-    var isGoogleSignInInProgress by remember { mutableStateOf(false) }
+    val isLoading by viewModel.isLoading.observeAsState(false)
 
     val googleSignInClient = remember {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -71,7 +71,6 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        isGoogleSignInInProgress = false  // Reset the flag here
         if (result.resultCode == Activity.RESULT_OK) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
             handleSignInResult(task, viewModel)
@@ -94,7 +93,6 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
             }
         },
         onGoogleSignInClick = {
-            isGoogleSignInInProgress = true
             googleSignInClient.signOut().addOnCompleteListener {
                 val signInIntent = googleSignInClient.signInIntent
                 googleSignInLauncher.launch(signInIntent)
@@ -103,7 +101,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
         onSignUpClick = {
             navController.navigate("SignUp")
         },
-        isGoogleSignInInProgress = isGoogleSignInInProgress,
+        isGoogleSignInInProgress = isLoading,
         authResultState = authResultState,
         navController = navController
     )

@@ -50,7 +50,6 @@ class UserViewModel @Inject constructor(
 
     fun fetchUserFollowers(userId: Int) {
         viewModelScope.launch {
-            _usersList.value = Result.Loading
             val result = followRepository.followers(userId)
             _usersList.value = result
         }
@@ -58,7 +57,6 @@ class UserViewModel @Inject constructor(
 
     fun fetchUserFollowings(userId: Int) {
         viewModelScope.launch {
-            _usersList.value = Result.Loading
             val result = followRepository.followings(userId)
             _usersList.value = result
         }

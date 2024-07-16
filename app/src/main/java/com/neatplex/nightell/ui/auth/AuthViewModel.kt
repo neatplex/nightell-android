@@ -21,9 +21,12 @@ class AuthViewModel @Inject constructor(
     private val _authResult = MutableLiveData<Result<AuthResponse>>()
     val authResult: LiveData<Result<AuthResponse>> get() = _authResult
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> get() = _isLoading
+
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
-            _authResult.value = Result.Loading
+            _isLoading.value = true
             when (val result = authUseCase.register(username, email, password)) {
                 is Result.Success -> {
                     result.data?.let {
@@ -33,15 +36,14 @@ class AuthViewModel @Inject constructor(
                 is Result.Failure -> {
                     _authResult.value = result
                 }
-
-                else -> {}
             }
+            _isLoading.value = false
         }
     }
 
     fun loginUser(emailOrUsername: String, password: String) {
         viewModelScope.launch {
-            _authResult.value = Result.Loading
+            _isLoading.value = true
             when (val result = authUseCase.login(emailOrUsername, password)) {
                 is Result.Success -> {
                     result.data?.let {
@@ -51,15 +53,14 @@ class AuthViewModel @Inject constructor(
                 is Result.Failure -> {
                     _authResult.value = result
                 }
-
-                else -> {}
             }
+            _isLoading.value = false
         }
     }
 
     fun signInWithGoogle(idToken: String) {
         viewModelScope.launch {
-            _authResult.value = Result.Loading
+            _isLoading.value = true
             try {
                 when (val result = authUseCase.signInWithGoogle(idToken)) {
                     is Result.Success -> {
@@ -70,10 +71,10 @@ class AuthViewModel @Inject constructor(
                     is Result.Failure -> {
                         _authResult.value = result
                     }
-
-                    else -> {}
                 }
+                _isLoading.value = false
             } catch (e: Exception) {
+                _isLoading.value = false
                 _authResult.value = Result.Failure(e.localizedMessage ?: "An error occurred", e)
             }
         }

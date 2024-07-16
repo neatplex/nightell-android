@@ -83,10 +83,6 @@ fun FollowingScreen(navController: NavController,
                                 // Handle error
                             }
 
-                            is Result.Loading -> {
-                                // Show loading indicator
-                            }
-
                             else -> {}
                         }
                     }

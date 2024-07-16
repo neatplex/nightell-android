@@ -49,7 +49,6 @@ class ProfileViewModel @Inject constructor(
 
     fun fetchProfile() {
         viewModelScope.launch {
-            _profileData.value = Result.Loading
             val result = profileUseCase.profile()
             _profileData.value = result
         }
@@ -103,7 +102,6 @@ class ProfileViewModel @Inject constructor(
 
     fun deleteAccount() {
         viewModelScope.launch {
-            _accountDeleteResult.value = Result.Loading
             _accountDeleteResult.value = profileUseCase.deleteAccount()
         }
     }

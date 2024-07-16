@@ -79,19 +79,13 @@ fun FollowerScreen(navController: NavController, userId: Int, sharedViewModel : 
                                 // Handle error
                             }
 
-                            is Result.Loading -> {
-                                // Show loading indicator
-                            }
-
                             else -> {}
                         }
                     }
-
                 }
             }
         )
     }
-
 }
 
 

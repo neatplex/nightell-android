@@ -60,9 +60,10 @@ class HomeViewModel @Inject constructor(
 
         fun fetchProfile() {
         viewModelScope.launch {
-            _profileData.value = Result.Loading
+            _isLoading.value = true
             val result = profileUseCase.profile()
             _profileData.value = result
+            _isLoading.value = false
         }
     }
 

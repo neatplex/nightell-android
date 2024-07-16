@@ -52,6 +52,7 @@ import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.AlertDialogCustom
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
+import com.neatplex.nightell.component.EditProfileTextFieldWithValidation
 import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
 import com.neatplex.nightell.utils.Result
@@ -316,10 +317,6 @@ fun EditProfileScreen(
                 // Reset to original values on error
                 errorMessage = result.message
             }
-
-            is Result.Loading -> {
-                // Show loading indicator
-            }
         }
     }
 
@@ -336,13 +333,8 @@ fun EditProfileScreen(
                 // Reset to original values on error
                 errorMessage = result.message
             }
-
-            is Result.Loading -> {
-                // Show loading indicator
-            }
         }
     }
-
 
     // Observe token deletion state
     val token by sharedViewModel.tokenState.collectAsState()
@@ -354,7 +346,6 @@ fun EditProfileScreen(
     }
 }
 
-
 fun signOut(context: Context) {
 
     // Restart the application
@@ -364,79 +355,5 @@ fun signOut(context: Context) {
 
     if (context is ComponentActivity) {
         context.finish()
-    }
-}
-
-@Composable
-fun EditProfileTextFieldWithValidation(
-    value: String,
-    onValueChange: (String) -> Unit,
-    isChanged: Boolean,
-    onSaveClicked: () -> Unit,
-    onCancelClicked: () -> Unit,
-    label: String,
-    errorText: String,
-    length: Int,
-    isValid: Boolean,
-    singleLine: Boolean,
-    visualTransformation: VisualTransformation = VisualTransformation.None,
-    imeAction : ImeAction,
-    height : Int
-) {
-    val purpleErrorColor = colorResource(id = R.color.purple_light)
-
-    OutlinedTextField(
-        value = value,
-        onValueChange = {
-            if (it.length <= length) {
-                onValueChange(it)
-            }
-        },
-        modifier = Modifier.fillMaxWidth().height(height.dp),
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = imeAction
-        ),
-        visualTransformation = visualTransformation,
-        isError = !isValid && value.isNotEmpty(), // Display error when the field is not empty and not valid
-        colors = OutlinedTextFieldDefaults.colors(
-            cursorColor = Color.Black,
-            focusedLabelColor = Color.Gray,
-            unfocusedLabelColor = Color.Gray, // Change text color if needed
-            focusedBorderColor = Color.Black, // Change border color when focused
-            unfocusedBorderColor = Color.Gray,
-            errorBorderColor = purpleErrorColor.copy(alpha = 0.5f), // Change border color when not focused
-            errorLabelColor = purpleErrorColor, // Change border color when not focused
-            errorTrailingIconColor = purpleErrorColor, // Change border color when not focused
-            errorCursorColor = purpleErrorColor, // Change border color when not focused
-        ),
-        singleLine = singleLine,
-        trailingIcon = {
-            if (isChanged && isValid) {
-                Row {
-                    IconButton(
-                        onClick = onSaveClicked,
-                        modifier = Modifier
-                            .padding(end = 8.dp)
-                    ) {
-                        Icon(
-                            Icons.Filled.Check,
-                            contentDescription = "Save",
-                            tint = Color.Black
-                        )
-                    }
-                }
-            }
-        }
-    )
-    if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
-        Text(
-            text = errorText,
-            color = purpleErrorColor,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        )
     }
 }

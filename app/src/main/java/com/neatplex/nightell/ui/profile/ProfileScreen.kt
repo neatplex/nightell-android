@@ -139,11 +139,6 @@ fun ProfileScreen(
                                     )
                                 }
 
-                                is Result.Loading -> {
-                                    // Show loading indicator
-                                    CustomCircularProgressIndicator()
-                                }
-
                                 else -> {}
                             }
                             Spacer(modifier = Modifier.height(16.dp))

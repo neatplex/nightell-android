@@ -7,7 +7,6 @@ import retrofit2.Response
 sealed class Result<out T> {
     data class Success<out T>(val data: T?, val code: Int? = null) : Result<T>()
     data class Failure(val message: String, val exception: Throwable? = null, val code: Int? = null) : Result<Nothing>()
-    object Loading : Result<Nothing>()
 }
 
 // API Response Handler

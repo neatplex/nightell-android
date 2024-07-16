@@ -150,10 +150,6 @@ fun UserScreen(
                             )
                         }
 
-                        is Result.Loading -> {
-
-                        }
-
                         else -> {}
 
                     }
