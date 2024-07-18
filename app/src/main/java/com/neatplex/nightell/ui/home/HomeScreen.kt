@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.PullRefreshState
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
@@ -33,9 +34,10 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.post.HomePostCard
+import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.theme.feelFree
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -46,7 +48,7 @@ fun HomeScreen(
     val isLoading by homeViewModel.isLoading.observeAsState(false)
     val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
     val profileResult by homeViewModel.profileData.observeAsState()
-    var lastPostId by remember { mutableStateOf<Int?>(null) }
+
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry
         ?.savedStateHandle
@@ -54,7 +56,6 @@ fun HomeScreen(
 
     LaunchedEffect(postChanged?.value) {
         if (postChanged?.value == true) {
-            // Refresh the feed when a post is deleted
             homeViewModel.refreshFeed()
             navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
         }
@@ -66,112 +67,142 @@ fun HomeScreen(
     )
 
     LaunchedEffect(Unit) {
-        homeViewModel.loadFeed(lastPostId)
+        homeViewModel.loadFeed(null)
         homeViewModel.fetchProfile()
     }
 
     AppTheme {
         Scaffold(
-            topBar = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(4.dp, clip = false) // Add shadow to the Box
-                        .background(Color.White)
-                ) {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "Nightell",
-                                fontFamily = feelFree,
-                                fontSize = 40.sp,
-                                color = Color.Black,
-                                modifier = Modifier.padding(bottom = 10.dp)
-                            )
-                        },
-                        actions = {
-                            IconButton(onClick = {
-                                navController.navigate("bookmark")
-                            }) {
-                                Icon(
-                                    painter = painterResource(R.drawable.bookmark),
-                                    contentDescription = "saved audio",
-                                    tint = Color.Black,
-                                    modifier = Modifier
-                                        .size(28.dp)
-                                        .align(Alignment.CenterVertically) // Align icon vertically
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent, // Transparent to use the Box's background
-                        )
-                    )
-                }
-            },
-            content = { space ->
-                Box(
-                    modifier = Modifier
-                        .padding(space)
-                        .pullRefresh(refreshState)
-                ) {
-                    Column {
-                        // LazyRow for the first 3 posts
-                        LazyRow {
-                            itemsIndexed(feed.take(3)) { index, post ->
-                                RecentPostCard(post = post) { selectedPost ->
-                                    sharedViewModel.setPost(selectedPost)
-                                    val postId = post.id
-                                    navController.navigate(
-                                        "postScreen/${postId}"
-                                    )
-                                }
-                            }
-                        }
-                        // LazyColumn for the remaining posts
-                        LazyColumn(
-                            contentPadding = PaddingValues(bottom = 65.dp),
-                            modifier = Modifier.fillMaxSize(),
-                            content = {
-                                itemsIndexed(feed.drop(3)) { index, post ->
-                                    HomePostCard(post = post) { selectedPost ->
-                                        sharedViewModel.setPost(selectedPost)
-                                        val postId = post.id
-                                        navController.navigate(
-                                            "postScreen/${postId}"
-                                        )
-                                    }
-                                    if (index == feed.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
-                                        lastPostId = post.id
-                                        homeViewModel.loadFeed(lastPostId)
-                                    }
-                                }
-                                if (isLoading) {
-                                    item {
-                                        CustomCircularProgressIndicator()
-                                    }
-                                }
-                            }
-                        )
-                    }
-
-                    PullRefreshIndicator(
-                        refreshing = isRefreshing,
-                        state = refreshState,
-                        modifier = Modifier.align(Alignment.TopCenter),
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
+            topBar = { HomeTopBar(navController) },
+            content = { space -> HomeContent(space, feed, isLoading, isRefreshing, refreshState, navController, sharedViewModel, homeViewModel) }
         )
     }
 
-    when (val result = profileResult) {
-        is Result.Success -> {
-            result.data?.user?.let { sharedViewModel.setUser(it) }
-        }
-
-        else -> {
+    profileResult?.let { result ->
+        when (result) {
+            is Result.Success -> {
+                result.data?.user?.let { sharedViewModel.setUser(it) }
+            }
+            else -> {
+            }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeTopBar(navController: NavController) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(4.dp, clip = false)
+            .background(Color.White)
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    text = "Nightell",
+                    fontFamily = feelFree,
+                    fontSize = 40.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+            },
+            actions = {
+                IconButton(onClick = { navController.navigate("bookmark") }) {
+                    Icon(
+                        painter = painterResource(R.drawable.bookmark),
+                        contentDescription = "saved audio",
+                        tint = Color.Black,
+                        modifier = Modifier
+                            .size(28.dp)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            )
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun HomeContent(
+    space: PaddingValues,
+    feed: List<Post>,
+    isLoading: Boolean,
+    isRefreshing: Boolean,
+    refreshState: PullRefreshState,
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
+    homeViewModel: HomeViewModel
+) {
+    Box(
+        modifier = Modifier
+            .padding(space)
+            .pullRefresh(refreshState)
+    ) {
+        Column {
+            HomePosts(feed, isLoading, navController, sharedViewModel, homeViewModel)
+        }
+
+        PullRefreshIndicator(
+            refreshing = isRefreshing,
+            state = refreshState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            contentColor = MaterialTheme.colorScheme.primary
+        )
+    }
+}
+
+@Composable
+fun RecentPosts(posts: List<Post>, navController: NavController, sharedViewModel: SharedViewModel) {
+    LazyRow {
+        itemsIndexed(posts) { index, post ->
+            RecentPostCard(post = post) { selectedPost ->
+                sharedViewModel.setPost(selectedPost)
+                navController.navigate("postScreen/${post.id}")
+            }
+        }
+    }
+}
+
+@Composable
+fun HomePosts(
+    posts: List<Post>,
+    isLoading: Boolean,
+    navController: NavController,
+    sharedViewModel: SharedViewModel,
+    homeViewModel: HomeViewModel
+) {
+
+    LazyRow {
+        itemsIndexed(posts.take(3)) { index, post ->
+            RecentPostCard(post = post) { selectedPost ->
+                sharedViewModel.setPost(selectedPost)
+                navController.navigate("postScreen/${post.id}")
+            }
+        }
+    }
+
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = 65.dp),
+        modifier = Modifier.fillMaxSize(),
+        content = {
+            itemsIndexed(posts.drop(3)) { index, post ->
+                HomePostCard(post = post) { selectedPost ->
+                    sharedViewModel.setPost(selectedPost)
+                    navController.navigate("postScreen/${post.id}")
+                }
+                if (index == posts.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
+                    homeViewModel.loadFeed(post.id)
+                }
+            }
+            if (isLoading) {
+                item { CustomCircularProgressIndicator() }
+            }
+        }
+    )
 }
