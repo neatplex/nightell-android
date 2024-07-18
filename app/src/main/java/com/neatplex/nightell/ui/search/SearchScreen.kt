@@ -24,6 +24,7 @@ import androidx.navigation.NavController
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSearchField
 import com.neatplex.nightell.component.post.HomePostCard
+import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 
@@ -35,61 +36,72 @@ fun SearchScreen(
     sharedViewModel: SharedViewModel,
     searchViewModel: SearchViewModel = hiltViewModel()
 ) {
-
     var query by remember { mutableStateOf("") }
     val posts by searchViewModel.posts.observeAsState(emptyList())
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
 
-    searchViewModel.search(query, null, false)
-
     Column(
-        modifier = Modifier
-            .background(color = Color.White)
+        modifier = Modifier.background(color = Color.White)
     ) {
+        SearchBar(
+            query = query,
+            onQueryChange = { newQuery ->
+                query = newQuery
+                lastPostId = null
+                searchViewModel.search(newQuery, null, false)
+            }
+        )
 
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-        ) {
-            CustomSearchField(
-                value = query,
-                onValueChange = { newQuery ->
-                    query = newQuery
-                    searchViewModel.search(newQuery, null, false)
+        posts?.let {
+            PostList(
+                posts = it,
+                isLoading = isLoading,
+                onPostSelected = { selectedPost ->
+                    sharedViewModel.setPost(selectedPost)
+                    navController.navigate("postScreen/${selectedPost.id}")
                 },
-                onSearch = {
-                    searchViewModel.search(query, null, false)
-                }
-            )
-        }
-
-        Row(Modifier.padding(vertical = 8.dp)) {
-            LazyColumn(
-                contentPadding = PaddingValues(bottom = 65.dp),
-                modifier = Modifier.fillMaxSize(),
-                content = {
-                    itemsIndexed(posts!!) { index, post ->
-                        HomePostCard(post = post) { selectedPost ->
-                            sharedViewModel.setPost(selectedPost)
-                            val postId = post.id
-                            navController.navigate(
-                                "postScreen/${postId}"
-                            )
-                        }
-                        if (index == posts!!.size - 1 && !isLoading) {
-                            lastPostId = post.id
-                            searchViewModel.search(query, lastPostId, true)
-                        }
-                    }
-                    if (isLoading) {
-                        item {
-                            CustomCircularProgressIndicator()
-                        }
+                onLoadMore = {
+                    if (!isLoading) {
+                        lastPostId = posts!!.lastOrNull()?.id
+                        searchViewModel.search(query, lastPostId, true)
                     }
                 }
             )
         }
+    }
+}
 
+@Composable
+fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
+    Row(modifier = Modifier.padding(16.dp)) {
+        CustomSearchField(
+            value = query,
+            onValueChange = onQueryChange,
+            onSearch = { onQueryChange(query) }
+        )
+    }
+}
+
+@Composable
+fun PostList(
+    posts: List<Post>,
+    isLoading: Boolean,
+    onPostSelected: (Post) -> Unit,
+    onLoadMore: () -> Unit
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = 65.dp),
+        modifier = Modifier.fillMaxSize()
+    ) {
+        itemsIndexed(posts) { index, post ->
+            HomePostCard(post = post, onPostClicked = onPostSelected)
+            if (index == posts.size - 1 && !isLoading) {
+                onLoadMore()
+            }
+        }
+        if (isLoading) {
+            item { CustomCircularProgressIndicator() }
+        }
     }
 }
