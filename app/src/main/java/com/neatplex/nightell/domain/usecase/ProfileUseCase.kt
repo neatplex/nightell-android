@@ -9,7 +9,7 @@ import javax.inject.Inject
 class ProfileUseCase @Inject constructor(private val profileRepository: ProfileRepository) {
 
     suspend fun profile() : Result<Profile> {
-        val result = profileRepository.profile()
+        val result = profileRepository.fetchProfile()
         return result
     }
 

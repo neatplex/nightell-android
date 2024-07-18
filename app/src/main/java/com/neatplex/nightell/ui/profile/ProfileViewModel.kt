@@ -38,9 +38,6 @@ class ProfileViewModel @Inject constructor(
 
     var canLoadMore = true // Default to true for initial load
 
-    private val _usersList = MutableLiveData<Result<Users?>>()
-    val usersList: LiveData<Result<Users?>>
-        get() = _usersList
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
@@ -49,35 +46,45 @@ class ProfileViewModel @Inject constructor(
 
     fun fetchProfile() {
         viewModelScope.launch {
+            _isLoading.value = true
             val result = profileUseCase.profile()
             _profileData.value = result
+            _isLoading.value = false
         }
     }
 
     fun updateProfileName(name: String){
         viewModelScope.launch {
+            _isLoading.value = true
             val result = profileUseCase.changeProfileName(name)
             _userUpdatedData.value = result
+            _isLoading.value = false
         }
     }
 
     fun refreshProfile(userId : Int) {
+        _isLoading.value = true
         canLoadMore = true // Allow loading more on refresh
         _posts.value = emptyList()
         loadPosts(userId , null)
+        _isLoading.value = false
     }
 
     fun updateBioOfUser(bio: String){
         viewModelScope.launch {
+            _isLoading.value = true
             val result = profileUseCase.changeProfileBio(bio)
             _userUpdatedData.value = result
+            _isLoading.value = false
         }
     }
 
     fun updateUsernameOfUser(username: String){
         viewModelScope.launch {
+            _isLoading.value = true
             val result = profileUseCase.changeProfileUsername(username)
             _userUpdatedData.value = result
+            _isLoading.value = false
         }
     }
 
@@ -92,7 +99,7 @@ class ProfileViewModel @Inject constructor(
                 if (posts.size < 10) {
                     canLoadMore = false
                 }
-                _posts.value = _posts.value.orEmpty() + posts
+                _posts.value = (_posts.value.orEmpty() + posts)
             } else {
                 _posts.value = emptyList()
             }
@@ -102,7 +109,9 @@ class ProfileViewModel @Inject constructor(
 
     fun deleteAccount() {
         viewModelScope.launch {
+            _isLoading.value = true
             _accountDeleteResult.value = profileUseCase.deleteAccount()
+            _isLoading.value = false
         }
     }
 

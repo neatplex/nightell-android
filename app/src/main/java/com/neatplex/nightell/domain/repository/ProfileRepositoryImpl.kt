@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 class ProfileRepositoryImpl @Inject constructor(private val apiService: ApiService) : ProfileRepository {
 
-    override suspend fun profile(): Result<Profile> {
+    override suspend fun fetchProfile(): Result<Profile> {
         return try {
             val response = apiService.showProfile()
             handleApiResponse(response)

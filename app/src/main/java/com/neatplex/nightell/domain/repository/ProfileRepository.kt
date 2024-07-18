@@ -7,7 +7,7 @@ import com.neatplex.nightell.utils.Result
 interface ProfileRepository {
     suspend fun showUserProfile(userId: Int): Result<Profile>
 
-    suspend fun profile(): Result<Profile>
+    suspend fun fetchProfile(): Result<Profile>
 
     suspend fun changeProfileName(name: String): Result<UserUpdated>
 
