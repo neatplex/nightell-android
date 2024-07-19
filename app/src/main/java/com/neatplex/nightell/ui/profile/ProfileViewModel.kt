@@ -63,11 +63,9 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun refreshProfile(userId : Int) {
-        _isLoading.value = true
-        canLoadMore = true // Allow loading more on refresh
+        canLoadMore = true
         _posts.value = emptyList()
         loadPosts(userId , null)
-        _isLoading.value = false
     }
 
     fun updateBioOfUser(bio: String){
@@ -89,7 +87,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun loadPosts(userId : Int, lastPostId: Int?){
-        if (!canLoadMore || _isLoading.value == true) return
+        if (!canLoadMore) return
 
         viewModelScope.launch {
             _isLoading.value = true
@@ -99,7 +97,7 @@ class ProfileViewModel @Inject constructor(
                 if (posts.size < 10) {
                     canLoadMore = false
                 }
-                _posts.value = (_posts.value.orEmpty() + posts)
+                _posts.value = _posts.value.orEmpty() + posts
             } else {
                 _posts.value = emptyList()
             }
