@@ -26,6 +26,7 @@ import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -173,7 +174,7 @@ class ProfileViewModelTest {
         profileViewModel.refreshProfile(1)
 
         assert(profileViewModel.canLoadMore)
-        verify(postsObserver).onChanged(emptyList())
+        verify(postsObserver, times(2)).onChanged(emptyList())
     }
 
     @Test
