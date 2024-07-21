@@ -61,7 +61,7 @@ fun UserScreen(
 
     //Fetch user profile info
     val profileResult by userViewModel.showUserInfoResult.observeAsState()
-    val posts by userViewModel.posts.observeAsState(emptyList())
+    val posts by userViewModel.postList.observeAsState(emptyList())
 
     //Fetch if user followed this profile
     val followingsResult by userViewModel.usersList.observeAsState()

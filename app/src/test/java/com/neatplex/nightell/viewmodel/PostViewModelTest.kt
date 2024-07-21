@@ -21,7 +21,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.*
 import org.junit.rules.TestRule
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
@@ -40,7 +39,6 @@ class PostViewModelTest {
     @Mock
     private lateinit var likeRepository: LikeRepository
 
-    @InjectMocks
     private lateinit var postViewModel: PostViewModel
 
     @Mock

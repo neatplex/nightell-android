@@ -8,29 +8,24 @@ import javax.inject.Inject
 
 class ProfileUseCase @Inject constructor(private val profileRepository: ProfileRepository) {
 
-    suspend fun profile() : Result<Profile> {
-        val result = profileRepository.fetchProfile()
-        return result
+    suspend fun profile(): Result<Profile> {
+        return profileRepository.fetchProfile()
     }
 
-    suspend fun showUserProfile(userId: Int): Result<Profile> {
-        val result = profileRepository.showUserProfile(userId)
-        return result
+    suspend fun getUserProfile(userId: Int): Result<Profile> {
+        return profileRepository.showUserProfile(userId)
     }
 
     suspend fun changeProfileName(name: String): Result<UserUpdated> {
-        val result = profileRepository.changeProfileName(name)
-        return result
+        return profileRepository.changeProfileName(name)
     }
 
     suspend fun changeProfileBio(bio: String): Result<UserUpdated> {
-        val result = profileRepository.changeProfileBio(bio)
-        return result
+        return profileRepository.changeProfileBio(bio)
     }
 
     suspend fun changeProfileUsername(username: String): Result<UserUpdated> {
-        val result = profileRepository.changeProfileUsername(username)
-        return result
+        return profileRepository.changeProfileUsername(username)
     }
 
     suspend fun deleteAccount(): Result<Unit> {

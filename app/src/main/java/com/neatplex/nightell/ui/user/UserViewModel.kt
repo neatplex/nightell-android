@@ -25,15 +25,15 @@ class UserViewModel @Inject constructor(
     private val _usersList = MutableLiveData<Result<Users>>()
     val usersList: LiveData<Result<Users>>
         get() = _usersList
-    var canLoadMore = true // Default to true for initial load
+
     private val _followResult = MutableLiveData<Result<Unit>>()
     val followResult: LiveData<Result<Unit>> get() = _followResult
 
     private val _unfollowResult = MutableLiveData<Result<Unit>>()
     val unfollowResult: LiveData<Result<Unit>> get() = _unfollowResult
 
-    private val _posts = MutableLiveData<List<Post>>()
-    val posts: LiveData<List<Post>> get() = _posts
+    private val _postList = MutableLiveData<List<Post>>()
+    val postList: LiveData<List<Post>> get() = _postList
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
@@ -41,38 +41,45 @@ class UserViewModel @Inject constructor(
     private val _showUserInfoResult = MutableLiveData<Result<Profile>>()
     val showUserInfoResult : LiveData<Result<Profile>> get() = _showUserInfoResult
 
+    var canLoadMore = true // Default to true for initial load
+
     fun getUserInfo(userId: Int) {
         viewModelScope.launch {
-            val result = profileUseCase.showUserProfile(userId)
-            _showUserInfoResult.value = result
+            _isLoading.value = true
+            _showUserInfoResult.value = profileUseCase.getUserProfile(userId)
+            _isLoading.value = false
         }
     }
 
     fun fetchUserFollowers(userId: Int) {
         viewModelScope.launch {
-            val result = followRepository.followers(userId)
-            _usersList.value = result
+            _isLoading.value = true
+            _usersList.value = followRepository.followers(userId)
+            _isLoading.value = false
         }
     }
 
     fun fetchUserFollowings(userId: Int) {
         viewModelScope.launch {
-            val result = followRepository.followings(userId)
-            _usersList.value = result
+            _isLoading.value = true
+            _usersList.value = followRepository.followings(userId)
+            _isLoading.value = false
         }
     }
 
     fun followUser(userId: Int, friendId: Int){
         viewModelScope.launch {
-            val result = followRepository.follow(userId, friendId)
-            _followResult.value = result
+            _isLoading.value = true
+            _followResult.value = followRepository.follow(userId, friendId)
+            _isLoading.value = false
         }
     }
 
     fun unfollowUser(userId: Int, friendId: Int){
         viewModelScope.launch {
-            val result = followRepository.unfollow(userId, friendId)
-            _unfollowResult.value = result
+            _isLoading.value = true
+            _unfollowResult.value = followRepository.unfollow(userId, friendId)
+            _isLoading.value = false
         }
     }
 
@@ -87,12 +94,11 @@ class UserViewModel @Inject constructor(
                 if (posts.size < 10) {
                     canLoadMore = false
                 }
-                _posts.value = _posts.value.orEmpty() + posts
+                _postList.value = _postList.value.orEmpty() + posts
             } else {
-                _posts.value = emptyList()
+                _postList.value = emptyList()
             }
             _isLoading.value = false
         }
     }
-
 }

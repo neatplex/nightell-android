@@ -68,7 +68,7 @@ class ProfileUseCaseTest {
         val result = Result.Success(profile)
         whenever(profileRepository.showUserProfile(1)).thenReturn(result)
 
-        val useCaseResult = profileUseCase.showUserProfile(1)
+        val useCaseResult = profileUseCase.getUserProfile(1)
 
         assertTrue(useCaseResult is Result.Success)
         assertEquals(profile, (useCaseResult as Result.Success).data)
@@ -79,7 +79,7 @@ class ProfileUseCaseTest {
         val result = Result.Failure("Network error")
         whenever(profileRepository.showUserProfile(1)).thenReturn(result)
 
-        val useCaseResult = profileUseCase.showUserProfile(1)
+        val useCaseResult = profileUseCase.getUserProfile(1)
 
         assertTrue(useCaseResult is Result.Failure)
         assertEquals("Network error", (useCaseResult as Result.Failure).message)
