@@ -75,6 +75,7 @@ fun ProfileScreen(
     val postChanged = navController.currentBackStackEntry
         ?.savedStateHandle
         ?.getLiveData<Boolean>("postChanged")?.observeAsState()
+
     LaunchedEffect(postChanged?.value) {
         if (postChanged?.value == true) {
             // Refresh the feed when a post is deleted
