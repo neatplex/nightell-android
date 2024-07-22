@@ -55,7 +55,7 @@ fun BookmarkedScreen(
                         .background(Color.White)
                 ) {
                     TopAppBar(
-                        title = { Text(text = "Liked Posts") },
+                        title = { Text(text = "Saved Posts") },
                         navigationIcon = {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")

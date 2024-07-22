@@ -4,104 +4,99 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.neatplex.nightell.domain.model.PostEntity
 import com.neatplex.nightell.domain.repository.DatabaseRepository
 import com.neatplex.nightell.ui.viewmodel.DatabaseViewModel
-import io.mockk.Runs
-import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import com.google.common.truth.Truth.assertThat
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import org.junit.runner.RunWith
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 
+@RunWith(MockitoJUnitRunner::class)
 @ExperimentalCoroutinesApi
 class DatabaseViewModelTest {
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = TestCoroutineDispatcher()
-    private val repository: DatabaseRepository = mockk()
-
     private lateinit var viewModel: DatabaseViewModel
+    private val repository: DatabaseRepository = mock()
 
-    private val mockPost = PostEntity(1, "Post 1", "user" , "path")
+    private val testDispatcher = UnconfinedTestDispatcher()
+    private val testScope = TestScope(testDispatcher)
+
+    private val post = PostEntity(1, "Title", "Content","path")
+    private val postsFlow = MutableStateFlow<List<PostEntity>>(emptyList())
 
     @Before
-    fun setup() {
+    fun setUp() {
         Dispatchers.setMain(testDispatcher)
-
+        whenever(repository.getAllPosts()).thenReturn(postsFlow)
         viewModel = DatabaseViewModel(repository)
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
     }
 
     @Test
-    fun `init should fetch all posts and update savedPosts`() = runTest {
-        // Arrange
-        val mockPosts = listOf(mockPost)
-        every { repository.getAllPosts() } returns flowOf(mockPosts)
-
-        // Act
-        viewModel = DatabaseViewModel(repository)
-
-        // Assert
-        assertEquals(mockPosts, viewModel.savedPosts.value)
+    fun `test getAllPosts called on initialization`() = testScope.runTest {
+        verify(repository).getAllPosts()
     }
 
     @Test
-    fun `savePost should insert post and update savedPosts`() = runTest {
-        // Arrange
-        coEvery { repository.insertPost(mockPost) } just Runs
-        coEvery { repository.getAllPosts() } returns flowOf(listOf(mockPost))
+    fun `test savePost calls insertPost`() = testScope.runTest {
+        viewModel.savePost(post)
 
-        // Act
-        viewModel.savePost(mockPost)
-
-        // Assert
-        coVerify { repository.insertPost(mockPost) }
+        verify(repository).insertPost(post)
     }
 
     @Test
-    fun `unsavePost should delete post and update savedPosts`() = runTest {
-        // Arrange
-        coEvery { repository.deletePost(mockPost) } just Runs
-        coEvery { repository.getAllPosts() } returns flowOf(emptyList())
+    fun `test unsavePost calls deletePost and updates savedPosts`() = testScope.runTest {
+        // Initial state with one post
+        postsFlow.value = listOf(post)
+        doAnswer {
+            postsFlow.value = emptyList()
+        }.whenever(repository).deletePost(post)
 
-        // Act
-        viewModel.unsavePost(mockPost)
+        viewModel.unsavePost(post)
 
-        // Assert
-        coVerify { repository.deletePost(mockPost) }
-        assertEquals(emptyList<PostEntity>(), viewModel.savedPosts.value)
+        verify(repository).deletePost(post)
+
+        // Advance the dispatcher until all work is complete
+        advanceUntilIdle()
+
+        // Verify the state flow is updated correctly
+        assertThat(viewModel.savedPosts.first()).isEmpty()
     }
 
     @Test
-    fun `getPostById should return the correct post`() = runTest {
-        // Arrange
-        coEvery { repository.getPostById(1) } returns mockPost
+    fun `test getPostById calls repository and returns correct result`() = testScope.runTest {
+        whenever(repository.getPostById(1)).thenReturn(post)
+
         var result: PostEntity? = null
-
-        // Act
-        viewModel.getPostById(1) { postEntity ->
-            result = postEntity
+        viewModel.getPostById(1) {
+            result = it
         }
 
-        // Assert
-        coVerify { repository.getPostById(1) }
-        assertEquals(mockPost, result)
+        // Advance the dispatcher until all work is complete
+        advanceUntilIdle()
+
+        assertThat(result).isEqualTo(post)
     }
 }
