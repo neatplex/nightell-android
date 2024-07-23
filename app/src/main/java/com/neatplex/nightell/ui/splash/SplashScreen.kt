@@ -38,7 +38,7 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        )
+        ), label = "gradiant animation"
     )
 
     val colors = listOf(Color(0xFF4Da1aB), Color(0xFF2D436C), Color(0xFFDA03BD))
@@ -60,7 +60,7 @@ fun SplashScreen(navController: NavController, hasToken: Boolean) {
         delay(3000)
 
         // Remove the splash screen from the back stack
-        navController.popBackStack(Routes.SPLASH, inclusive = true)
+        navController.popBackStack()
         navController.navigate(if (hasToken) Screens.Home.route else Routes.SIGN_IN)
     }
 

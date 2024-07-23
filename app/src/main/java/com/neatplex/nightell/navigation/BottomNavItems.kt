@@ -29,12 +29,13 @@ import com.neatplex.nightell.ui.theme.AppTheme
 
 sealed class Screens(
     val route: String,
-    val icon: Int
+    val icon: Int,
+    val lablel : String
 ) {
-    object Home : Screens("home", R.drawable.home)
-    object AddPost : Screens("addPost", R.drawable.add_post)
-    object Profile : Screens("profile", R.drawable.profile)
-    object Search : Screens("search", R.drawable.search)
+    data object Home : Screens("home", R.drawable.home, "HOME")
+    data object AddPost : Screens("addPost", R.drawable.add_post, "ADD POST")
+    data object Profile : Screens("profile", R.drawable.profile, "PROFILE")
+    data object Search : Screens("search", R.drawable.search, "SEARCH")
 }
 
 object Routes {

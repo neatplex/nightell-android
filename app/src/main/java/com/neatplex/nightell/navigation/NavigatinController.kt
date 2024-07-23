@@ -1,6 +1,5 @@
 package com.neatplex.nightell.navigation
 
-
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue

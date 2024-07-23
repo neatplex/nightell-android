@@ -1,7 +1,6 @@
 package com.neatplex.nightell.ui.auth
 
 import android.app.Activity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -218,9 +217,10 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
         }
     }
 
-    when (val result = authResultState) {
+    when (authResultState) {
         is Result.Success -> {
-            result.data?.let {
+            authResultState.data?.let {
+                navController.popBackStack()
                 navController.navigate(Screens.Home.route)
             }
         }
