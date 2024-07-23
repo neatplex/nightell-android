@@ -1,18 +1,41 @@
 package com.neatplex.nightell
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.material3.Scaffold
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldState
+import androidx.compose.material.rememberScaffoldState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.compose.rememberNavController
 import com.neatplex.nightell.navigation.BottomNavHost
 import com.neatplex.nightell.navigation.BottomNavigationScreen
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.theme.AppTheme
+import com.neatplex.nightell.ui.viewmodel.ConnectivityViewModel
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,26 +48,56 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var serviceManager: ServiceManager
 
     private val mediaViewModel: MediaViewModel by viewModels()
+    private val connectionViewModel: ConnectivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            AppContent(tokenManager, mediaViewModel, serviceManager)
+            val scaffoldState = rememberScaffoldState()
+
+            // Observe connectivity state
+            val isOnline by connectionViewModel.isOnline.observeAsState(initial = true)
+
+            // Observe token state
+            val unauthorized by tokenManager.isRemovedToken.collectAsState()
+
+            // Restart the activity if unauthorized
+            if (unauthorized) {
+                restartActivity()
+                Toast.makeText(this, "Something went wrong! You need to login again", Toast.LENGTH_SHORT).show()
+            }
+
+            AppContent(
+                tokenManager = tokenManager,
+                mediaViewModel = mediaViewModel,
+                serviceManager = serviceManager,
+                scaffoldState = scaffoldState,
+                isOnline = isOnline,
+            )
         }
     }
+
+    private fun restartActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        finish()
+        startActivity(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         serviceManager.stopMediaService()
     }
 }
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun AppContent(
     tokenManager: TokenManager,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager,
+    scaffoldState: ScaffoldState,
+    isOnline: Boolean,
 ) {
     AppTheme {
         val listItems = listOf(
@@ -55,17 +108,43 @@ fun AppContent(
         )
         val rootNavController = rememberNavController()
 
-        Scaffold(
-            bottomBar = {
-                BottomNavigationScreen(rootNavController, listItems)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Scaffold(
+                scaffoldState = scaffoldState,
+                bottomBar = {
+                    BottomNavigationScreen(rootNavController, listItems)
+                }
+            ) {
+                BottomNavHost(
+                    navController = rootNavController,
+                    tokenManager = tokenManager,
+                    mediaViewModel = mediaViewModel,
+                    serviceManager = serviceManager
+                )
             }
-        ) {
-            BottomNavHost(
-                navController = rootNavController,
-                tokenManager = tokenManager,
-                mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager
-            )
+
+            if (!isOnline) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.8f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Image(
+                            painter = painterResource(id = R.drawable.alert),
+                            contentDescription = "internet connection",
+                            modifier = Modifier
+                                .padding(bottom = 16.dp)
+                                .size(42.dp))
+                        Text(
+                            text = "Check your internet connection!",
+                            color = colorResource(id = R.color.purple_light),
+                            fontSize = 18.sp,
+                        )
+                    }
+                }
+            }
         }
     }
 }

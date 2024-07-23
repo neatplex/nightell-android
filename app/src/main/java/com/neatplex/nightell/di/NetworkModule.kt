@@ -101,7 +101,7 @@ class AuthInterceptor @Inject constructor(private val tokenManager: TokenManager
 
         if (response.code == 401 && !newRequest.url.encodedPath.contains("sign")) {
             Log.d("AuthInterceptor", "Triggering logout dialog")
-            tokenManager.deleteToken()
+            tokenManager.logoutForce()
         }
 
         return response
