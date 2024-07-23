@@ -134,10 +134,10 @@ fun ProfileScreen(
 
                                 is Result.Failure -> {
                                     // Handle error state
-                                    Text(
-                                        text = "Error in loading profile: ${result.message}",
-                                        color = Color.Red
-                                    )
+//                                    Text(
+//                                        text = "Error in loading profile: ${result.message}",
+//                                        color = Color.Red
+//                                    )
                                 }
 
                                 else -> {}
