@@ -56,7 +56,7 @@ internal fun PlayerControl(
 
         Box(
             modifier = Modifier
-                .size(72.dp)
+                .size(78.dp)
                 .clip(CircleShape)
                 .border(width = 2.dp, brush = myLinearGradiant(), shape = CircleShape),
             contentAlignment = Alignment.Center
@@ -64,7 +64,7 @@ internal fun PlayerControl(
         {
             Box(
                 modifier = Modifier
-                    .size(62.dp)
+                    .size(68.dp)
                     .clip(CircleShape)
                     .background(color = Color.LightGray.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
@@ -74,7 +74,7 @@ internal fun PlayerControl(
                     modifier = Modifier
                         .clickable(onClick = { onUiEvent(UIEvent.PlayPause) })
                         .padding(8.dp)
-                        .size(52.dp)
+                        .size(56.dp)
                         .graphicsLayer(alpha = 0.99f)
                         .drawWithCache {
                             onDrawWithContent {

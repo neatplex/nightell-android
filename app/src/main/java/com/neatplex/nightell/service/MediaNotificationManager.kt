@@ -65,30 +65,38 @@ class MediaNotificationManager @Inject constructor(
             }
     }
 
-
     @SuppressLint("ForegroundServiceType")
     private fun startForegroundNotification(mediaSessionService: MediaSessionService) {
         val notification =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
-                .setCategory(Notification.CATEGORY_SERVICE)
-                .build()
+                Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .setContentTitle("Media Playback")
+                    .setContentText("Playing media")
+                    .setSmallIcon(R.drawable.baseline_audio_file_48)
+                    .setCategory(Notification.CATEGORY_SERVICE)
+                    .build()
             } else {
-                TODO("VERSION.SDK_INT < O")
+                NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+                    .setContentTitle("Media Playback")
+                    .setContentText("Playing media")
+                    .setSmallIcon(R.drawable.baseline_audio_file_48)
+                    .setCategory(Notification.CATEGORY_SERVICE)
+                    .build()
             }
 
         mediaSessionService.startForeground(NOTIFICATION_ID, notification)
     }
 
     private fun createNotificationChannel() {
-        val chanel =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                NotificationChannel(NOTIFICATION_CHANNEL_ID,
-                    NOTIFICATION_CHANNEL_NAME,
-                    NotificationManager.IMPORTANCE_LOW)
-            } else {
-                TODO("VERSION.SDK_INT < O")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                NOTIFICATION_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Media playback notifications"
             }
-        notificationManager.createNotificationChannel(chanel)
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 }

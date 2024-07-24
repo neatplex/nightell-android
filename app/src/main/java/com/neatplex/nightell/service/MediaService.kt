@@ -23,7 +23,6 @@ class MediaService : MediaSessionService() {
             mediaSessionService = this,
             mediaSession = mediaSession
         )
-
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -36,7 +35,8 @@ class MediaService : MediaSessionService() {
                 player.playWhenReady = false
                 player.stop()
             }
-
+            stopForeground(STOP_FOREGROUND_DETACH)
+            stopSelf()
         }
     }
 

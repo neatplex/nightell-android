@@ -65,7 +65,7 @@ class MainActivity : ComponentActivity() {
             // Restart the activity if unauthorized
             if (unauthorized) {
                 restartActivity()
-                Toast.makeText(this, "Something went wrong! You need to login again", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Something is wrong! You need to login again", Toast.LENGTH_SHORT).show()
             }
 
             AppContent(
