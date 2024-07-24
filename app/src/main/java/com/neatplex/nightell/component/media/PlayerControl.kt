@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -35,11 +36,9 @@ internal fun PlayerControl(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painter = painterResource(id = R.drawable.baseline_fast_rewind_24),
-            contentDescription = "backward button",
+        Icon(
             modifier = Modifier
                 .clickable(onClick = { onUiEvent(UIEvent.Backward) })
-                .padding(12.dp)
                 .size(42.dp)
                 .graphicsLayer(alpha = 0.99f)
                 .drawWithCache {
@@ -48,11 +47,16 @@ internal fun PlayerControl(
                         drawRect(linearGradientBrush, blendMode = BlendMode.SrcAtop)
                     }
                 }
+            ,
+            painter = painterResource(id = R.drawable.baseline_fast_rewind_24),
+            contentDescription = "backward button"
         )
+        
+        Spacer(modifier = Modifier.padding(horizontal = 8.dp))
 
         Box(
             modifier = Modifier
-                .size(85.dp)
+                .size(72.dp)
                 .clip(CircleShape)
                 .border(width = 2.dp, brush = myLinearGradiant(), shape = CircleShape),
             contentAlignment = Alignment.Center
@@ -60,7 +64,7 @@ internal fun PlayerControl(
         {
             Box(
                 modifier = Modifier
-                    .size(75.dp)
+                    .size(62.dp)
                     .clip(CircleShape)
                     .background(color = Color.LightGray.copy(alpha = 0.3f)),
                 contentAlignment = Alignment.Center
@@ -70,7 +74,7 @@ internal fun PlayerControl(
                     modifier = Modifier
                         .clickable(onClick = { onUiEvent(UIEvent.PlayPause) })
                         .padding(8.dp)
-                        .size(56.dp)
+                        .size(52.dp)
                         .graphicsLayer(alpha = 0.99f)
                         .drawWithCache {
                             onDrawWithContent {
@@ -83,10 +87,12 @@ internal fun PlayerControl(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+
         Icon(
             modifier = Modifier
                 .clickable(onClick = { onUiEvent(UIEvent.Forward) })
-                .padding(12.dp)
                 .size(42.dp)
                 .graphicsLayer(alpha = 0.99f)
                 .drawWithCache {

@@ -40,7 +40,6 @@ fun ProfilePostCard(post: Post, onPostClicked: (Post) -> Unit) {
             Box(
                 modifier = Modifier
                     .size(180.dp)
-                    .shadow(1.dp, RoundedCornerShape(8.dp))
                     .clip(RoundedCornerShape(8.dp))
             ) {
                 val imageResource = if (post.image != null) {

@@ -91,7 +91,6 @@ fun RecentPostCard(post: Post, onPostClicked: (Post) -> Unit) {
                     modifier = Modifier
                         .width(280.dp)
                         .height(180.dp)
-                        .shadow(1.dp, RoundedCornerShape(8.dp))
                         .clip(RoundedCornerShape(8.dp))
                 ) {
                     Image(

@@ -101,9 +101,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
         onSignUpClick = {
             navController.navigate("SignUp")
         },
-        isGoogleSignInInProgress = isLoading,
-        authResultState = authResultState,
-        navController = navController
+        isGoogleSignInInProgress = isLoading
     )
     // Handle authentication result
     authResultState?.let { AuthResult(it, navController) }
@@ -120,9 +118,7 @@ fun SignInContent(
     onSignInClick: () -> Unit,
     onGoogleSignInClick: () -> Unit,
     onSignUpClick: () -> Unit,
-    isGoogleSignInInProgress: Boolean,
-    authResultState: Result<AuthResponse?>?,
-    navController: NavController
+    isGoogleSignInInProgress: Boolean
 ) {
     Box(modifier = Modifier
         .fillMaxSize()
