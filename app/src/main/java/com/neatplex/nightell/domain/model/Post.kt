@@ -1,9 +1,5 @@
 package com.neatplex.nightell.domain.model
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
 data class Post(
     val audio: CustomFile,
     val audio_id: Int,
@@ -18,4 +14,4 @@ data class Post(
     val title: String,
     val user: User,
     val user_id: Int
-): Parcelable
+)
