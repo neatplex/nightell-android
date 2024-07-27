@@ -35,6 +35,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -83,7 +85,7 @@ fun CustomSearchField(
             Box(modifier = Modifier.weight(1f)) {
                 if (text.text.isEmpty()) {
                     Text(
-                        text = "Text Here....",
+                        text = "Search Title....",
                         color = Color.Gray,
                         fontSize = 18.sp,
                         modifier = Modifier.align(Alignment.CenterStart)
@@ -108,7 +110,9 @@ fun CustomSearchField(
                             onSearch()
                         }
                     ),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = "Search text field" }
                 )
             }
         }

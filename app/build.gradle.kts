@@ -1,3 +1,6 @@
+import com.intellij.rt.coverage.report.api.ReportApi.htmlReport
+import com.intellij.rt.coverage.report.api.ReportApi.xmlReport
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,6 +8,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("kotlin-kapt")
     id("dagger.hilt.android.plugin")
+    id("org.jetbrains.kotlinx.kover")
 }
 
 android {
@@ -15,8 +19,8 @@ android {
         applicationId = "com.neatplex.nightell"
         minSdk = 25
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.0.2"
+        versionCode = 11
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -46,14 +50,6 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "2.0.0"
     }
-    packaging {
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-        }
-    }
-    packagingOptions {
-        exclude ("META-INF/gradle/incremental.annotation.processors")
-    }
 
     buildFeatures{
         dataBinding = true
@@ -61,6 +57,7 @@ android {
     }
 
 }
+
 
 dependencies {
 

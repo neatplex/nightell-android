@@ -160,7 +160,7 @@ fun UserScreen(
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         itemsIndexed(posts) { index, post ->
-                            ProfilePostCard(post = post) { selectedPost ->
+                            ProfilePostCard(post = post, isLoading = isLoading) { selectedPost ->
                                 sharedViewModel.setPost(selectedPost)
                                 val postId = selectedPost.id
                                 navController.navigate(

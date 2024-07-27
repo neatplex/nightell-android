@@ -22,23 +22,26 @@ class PostViewModel @Inject constructor(
     private val _postDeleteResult = MutableLiveData<Result<Unit>>()
     val postDeleteResult: LiveData<Result<Unit>> get() = _postDeleteResult
 
-    private val _postDetailResult = MutableLiveData<Result<PostDetailResponse?>>()
-    val postDetailResult: LiveData<Result<PostDetailResponse?>> get() = _postDetailResult
+    private val _postDetailResult = MutableLiveData<Result<PostDetailResponse>>()
+    val postDetailResult: LiveData<Result<PostDetailResponse>> get() = _postDetailResult
 
-    private val _postUpdateResult = MutableLiveData<Result<PostDetailResponse?>>()
-    val postUpdateResult: LiveData<Result<PostDetailResponse?>> get() = _postUpdateResult
+    private val _postUpdateResult = MutableLiveData<Result<PostDetailResponse>>()
+    val postUpdateResult: LiveData<Result<PostDetailResponse>> get() = _postUpdateResult
 
-    private val _likeResult = MutableLiveData<Result<StoreLike?>>()
-    val likeResult: LiveData<Result<StoreLike?>> get() = _likeResult
+    private val _likeResult = MutableLiveData<Result<StoreLike>>()
+    val likeResult: LiveData<Result<StoreLike>> get() = _likeResult
 
     private val _unlikeResult = MutableLiveData<Result<Unit>>()
     val unlikeResult: LiveData<Result<Unit>> get() = _unlikeResult
 
-    private val _showLikesResult = MutableLiveData<Result<Likes?>>()
-    val showLikesResult : LiveData<Result<Likes?>> get() = _showLikesResult
+    private val _showLikesResult = MutableLiveData<Result<Likes>>()
+    val showLikesResult : LiveData<Result<Likes>> get() = _showLikesResult
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
+
+    private val _isFetching = MutableLiveData<Boolean>()
+    val isFetching: LiveData<Boolean> get() = _isFetching
 
     fun updatePost(postId: Int, newTitle: String, newDescription: String) {
         viewModelScope.launch {
@@ -50,9 +53,9 @@ class PostViewModel @Inject constructor(
 
     fun getPostDetail(postId: Int) {
         viewModelScope.launch {
-            _isLoading.value = true
+            _isFetching.value = true
             _postDetailResult.value = postUseCase.getPostDetail(postId)
-            _isLoading.value = false
+            _isFetching.value = false
         }
     }
 

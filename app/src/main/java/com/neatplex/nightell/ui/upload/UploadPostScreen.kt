@@ -371,7 +371,7 @@ fun ImageUploadStep(
         Spacer(modifier = Modifier.height(16.dp))
         Image(
             modifier = Modifier
-                .size(128.dp),
+                .size(100.dp),
             painter = uploadImage,
             contentDescription = "Choose Image File"
         )

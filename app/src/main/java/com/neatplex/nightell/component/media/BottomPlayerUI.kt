@@ -16,8 +16,8 @@ fun BottomPlayerUI(
     playResourceProvider: () -> Int,
     progressProvider: () -> Pair<Float, String>,
     onUiEvent: (UIEvent) -> Unit,
+    enabled : Boolean
 ) {
-
     val (progress, progressString) = progressProvider()
 
     Column(
@@ -26,17 +26,18 @@ fun BottomPlayerUI(
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if(enabled) {
+            PlayerBar(
+                progress = progress,
+                durationString = durationString,
+                progressString = progressString,
+                onUiEvent = onUiEvent
+            )
 
-        PlayerBar(
-            progress = progress,
-            durationString = durationString,
-            progressString = progressString,
-            onUiEvent = onUiEvent
-        )
-
-        PlayerControl(
-            playResourceProvider = playResourceProvider,
-            onUiEvent = onUiEvent
-        )
+            PlayerControl(
+                playResourceProvider = playResourceProvider,
+                onUiEvent = onUiEvent
+            )
+        }
     }
 }

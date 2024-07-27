@@ -66,6 +66,7 @@ class ProfileViewModel @Inject constructor(
         canLoadMore = true
         _posts.value = emptyList()
         loadPosts(userId , null)
+        fetchProfile()
     }
 
     fun updateBioOfUser(bio: String){

@@ -1,6 +1,7 @@
 package com.neatplex.nightell.component.post
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,12 +37,12 @@ import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.utils.Constant
 
 @Composable
-fun HomePostCard(post: Post, onPostClicked: (Post) -> Unit) {
+fun HomePostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit) {
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .debounceClick {
+            .clickable(enabled = !isLoading) {
                 onPostClicked(post)
             },
         elevation = 0.dp

@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 class LikeRepository @Inject constructor(private val apiService: ApiService) {
 
-    suspend fun like(postId : Int) : Result<StoreLike?>{
+    suspend fun like(postId : Int) : Result<StoreLike>{
         return try {
             val response = apiService.like(postId)
             handleApiResponse(response)
@@ -18,7 +18,7 @@ class LikeRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    suspend fun showLikes(postId : Int) : Result<Likes?>{
+    suspend fun showLikes(postId : Int) : Result<Likes>{
         return try {
             val response = apiService.getLikes(postId)
             handleApiResponse(response)

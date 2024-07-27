@@ -9,9 +9,11 @@ import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.media3.common.MediaMetadata
 import com.neatplex.nightell.service.PlayerEvent
 import com.neatplex.nightell.service.MediaServiceHandler
+import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.service.SimpleMediaState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
@@ -21,7 +23,8 @@ import javax.inject.Inject
 @HiltViewModel
 class MediaViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
-    private val mediaServiceHandler: MediaServiceHandler
+    private val mediaServiceHandler: MediaServiceHandler,
+    private val serviceManager: ServiceManager
 ) : ViewModel() {
 
     var duration by savedStateHandle.saveable { mutableStateOf(0L) }
@@ -29,6 +32,8 @@ class MediaViewModel @Inject constructor(
     var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
     var isPlaying by savedStateHandle.saveable { mutableStateOf(false) }
     var initial = false
+    val isServiceRunning: StateFlow<Boolean> = serviceManager.isServiceRunning
+
 
     var currentPostId by savedStateHandle.saveable { mutableStateOf("") }
     private val _uiState = MutableStateFlow<UIState>(UIState.Initial)

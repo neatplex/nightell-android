@@ -44,7 +44,6 @@ fun SearchScreen(
 
     LaunchedEffect(Unit) {
         searchViewModel.search(query, null, false)
-
     }
 
     Column(
@@ -101,7 +100,7 @@ fun PostList(
         modifier = Modifier.fillMaxSize()
     ) {
         itemsIndexed(posts) { index, post ->
-            HomePostCard(post = post, onPostClicked = onPostSelected)
+            HomePostCard(post = post, onPostClicked = onPostSelected, isLoading = isLoading)
             if (index == posts.size - 1 && !isLoading) {
                 onLoadMore()
             }

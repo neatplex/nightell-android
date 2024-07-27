@@ -71,7 +71,9 @@ fun HomeScreen(
     AppTheme {
         Scaffold(
             topBar = { HomeTopBar(navController) },
-            content = { space -> HomeContent(space, feed, isLoading, isRefreshing, refreshState, navController, sharedViewModel, homeViewModel) }
+            content = { space ->
+                HomeContent(space, feed, isLoading, isRefreshing, refreshState, navController, sharedViewModel, homeViewModel)
+            }
         )
     }
 
@@ -155,18 +157,6 @@ fun HomeContent(
 }
 
 @Composable
-fun RecentPosts(posts: List<Post>, navController: NavController, sharedViewModel: SharedViewModel) {
-    LazyRow {
-        itemsIndexed(posts) { index, post ->
-            RecentPostCard(post = post) { selectedPost ->
-                sharedViewModel.setPost(selectedPost)
-                navController.navigate("postScreen/${post.id}")
-            }
-        }
-    }
-}
-
-@Composable
 fun HomePosts(
     posts: List<Post>,
     isLoading: Boolean,
@@ -177,7 +167,7 @@ fun HomePosts(
 
     LazyRow {
         itemsIndexed(posts.take(3)) { index, post ->
-            RecentPostCard(post = post) { selectedPost ->
+            RecentPostCard(post = post, isLoading) { selectedPost ->
                 sharedViewModel.setPost(selectedPost)
                 navController.navigate("postScreen/${post.id}")
             }
@@ -189,9 +179,11 @@ fun HomePosts(
         modifier = Modifier.fillMaxSize(),
         content = {
             itemsIndexed(posts.drop(3)) { index, post ->
-                HomePostCard(post = post) { selectedPost ->
-                    sharedViewModel.setPost(selectedPost)
-                    navController.navigate("postScreen/${post.id}")
+                HomePostCard(post = post, isLoading = isLoading) { selectedPost ->
+                    if (!isLoading) {
+                        sharedViewModel.setPost(selectedPost)
+                        navController.navigate("postScreen/${post.id}")
+                    }
                 }
                 if (index == posts.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
                     homeViewModel.loadFeed(post.id)

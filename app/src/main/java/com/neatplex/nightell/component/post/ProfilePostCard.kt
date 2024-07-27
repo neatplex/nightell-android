@@ -26,13 +26,13 @@ import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.utils.Constant
 
 @Composable
-fun ProfilePostCard(post: Post, onPostClicked: (Post) -> Unit) {
+fun ProfilePostCard(post: Post,isLoading: Boolean, onPostClicked: (Post) -> Unit) {
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onPostClicked(post) },
+            .clickable(enabled = !isLoading) { onPostClicked(post) },
         elevation = 0.dp
     ) {
         Column {

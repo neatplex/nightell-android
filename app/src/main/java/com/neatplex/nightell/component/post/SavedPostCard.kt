@@ -114,6 +114,7 @@ fun SavedPostCard(post: PostEntity, onPostClicked: (PostEntity) -> Unit, onDelet
                     DropdownMenu(
                         expanded = menuExpanded.value,
                         onDismissRequest = { menuExpanded.value = false },
+                        modifier = Modifier.background(Color.White)
                     ) {
                         DropdownMenuItem(onClick = {
                             onDeleteClicked(post)

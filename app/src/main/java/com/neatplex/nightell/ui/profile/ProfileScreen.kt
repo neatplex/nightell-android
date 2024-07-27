@@ -47,6 +47,7 @@ import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.ui.home.HomeViewModel
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.theme.AppTheme
@@ -110,14 +111,14 @@ fun ProfileScreen(
                         .pullRefresh(refreshState)
                 ) {
                     if (user == null) {
-
+                        Text(text = "Check your internet connection quality and go to home screen!",
+                            modifier = Modifier.padding(16.dp))
                     } else {
                         // trigger the profile loading
                         LaunchedEffect(Unit) {
                             profileViewModel.fetchProfile()
                             profileViewModel.loadPosts(user.id, lastPostId)
                         }
-
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
@@ -131,13 +132,9 @@ fun ProfileScreen(
                                         ShowMyProfile(navController, responsedUser, followers!!, followings!!)
                                     }
                                 }
-
                                 is Result.Failure -> {
-                                    // Handle error state
-//                                    Text(
-//                                        text = "Error in loading profile: ${result.message}",
-//                                        color = Color.Red
-//                                    )
+                                    Text(
+                                        text = "Please refresh page!")
                                 }
 
                                 else -> {}
@@ -149,7 +146,7 @@ fun ProfileScreen(
                                 modifier = Modifier.fillMaxSize(),
                             ) {
                                 itemsIndexed(posts!!) { index, post ->
-                                    ProfilePostCard(post = post) { selectedPost ->
+                                    ProfilePostCard(post = post, isLoading = isLoading) { selectedPost ->
                                         sharedViewModel.setPost(selectedPost)
                                         val postId = post.id
                                         navController.navigate(

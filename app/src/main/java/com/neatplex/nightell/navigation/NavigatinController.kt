@@ -106,7 +106,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = homeNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                startService = serviceManager::startMediaService)
+                serviceManager = serviceManager)
         }
 
         composable(
@@ -154,7 +154,7 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = searchNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                startService = serviceManager::startMediaService)
+                serviceManager = serviceManager)
         }
 
         composable(
@@ -208,7 +208,7 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                startService = serviceManager::startMediaService)
+                serviceManager = serviceManager)
         }
 
         composable(
