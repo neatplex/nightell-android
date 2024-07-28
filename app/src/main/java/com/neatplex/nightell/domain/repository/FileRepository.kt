@@ -8,7 +8,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.data.dto.FileUploadResponse
-import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 

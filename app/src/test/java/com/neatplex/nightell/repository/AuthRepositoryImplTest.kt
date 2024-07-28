@@ -1,6 +1,6 @@
 package com.neatplex.nightell.repository
 
-import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
@@ -10,7 +10,8 @@ import com.neatplex.nightell.domain.repository.AuthRepositoryImpl
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import com.neatplex.nightell.utils.Result
-import okhttp3.ResponseBody
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Before
 import org.junit.Test
 import org.mockito.Mockito.*
@@ -50,7 +51,8 @@ class AuthRepositoryImplTest {
     fun `register failure`() = runTest {
         // Arrange
         val request = RegistrationRequest("username", "email@example.com", "password")
-        val response = Response.error<AuthResponse>(400, mock(ResponseBody::class.java))
+        val errorResponse = "{\"error\":\"Invalid request\"}"
+        val response = Response.error<AuthResponse>(400, errorResponse.toResponseBody("application/json".toMediaTypeOrNull()))
         whenever(apiService.register(request)).thenReturn(response)
 
         // Act
@@ -80,7 +82,8 @@ class AuthRepositoryImplTest {
     fun `login with email failure`() = runTest {
         // Arrange
         val request = LoginEmailRequest("email@example.com", "password")
-        val response = Response.error<AuthResponse>(400, mock(ResponseBody::class.java))
+        val errorResponse = "{\"error\":\"Invalid request\"}"
+        val response = Response.error<AuthResponse>(400, errorResponse.toResponseBody("application/json".toMediaTypeOrNull()))
         whenever(apiService.loginWithEmail(request)).thenReturn(response)
 
         // Act
@@ -110,7 +113,8 @@ class AuthRepositoryImplTest {
     fun `login with username failure`() = runTest {
         // Arrange
         val request = LoginUsernameRequest("username", "password")
-        val response = Response.error<AuthResponse>(400, mock(ResponseBody::class.java))
+        val errorResponse = "{\"error\":\"Invalid request\"}"
+        val response = Response.error<AuthResponse>(400, errorResponse.toResponseBody("application/json".toMediaTypeOrNull()))
         whenever(apiService.loginWithUsername(request)).thenReturn(response)
 
         // Act
@@ -142,7 +146,8 @@ class AuthRepositoryImplTest {
         // Arrange
         val idToken = "google_id_token"
         val requestBody = mapOf("google_token" to idToken)
-        val response = Response.error<AuthResponse>(400, mock(ResponseBody::class.java))
+        val errorResponse = "{\"error\":\"Invalid request\"}"
+        val response = Response.error<AuthResponse>(400, errorResponse.toResponseBody("application/json".toMediaTypeOrNull()))
         whenever(apiService.signInWithGoogle(requestBody)).thenReturn(response)
 
         // Act

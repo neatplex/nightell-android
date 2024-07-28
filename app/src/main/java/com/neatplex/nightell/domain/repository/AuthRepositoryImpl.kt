@@ -6,7 +6,7 @@ import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
-import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 

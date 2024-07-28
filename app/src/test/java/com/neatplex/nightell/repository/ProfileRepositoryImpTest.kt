@@ -1,6 +1,6 @@
 package com.neatplex.nightell.repository
 
-import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.domain.model.User

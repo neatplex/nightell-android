@@ -2,7 +2,7 @@ package com.neatplex.nightell.domain.repository
 
 import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.utils.handleApiResponse
 
 import javax.inject.Inject

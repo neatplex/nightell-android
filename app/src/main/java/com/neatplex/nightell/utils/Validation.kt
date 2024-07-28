@@ -1,6 +1,6 @@
 package com.neatplex.nightell.utils
 
-class Validation {
+open class Validation {
 
     fun isValidEmail(email: String): Boolean {
         // Add your email validation logic here

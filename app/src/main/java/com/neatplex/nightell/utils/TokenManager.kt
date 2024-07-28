@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
-class TokenManager @Inject constructor(@ApplicationContext private val context: Context) {
+class TokenManager @Inject constructor(@ApplicationContext private val context: Context) : ITokenManager {
 
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("token_preference", Context.MODE_PRIVATE)
@@ -22,38 +22,38 @@ class TokenManager @Inject constructor(@ApplicationContext private val context: 
     private val _isRemovedToken = MutableStateFlow(false)
     val isRemovedToken: StateFlow<Boolean> = _isRemovedToken
 
-    fun setToken(token: String) {
+    override fun setToken(token: String) {
         sharedPreferences.edit().putString(TOKEN_KEY, token).apply()
         _tokenState.value = token
     }
 
-    fun getToken(): String? {
+    override fun getToken(): String? {
         return sharedPreferences.getString(TOKEN_KEY, null)
     }
 
-    fun deleteToken() {
+    override fun deleteToken() {
         sharedPreferences.edit().remove(TOKEN_KEY).apply()
         _tokenState.value = null
     }
 
-    fun logoutForce() {
+    override fun logoutForce() {
         sharedPreferences.edit().remove(TOKEN_KEY).apply()
         _isRemovedToken.value = true
     }
 
-    fun setId(id: Int) {
+    override fun setId(id: Int) {
         sharedPreferences.edit().putInt(USER_ID, id).apply()
     }
 
-    fun getId(): Int {
+    override fun getId(): Int {
         return sharedPreferences.getInt(USER_ID, 0)
     }
 
-    fun setEmail(email: String) {
+    override fun setEmail(email: String) {
         sharedPreferences.edit().putString(USER_EMAIL, email).apply()
     }
 
-    fun getEmail(): String? {
+    override fun getEmail(): String? {
         return sharedPreferences.getString(USER_EMAIL, null)
     }
 }

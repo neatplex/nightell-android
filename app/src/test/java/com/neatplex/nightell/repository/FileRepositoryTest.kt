@@ -1,6 +1,6 @@
 package com.neatplex.nightell.repository
 
-import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.dto.FileUploadResponse
 import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.repository.FileRepository

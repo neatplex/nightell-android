@@ -1,6 +1,6 @@
 package com.neatplex.nightell.repository
 
-import com.neatplex.nightell.data.api.ApiService
+import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.StoreLike
 import com.neatplex.nightell.domain.model.CustomFile

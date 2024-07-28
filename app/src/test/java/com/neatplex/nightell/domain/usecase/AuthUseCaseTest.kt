@@ -6,7 +6,7 @@ import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.repository.AuthRepository
-import com.neatplex.nightell.utils.TokenManager
+import com.neatplex.nightell.utils.ITokenManager
 import org.junit.Test
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.Validation
@@ -15,13 +15,13 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
-import org.mockito.kotlin.whenever
+import org.mockito.Mockito.`when`
 
 @ExperimentalCoroutinesApi
 class AuthUseCaseTest {
 
     private lateinit var authRepository: AuthRepository
-    private lateinit var tokenManager: TokenManager
+    private lateinit var tokenManager: ITokenManager
     private lateinit var authUseCase: AuthUseCase
     private lateinit var validation: Validation
 
@@ -30,7 +30,7 @@ class AuthUseCaseTest {
     @Before
     fun setUp() {
         authRepository = mock(AuthRepository::class.java)
-        tokenManager = mock(TokenManager::class.java)
+        tokenManager = mock(ITokenManager::class.java)
         validation = mock(Validation::class.java)
         authUseCase = AuthUseCase(authRepository, tokenManager, validation)
     }
@@ -41,7 +41,7 @@ class AuthUseCaseTest {
         val request = RegistrationRequest("username", "email@example.com", "password")
         val authResponse = AuthResponse("token", user)
         val result = Result.Success(authResponse)
-        whenever(authRepository.register(request)).thenReturn(result)
+        `when`(authRepository.register(request)).thenReturn(result)
 
         // Act
         val response = authUseCase.register("username", "email@example.com", "password")
@@ -58,7 +58,7 @@ class AuthUseCaseTest {
         // Arrange
         val request = RegistrationRequest("username", "email@example.com", "password")
         val result = Result.Failure("Error occurred", Exception())
-        whenever(authRepository.register(request)).thenReturn(result)
+        `when`(authRepository.register(request)).thenReturn(result)
 
         // Act
         val response = authUseCase.register("username", "email@example.com", "password")
@@ -76,8 +76,8 @@ class AuthUseCaseTest {
         val authResponse = AuthResponse("token", user)
         val result = Result.Success(authResponse)
 
-        whenever(authRepository.loginWithEmail(request)).thenReturn(result)
-        whenever(validation.isValidEmail(email)).thenReturn(true)
+        `when`(authRepository.loginWithEmail(request)).thenReturn(result)
+        `when`(validation.isValidEmail(email)).thenReturn(true)
 
         // Act
         val response = authUseCase.login(email, password)
@@ -98,8 +98,8 @@ class AuthUseCaseTest {
         val authResponse = AuthResponse("token", user)
         val result = Result.Success(authResponse)
 
-        whenever(authRepository.loginWithUsername(request)).thenReturn(result)
-        whenever(validation.isValidEmail(username)).thenReturn(false)
+        `when`(authRepository.loginWithUsername(request)).thenReturn(result)
+        `when`(validation.isValidEmail(username)).thenReturn(false)
 
         // Act
         val response = authUseCase.login(username, password)
@@ -117,7 +117,7 @@ class AuthUseCaseTest {
         val idToken = "google_id_token"
         val authResponse = AuthResponse("token", user)
         val result = Result.Success(authResponse)
-        whenever(authRepository.signInWithGoogle(idToken)).thenReturn(result)
+        `when`(authRepository.signInWithGoogle(idToken)).thenReturn(result)
 
         // Act
         val response = authUseCase.signInWithGoogle(idToken)
@@ -134,7 +134,7 @@ class AuthUseCaseTest {
         // Arrange
         val idToken = "google_id_token"
         val result = Result.Failure("Error occurred", Exception())
-        whenever(authRepository.signInWithGoogle(idToken)).thenReturn(result)
+        `when`(authRepository.signInWithGoogle(idToken)).thenReturn(result)
 
         // Act
         val response = authUseCase.signInWithGoogle(idToken)

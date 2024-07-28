@@ -1,4 +1,4 @@
-package com.neatplex.nightell.data.api
+package com.neatplex.nightell.data.network
 
 
 import com.neatplex.nightell.data.dto.AuthResponse
