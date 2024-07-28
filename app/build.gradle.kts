@@ -1,6 +1,3 @@
-import com.intellij.rt.coverage.report.api.ReportApi.htmlReport
-import com.intellij.rt.coverage.report.api.ReportApi.xmlReport
-
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -54,6 +51,12 @@ android {
     buildFeatures{
         dataBinding = true
         viewBinding = true
+    }
+
+    packagingOptions {
+        exclude("META-INF/gradle/incremental.annotation.processors")
+        // or
+        // pickFirst 'META-INF/gradle/incremental.annotation.processors'
     }
 
 }
@@ -114,6 +117,10 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
+    // Rate Limiting
+    implementation("io.reactivex.rxjava3:rxjava:3.1.3")
+    implementation("io.reactivex.rxjava3:rxandroid:3.0.0")
+
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
@@ -141,7 +148,8 @@ dependencies {
     testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
     testImplementation("org.mockito:mockito-inline:4.3.1")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
-
+    testImplementation("org.powermock:powermock-module-junit4:2.0.9")
+    testImplementation("org.powermock:powermock-api-mockito2:2.0.9")
     testImplementation("junit:junit:4.13.2")
     testImplementation("androidx.test:core:1.6.1")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
