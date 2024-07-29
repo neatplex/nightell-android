@@ -198,8 +198,10 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
             showError = true
             errorMessage = if (authResultState.code == 401) {
                 "Your username or password is incorrect."
-            } else {
+            } else if(authResultState.code == 422) {
                 authResultState.message
+            } else {
+                "Something went wrong! Please try again"
             }
             delay(5000) // Show error for 5 seconds
             showError = false
