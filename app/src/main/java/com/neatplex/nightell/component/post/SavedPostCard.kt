@@ -120,7 +120,7 @@ fun SavedPostCard(post: PostEntity, onPostClicked: (PostEntity) -> Unit, onDelet
                             onDeleteClicked(post)
                             menuExpanded.value = false
                         }) {
-                            Text(text = stringResource(id = R.string.delet))
+                            Text(text = stringResource(id = R.string.delete))
                         }
                     }
                 }
