@@ -13,10 +13,12 @@ import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
 class FileRepository @Inject constructor(private val apiService: ApiService) {
+
     suspend fun uploadFile(
         file: File,
         extension: String
     ): Result<FileUploadResponse> {
+        // Convert the file to a request body
         val requestBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
         val filePart = MultipartBody.Part.createFormData("file", file.name, requestBody)
         val extensionPart = extension.toRequestBody("text/plain".toMediaTypeOrNull())

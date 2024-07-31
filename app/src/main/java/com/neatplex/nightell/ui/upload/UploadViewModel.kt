@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.FileUploadResponse
 import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.domain.repository.FileRepository
+import com.neatplex.nightell.domain.usecase.FileUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,7 @@ import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class UploadViewModel @Inject constructor(private val postUseCase: PostUseCase, private val fileRepository: FileRepository) : ViewModel() {
+class UploadViewModel @Inject constructor(private val postUseCase: PostUseCase, private val fileUseCase: FileUseCase) : ViewModel() {
 
     private var _storePostResult = MutableLiveData<Result<PostDetailResponse>>()
     val storePostResult: LiveData<Result<PostDetailResponse>> get() = _storePostResult
@@ -29,7 +30,7 @@ class UploadViewModel @Inject constructor(private val postUseCase: PostUseCase, 
     fun uploadFile(file: File, extension: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = fileRepository.uploadFile(file, extension)
+            val result = fileUseCase.uploadUserFile(file, extension)
             _uploadState.value = result
             _isLoading.value = false
         }
