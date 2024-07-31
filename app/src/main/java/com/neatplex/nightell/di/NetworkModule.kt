@@ -3,6 +3,7 @@ package com.neatplex.nightell.di
 import android.content.Context
 import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.network.AuthInterceptor
+import com.neatplex.nightell.data.network.ConnectivityObserver
 import com.neatplex.nightell.data.network.RateLimiter
 import com.neatplex.nightell.data.network.RateLimiterInterceptor
 import com.neatplex.nightell.data.network.RetryInterceptor
@@ -27,6 +28,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
+import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -35,8 +37,6 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class NetworkModule {
 
-    @Binds
-    abstract fun bindTokenManager(tokenManager: TokenManager): ITokenManager
 
     @Binds
     abstract fun bindAuthRepository(userAuthRepositoryImpl: AuthRepositoryImpl): AuthRepository
@@ -63,7 +63,7 @@ abstract class NetworkModule {
         @Provides
         @Singleton
         fun provideRateLimiter(): RateLimiter {
-            return RateLimiter(maxRequests = 5, timeWindow = 1, timeUnit = TimeUnit.MINUTES)
+            return RateLimiter(maxRequests = 8, timeWindow = 2, timeUnit = TimeUnit.MINUTES)
         }
 
         @Provides
@@ -74,9 +74,17 @@ abstract class NetworkModule {
 
         @Provides
         @Singleton
+        fun provideConnectivityObserver(@ApplicationContext context: Context): ConnectivityObserver {
+            return ConnectivityObserver(context)
+        }
+
+        @Provides
+        @Singleton
         fun provideApiService(
             authInterceptor: AuthInterceptor,
             retryInterceptor: RetryInterceptor,
+            rateLimiter: RateLimiter,
+            connectivityObserver: ConnectivityObserver,
             @ApplicationContext context: Context
         ): ApiService {
             val cacheSize = 10 * 1024 * 1024 // 10 MB
@@ -85,8 +93,18 @@ abstract class NetworkModule {
 
             val okHttpClient = OkHttpClient.Builder()
                 .cache(cache)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
                 .addInterceptor(authInterceptor as Interceptor)
                 .addInterceptor(retryInterceptor as Interceptor)
+                .addInterceptor(RateLimiterInterceptor(rateLimiter))
+                .addInterceptor { chain ->
+                if (!connectivityObserver.isConnected.value) {
+                    throw IOException("No internet connection")
+                }
+                chain.proceed(chain.request())
+            }
                 .build()
 
             return Retrofit.Builder()
