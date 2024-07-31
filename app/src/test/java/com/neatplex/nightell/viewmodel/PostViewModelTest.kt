@@ -5,6 +5,7 @@ import androidx.lifecycle.Observer
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.dto.StoreLike
+import com.neatplex.nightell.data.network.ConnectivityObserver
 import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Like
 import com.neatplex.nightell.domain.model.Post
@@ -39,6 +40,9 @@ class PostViewModelTest {
     @Mock
     private lateinit var likeRepository: LikeRepository
 
+    @Mock
+    private lateinit var connectivityObserver: ConnectivityObserver
+
     private lateinit var postViewModel: PostViewModel
 
     @Mock
@@ -66,7 +70,7 @@ class PostViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        postViewModel = PostViewModel(postUseCase, likeRepository)
+        postViewModel = PostViewModel(postUseCase, likeRepository, connectivityObserver)
     }
 
     @After

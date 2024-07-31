@@ -7,6 +7,7 @@ import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.utils.ITokenManager
+import com.neatplex.nightell.utils.IValidation
 import org.junit.Test
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.Validation
@@ -23,7 +24,7 @@ class AuthUseCaseTest {
     private lateinit var authRepository: AuthRepository
     private lateinit var tokenManager: ITokenManager
     private lateinit var authUseCase: AuthUseCase
-    private lateinit var validation: Validation
+    private lateinit var validation: IValidation
 
     private val user = User("","","email@example.com",1, false,"username", "password", "username")
 
@@ -31,7 +32,7 @@ class AuthUseCaseTest {
     fun setUp() {
         authRepository = mock(AuthRepository::class.java)
         tokenManager = mock(ITokenManager::class.java)
-        validation = mock(Validation::class.java)
+        validation = mock(IValidation::class.java)
         authUseCase = AuthUseCase(authRepository, tokenManager, validation)
     }
 

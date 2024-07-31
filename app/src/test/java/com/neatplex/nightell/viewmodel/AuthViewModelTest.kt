@@ -3,9 +3,15 @@ package com.neatplex.nightell.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import com.neatplex.nightell.data.dto.AuthResponse
+import com.neatplex.nightell.data.dto.LoginEmailRequest
+import com.neatplex.nightell.data.dto.LoginUsernameRequest
+import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.domain.usecase.AuthUseCase
 import com.neatplex.nightell.ui.auth.AuthViewModel
+import com.neatplex.nightell.utils.ITokenManager
+import com.neatplex.nightell.utils.IValidation
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.Validation
 import kotlinx.coroutines.Dispatchers
@@ -29,14 +35,18 @@ class AuthViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Mock
-    private lateinit var authUseCase: AuthUseCase
+    private lateinit var authRepository: AuthRepository
 
     @Mock
-    private lateinit var validation: Validation
+    private lateinit var tokenManager: ITokenManager
 
+    @Mock
+    private lateinit var validation: IValidation
+
+    private lateinit var authUseCase: AuthUseCase
     private lateinit var authViewModel: AuthViewModel
-    private val user = User("","","email@example.com",1, false,"username", "password", "username")
 
+    private val user = User("", "", "email@example.com", 1, false, "username", "password", "username")
 
     @Mock
     private lateinit var observer: Observer<Result<AuthResponse>>
@@ -45,7 +55,14 @@ class AuthViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
+
+        // Initialize AuthUseCase with mocked dependencies
+        authUseCase = AuthUseCase(authRepository, tokenManager, validation)
+
+        // Initialize AuthViewModel with the real AuthUseCase
         authViewModel = AuthViewModel(authUseCase, validation)
+
+        // Observe the LiveData
         authViewModel.authResult.observeForever(observer)
     }
 
@@ -62,24 +79,38 @@ class AuthViewModelTest {
         val password = "password123"
         val authResponse = AuthResponse(token = "sampleToken", user)
 
-        `when`(authUseCase.register(username, email, password)).thenReturn(Result.Success(authResponse))
+        // Mock the repository and validation behavior
+        val request = RegistrationRequest(username, email, password)
+        `when`(authRepository.register(request)).thenReturn(Result.Success(authResponse))
+        `when`(validation.isValidEmail(email)).thenReturn(true)
+        `when`(validation.isValidPassword(password)).thenReturn(true)
+        `when`(validation.isValidUsername(username)).thenReturn(true)
 
+        // Perform the action
         authViewModel.registerUser(username, email, password)
 
+        // Verify the observer received the expected result
         verify(observer).onChanged(Result.Success(authResponse))
     }
 
     @Test
     fun `registerUser with invalid data should return failure`() = runTest {
         val username = "testUser"
-        val email = "test@example.com"
+        val email = "invalidEmail"
         val password = "password123"
-        val error = "Registration failed"
+        val error = "Invalid email"
 
-        `when`(authUseCase.register(username, email, password)).thenReturn(Result.Failure(error))
+        // Mock the validation behavior
+        `when`(validation.isValidEmail(email)).thenReturn(false)
 
+        // Mock the repository to return failure if invalid data
+        val request = RegistrationRequest(username, email, password)
+        `when`(authRepository.register(request)).thenReturn(Result.Failure(error))
+
+        // Perform the action
         authViewModel.registerUser(username, email, password)
 
+        // Verify the observer received the expected failure result
         verify(observer).onChanged(Result.Failure(error))
     }
 
@@ -89,23 +120,33 @@ class AuthViewModelTest {
         val password = "password123"
         val authResponse = AuthResponse(token = "sampleToken", user)
 
-        `when`(authUseCase.login(emailOrUsername, password)).thenReturn(Result.Success(authResponse))
+        // Mock the validation and repository behavior
+        `when`(validation.isValidEmail(emailOrUsername)).thenReturn(true)
+        val request = LoginEmailRequest(emailOrUsername, password)
+        `when`(authRepository.loginWithEmail(request)).thenReturn(Result.Success(authResponse))
 
+        // Perform the action
         authViewModel.loginUser(emailOrUsername, password)
 
+        // Verify the observer received the expected result
         verify(observer).onChanged(Result.Success(authResponse))
     }
 
     @Test
     fun `loginUser with invalid data should return failure`() = runTest {
         val emailOrUsername = "test@example.com"
-        val password = "password123"
+        val password = "wrongPassword"
         val error = "Login failed"
 
-        `when`(authUseCase.login(emailOrUsername, password)).thenReturn(Result.Failure(error))
+        // Mock the validation and repository behavior
+        `when`(validation.isValidEmail(emailOrUsername)).thenReturn(true)
+        val request = LoginEmailRequest(emailOrUsername, password)
+        `when`(authRepository.loginWithEmail(request)).thenReturn(Result.Failure(error))
 
+        // Perform the action
         authViewModel.loginUser(emailOrUsername, password)
 
+        // Verify the observer received the expected failure result
         verify(observer).onChanged(Result.Failure(error))
     }
 
@@ -114,10 +155,13 @@ class AuthViewModelTest {
         val idToken = "validToken"
         val authResponse = AuthResponse(token = "sampleToken", user)
 
-        `when`(authUseCase.signInWithGoogle(idToken)).thenReturn(Result.Success(authResponse))
+        // Mock the repository behavior
+        `when`(authRepository.signInWithGoogle(idToken)).thenReturn(Result.Success(authResponse))
 
+        // Perform the action
         authViewModel.signInWithGoogle(idToken)
 
+        // Verify the observer received the expected result
         verify(observer).onChanged(Result.Success(authResponse))
     }
 
@@ -126,10 +170,13 @@ class AuthViewModelTest {
         val idToken = "invalidToken"
         val error = "Google sign-in failed"
 
-        `when`(authUseCase.signInWithGoogle(idToken)).thenReturn(Result.Failure(error))
+        // Mock the repository behavior
+        `when`(authRepository.signInWithGoogle(idToken)).thenReturn(Result.Failure(error))
 
+        // Perform the action
         authViewModel.signInWithGoogle(idToken)
 
+        // Verify the observer received the expected failure result
         verify(observer).onChanged(Result.Failure(error))
     }
 
