@@ -107,6 +107,10 @@ class MediaViewModel @Inject constructor(
 
         mediaServiceHandler.addMediaItem(mediaItem)
     }
+
+    fun startMediaService() {
+        serviceManager.startMediaService()
+    }
 }
 
 sealed class UIEvent {
