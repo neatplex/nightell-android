@@ -2,6 +2,7 @@
     <string name="app_name">Nightell</string>
     <string name="title_activity_splash">SplashActivity</string>
     <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
     <string name="delet">Delete</string>
     <string name="web_client_id">848368311039-h05kiqlnad6ol0d6hpfdv5d1d3tnc4l7.apps.googleusercontent.com</string>
 </resources>
