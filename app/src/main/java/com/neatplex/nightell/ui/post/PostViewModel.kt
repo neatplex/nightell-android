@@ -16,7 +16,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PostViewModel @Inject constructor(
-    private val postUseCase: PostUseCase, private val likeRepository: LikeRepository
+    private val postUseCase: PostUseCase,
+    private val likeRepository: LikeRepository,
 ) : ViewModel() {
 
     private val _postDeleteResult = MutableLiveData<Result<Unit>>()
@@ -35,7 +36,7 @@ class PostViewModel @Inject constructor(
     val unlikeResult: LiveData<Result<Unit>> get() = _unlikeResult
 
     private val _showLikesResult = MutableLiveData<Result<Likes>>()
-    val showLikesResult : LiveData<Result<Likes>> get() = _showLikesResult
+    val showLikesResult: LiveData<Result<Likes>> get() = _showLikesResult
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
@@ -67,7 +68,7 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun like(postId: Int){
+    fun like(postId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
             val result = likeRepository.like(postId)
@@ -76,7 +77,7 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun showLikes(postId: Int){
+    fun showLikes(postId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
             val result = likeRepository.showLikes(postId)
@@ -85,7 +86,7 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun deleteLike(likeId : Int){
+    fun deleteLike(likeId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
             val result = likeRepository.deleteLike(likeId)
