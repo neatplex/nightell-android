@@ -6,16 +6,15 @@ import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.utils.ITokenManager
-import com.neatplex.nightell.utils.TokenManager
+import com.neatplex.nightell.utils.IValidation
 import javax.inject.Inject
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.utils.Validation
 
 
 class AuthUseCase @Inject constructor(
     private val authRepository: AuthRepository,
     private val tokenManager: ITokenManager,
-    private val validation: Validation
+    private val validation: IValidation
 ) {
 
     suspend fun register(username: String, email: String, password: String): Result<AuthResponse> {
