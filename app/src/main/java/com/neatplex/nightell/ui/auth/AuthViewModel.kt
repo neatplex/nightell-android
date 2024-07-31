@@ -6,8 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.domain.usecase.AuthUseCase
+import com.neatplex.nightell.utils.IValidation
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.utils.Validation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authUseCase: AuthUseCase,
-    private val validation: Validation
+    private val validation: IValidation
 ) : ViewModel() {
 
     private val _authResult = MutableLiveData<Result<AuthResponse>>()
