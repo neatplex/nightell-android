@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.domain.repository.FollowRepository
+import com.neatplex.nightell.domain.usecase.FollowUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.ProfileUseCase
 import com.neatplex.nightell.utils.Result
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val followRepository: FollowRepository,
+    private val followUseCase: FollowUseCase,
     private val profileUseCase: ProfileUseCase,
     private val postUseCase: PostUseCase
 ) : ViewModel() {
@@ -54,7 +54,7 @@ class UserViewModel @Inject constructor(
     fun fetchUserFollowers(userId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            _usersList.value = followRepository.followers(userId)
+            _usersList.value = followUseCase.followers(userId)
             _isLoading.value = false
         }
     }
@@ -62,7 +62,7 @@ class UserViewModel @Inject constructor(
     fun fetchUserFollowings(userId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            _usersList.value = followRepository.followings(userId)
+            _usersList.value = followUseCase.followings(userId)
             _isLoading.value = false
         }
     }
@@ -70,7 +70,7 @@ class UserViewModel @Inject constructor(
     fun followUser(userId: Int, friendId: Int){
         viewModelScope.launch {
             _isLoading.value = true
-            _followResult.value = followRepository.follow(userId, friendId)
+            _followResult.value = followUseCase.follow(userId, friendId)
             _isLoading.value = false
         }
     }
@@ -78,7 +78,7 @@ class UserViewModel @Inject constructor(
     fun unfollowUser(userId: Int, friendId: Int){
         viewModelScope.launch {
             _isLoading.value = true
-            _unfollowResult.value = followRepository.unfollow(userId, friendId)
+            _unfollowResult.value = followUseCase.unfollow(userId, friendId)
             _isLoading.value = false
         }
     }

@@ -2,11 +2,11 @@ package com.neatplex.nightell.domain.usecase
 
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
-import com.neatplex.nightell.domain.repository.ProfileRepository
+import com.neatplex.nightell.domain.repository.IProfileRepository
 import com.neatplex.nightell.utils.Result
 import javax.inject.Inject
 
-class ProfileUseCase @Inject constructor(private val profileRepository: ProfileRepository) {
+class ProfileUseCase @Inject constructor(private val profileRepository: IProfileRepository) {
 
     suspend fun profile(): Result<Profile> {
         return profileRepository.fetchProfile()

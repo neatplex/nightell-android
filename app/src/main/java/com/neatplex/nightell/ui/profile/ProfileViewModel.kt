@@ -10,6 +10,7 @@ import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.ProfileUseCase
+import com.neatplex.nightell.utils.IValidation
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.Validation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,7 @@ import javax.inject.Inject
 class ProfileViewModel @Inject constructor(
     private val profileUseCase: ProfileUseCase,
     private val postUseCase: PostUseCase,
-    private val validation: Validation
+    private val validation: IValidation
 ) : ViewModel() {
 
     private val _profileData = MutableLiveData<Result<Profile>>()

@@ -7,14 +7,21 @@ import com.neatplex.nightell.data.network.ConnectivityObserver
 import com.neatplex.nightell.data.network.RateLimiter
 import com.neatplex.nightell.data.network.RateLimiterInterceptor
 import com.neatplex.nightell.data.network.RetryInterceptor
+import com.neatplex.nightell.domain.repository.IAuthRepository
 import com.neatplex.nightell.domain.repository.AuthRepository
-import com.neatplex.nightell.domain.repository.AuthRepositoryImpl
+import com.neatplex.nightell.domain.repository.DatabaseRepository
+import com.neatplex.nightell.domain.repository.FileRepository
+import com.neatplex.nightell.domain.repository.FollowRepository
+import com.neatplex.nightell.domain.repository.IDatabaseRepository
+import com.neatplex.nightell.domain.repository.IFileRepository
+import com.neatplex.nightell.domain.repository.IFollowRepository
+import com.neatplex.nightell.domain.repository.ILikeRepository
+import com.neatplex.nightell.domain.repository.IPostRepository
 import com.neatplex.nightell.domain.repository.PostRepository
-import com.neatplex.nightell.domain.repository.PostRepositoryImpl
+import com.neatplex.nightell.domain.repository.IProfileRepository
+import com.neatplex.nightell.domain.repository.LikeRepository
 import com.neatplex.nightell.domain.repository.ProfileRepository
-import com.neatplex.nightell.domain.repository.ProfileRepositoryImpl
 import com.neatplex.nightell.utils.Constant
-import com.neatplex.nightell.utils.ITokenManager
 import com.neatplex.nightell.utils.TokenManager
 import dagger.Binds
 import dagger.Module
@@ -39,13 +46,25 @@ abstract class NetworkModule {
 
 
     @Binds
-    abstract fun bindAuthRepository(userAuthRepositoryImpl: AuthRepositoryImpl): AuthRepository
+    abstract fun bindAuthRepository(userAuthRepository: AuthRepository): IAuthRepository
 
     @Binds
-    abstract fun bindPostRepository(postRepositoryImpl: PostRepositoryImpl): PostRepository
+    abstract fun bindLikeRepository(likeRepository: LikeRepository): ILikeRepository
 
     @Binds
-    abstract fun bindProfileRepository(profileRepositoryImpl: ProfileRepositoryImpl): ProfileRepository
+    abstract fun bindPostRepository(postRepository: PostRepository): IPostRepository
+
+    @Binds
+    abstract fun bindProfileRepository(profileRepositoryImpl: ProfileRepository): IProfileRepository
+
+    @Binds
+    abstract fun bindFileRepository(fileRepository: FileRepository): IFileRepository
+
+    @Binds
+    abstract fun bindFollowRepository(followRepository: FollowRepository): IFollowRepository
+
+    @Binds
+    abstract fun bindDatabaseRepository(databaseRepository: DatabaseRepository): IDatabaseRepository
 
     companion object {
         @Provides

@@ -8,6 +8,7 @@ import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.dto.StoreLike
 import com.neatplex.nightell.domain.repository.LikeRepository
+import com.neatplex.nightell.domain.usecase.LikeUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val postUseCase: PostUseCase,
-    private val likeRepository: LikeRepository,
+    private val likeUseCase: LikeUseCase,
 ) : ViewModel() {
 
     private val _postDeleteResult = MutableLiveData<Result<Unit>>()
@@ -71,7 +72,7 @@ class PostViewModel @Inject constructor(
     fun like(postId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = likeRepository.like(postId)
+            val result = likeUseCase.like(postId)
             _likeResult.value = result
             _isLoading.value = false
         }
@@ -80,7 +81,7 @@ class PostViewModel @Inject constructor(
     fun showLikes(postId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = likeRepository.showLikes(postId)
+            val result = likeUseCase.showLikes(postId)
             _showLikesResult.value = result
             _isLoading.value = false
         }
@@ -89,7 +90,7 @@ class PostViewModel @Inject constructor(
     fun deleteLike(likeId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = likeRepository.deleteLike(likeId)
+            val result = likeUseCase.deleteLike(likeId)
             _unlikeResult.value = result
             _isLoading.value = false
         }

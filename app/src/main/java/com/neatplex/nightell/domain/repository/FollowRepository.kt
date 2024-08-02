@@ -7,9 +7,9 @@ import com.neatplex.nightell.utils.handleApiResponse
 
 import javax.inject.Inject
 
-class FollowRepository @Inject constructor(private val apiService: ApiService) {
+class FollowRepository @Inject constructor(private val apiService: ApiService) : IFollowRepository {
 
-    suspend fun follow(userId: Int, friendId: Int): Result<Unit> {
+    override suspend fun follow(userId: Int, friendId: Int): Result<Unit> {
         return try {
             val response = apiService.follow(userId, friendId)
             handleApiResponse(response)
@@ -19,7 +19,7 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    suspend fun unfollow(userId: Int, friendId: Int): Result<Unit> {
+    override suspend fun unfollow(userId: Int, friendId: Int): Result<Unit> {
         return try {
             val response = apiService.unfollow(userId, friendId)
             handleApiResponse(response)
@@ -29,7 +29,7 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    suspend fun followers(userId: Int): Result<Users> {
+    override suspend fun followers(userId: Int): Result<Users> {
         return try {
             val response = apiService.userFollowers(userId)
             handleApiResponse(response)
@@ -39,7 +39,7 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    suspend fun followings(userId: Int): Result<Users> {
+    override suspend fun followings(userId: Int): Result<Users> {
         return try {
             val response = apiService.userFollowings(userId)
             handleApiResponse(response)

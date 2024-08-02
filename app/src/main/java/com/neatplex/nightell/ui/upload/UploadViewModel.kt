@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.FileUploadResponse
 import com.neatplex.nightell.data.dto.PostDetailResponse
-import com.neatplex.nightell.domain.repository.FileRepository
 import com.neatplex.nightell.domain.usecase.FileUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.utils.Result

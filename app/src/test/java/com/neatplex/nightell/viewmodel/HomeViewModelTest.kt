@@ -2,10 +2,13 @@ package com.neatplex.nightell.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.domain.repository.IPostRepository
+import com.neatplex.nightell.domain.repository.IProfileRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.ProfileUseCase
 import com.neatplex.nightell.ui.home.HomeViewModel
@@ -37,12 +40,14 @@ class HomeViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Mock
-    private lateinit var postUseCase: PostUseCase
+    private lateinit var postRepository: IPostRepository
 
     @Mock
-    private lateinit var profileUseCase: ProfileUseCase
+    private lateinit var profileRepository: IProfileRepository
 
-    @InjectMocks
+
+    private lateinit var postUseCase: PostUseCase
+    private lateinit var profileUseCase: ProfileUseCase
     private lateinit var homeViewModel: HomeViewModel
 
     @Mock
@@ -58,6 +63,8 @@ class HomeViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
+        postUseCase = PostUseCase(postRepository)
+        profileUseCase = ProfileUseCase(profileRepository)
         homeViewModel = HomeViewModel(postUseCase, profileUseCase)
     }
 
@@ -87,7 +94,7 @@ class HomeViewModelTest {
 
     @Test
     fun `test loadFeed success`() = runTest {
-        `when`(postUseCase.loadFeed(null)).thenReturn(Result.Success(posts))
+        `when`(postRepository.showFeed(null)).thenReturn(Result.Success(PostCollection(posts)))
 
         homeViewModel.feed.observeForever(feedObserver)
         homeViewModel.isLoading.observeForever(isLoadingObserver)
@@ -102,7 +109,7 @@ class HomeViewModelTest {
     @Test
     fun `test loadFeed failure`() = runTest {
         // Mock the postUseCase to return a failure result
-        `when`(postUseCase.loadFeed(null)).thenReturn(Result.Failure("Error", null))
+        `when`(postRepository.showFeed(null)).thenReturn(Result.Failure("Error", null))
 
         // Set up observers
         homeViewModel.feed.observeForever(feedObserver)
@@ -126,7 +133,7 @@ class HomeViewModelTest {
     @Test
     fun `test refreshFeed`() = runTest {
 
-        `when`(postUseCase.loadFeed(null)).thenReturn(Result.Success(posts))
+        `when`(postRepository.showFeed(null)).thenReturn(Result.Success(PostCollection(posts)))
 
         homeViewModel.feed.observeForever(feedObserver)
         homeViewModel.isLoading.observeForever(isLoadingObserver)
@@ -141,7 +148,7 @@ class HomeViewModelTest {
     @Test
     fun `test fetchProfile success`() = runTest {
         val mockProfile = Profile(1,1,user)
-        `when`(profileUseCase.profile()).thenReturn(Result.Success(mockProfile))
+        `when`(profileRepository.fetchProfile()).thenReturn(Result.Success(mockProfile))
 
         homeViewModel.profileData.observeForever(profileObserver)
         homeViewModel.isLoading.observeForever(isLoadingObserver)
@@ -155,7 +162,7 @@ class HomeViewModelTest {
 
     @Test
     fun `test fetchProfile failure`() = runTest {
-        `when`(profileUseCase.profile()).thenReturn(Result.Failure("Error", null))
+        `when`(profileRepository.fetchProfile()).thenReturn(Result.Failure("Error", null))
 
         homeViewModel.profileData.observeForever(profileObserver)
         homeViewModel.isLoading.observeForever(isLoadingObserver)

@@ -2,11 +2,11 @@ package com.neatplex.nightell.domain.usecase
 
 import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.domain.repository.PostRepository
+import com.neatplex.nightell.domain.repository.IPostRepository
 import com.neatplex.nightell.utils.Result
 import javax.inject.Inject
 
-class PostUseCase @Inject constructor(private val postRepository: PostRepository) {
+class PostUseCase @Inject constructor(private val postRepository: IPostRepository) {
 
     suspend fun loadFeed(lastPostId: Int?) : Result<List<Post>> {
         val result = postRepository.showFeed(lastPostId)
@@ -32,13 +32,9 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
         return postRepository.uploadPost(title, description, audioId, imageId)
     }
 
-    suspend fun editPost(postId: Int, newTitle: String, newDescription: String): Result<PostDetailResponse> {
-        return postRepository.editPost(newTitle, newDescription, postId)
-    }
+    suspend fun editPost(postId: Int, newTitle: String, newDescription: String)= postRepository.editPost(newTitle, newDescription, postId)
 
-    suspend fun deletePost(postId: Int): Result<Unit> {
-        return postRepository.deletePost(postId)
-    }
+    suspend fun deletePost(postId: Int) = postRepository.deletePost(postId)
 
     suspend fun search(query: String, lastPostId: Int?) : Result<List<Post>> {
         val result = postRepository.search(query,lastPostId)
@@ -50,7 +46,5 @@ class PostUseCase @Inject constructor(private val postRepository: PostRepository
         }
     }
 
-    suspend fun getPostDetail(postId: Int) : Result<PostDetailResponse> {
-        return postRepository.getPostById(postId)
-    }
+    suspend fun getPostDetail(postId: Int) = postRepository.getPostById(postId)
 }

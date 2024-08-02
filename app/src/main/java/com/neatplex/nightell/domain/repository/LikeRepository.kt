@@ -7,9 +7,9 @@ import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
-class LikeRepository @Inject constructor(private val apiService: ApiService) {
+class LikeRepository @Inject constructor(private val apiService: ApiService) : ILikeRepository {
 
-    suspend fun like(postId : Int) : Result<StoreLike>{
+    override suspend fun like(postId : Int) : Result<StoreLike> {
         return try {
             val response = apiService.like(postId)
             handleApiResponse(response)
@@ -18,7 +18,7 @@ class LikeRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    suspend fun showLikes(postId : Int) : Result<Likes>{
+    override suspend fun showLikes(postId : Int) : Result<Likes> {
         return try {
             val response = apiService.getLikes(postId)
             handleApiResponse(response)
@@ -27,7 +27,7 @@ class LikeRepository @Inject constructor(private val apiService: ApiService) {
         }
     }
 
-    suspend fun deleteLike(likeId : Int) : Result<Unit>{
+    override suspend fun deleteLike(likeId : Int) : Result<Unit> {
         return try {
             val response = apiService.deleteLike(likeId)
             handleApiResponse(response)

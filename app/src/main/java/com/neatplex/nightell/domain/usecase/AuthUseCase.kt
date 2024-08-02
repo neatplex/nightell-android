@@ -4,7 +4,7 @@ import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
-import com.neatplex.nightell.domain.repository.AuthRepository
+import com.neatplex.nightell.domain.repository.IAuthRepository
 import com.neatplex.nightell.utils.ITokenManager
 import com.neatplex.nightell.utils.IValidation
 import javax.inject.Inject
@@ -12,7 +12,7 @@ import com.neatplex.nightell.utils.Result
 
 
 class AuthUseCase @Inject constructor(
-    private val authRepository: AuthRepository,
+    private val authRepository: IAuthRepository,
     private val tokenManager: ITokenManager,
     private val validation: IValidation
 ) {
