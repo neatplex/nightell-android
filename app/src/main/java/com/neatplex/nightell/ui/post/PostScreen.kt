@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.TextField
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -490,51 +489,65 @@ fun PostDetails(
     }
 
     if (audioPath.isNotEmpty()) {
-        if (!isServiceRunning) {
-            LaunchedEffect(Unit) {
-                serviceManager.startMediaService()
-            }
-        }
+        var isAudioLoading by remember { mutableStateOf(true) }
+        var isAudioPrepared by remember { mutableStateOf(false) }
 
-        val isSame = postId.toString() == mediaViewModel.currentPostId
-
-        if (isSame) {
-            onAudioReadyChange(true)
-            BottomPlayerUI(
-                durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
-                playResourceProvider = {
-                    if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
-                },
-                progressProvider = {
-                    Pair(mediaViewModel.progress, mediaViewModel.progressString)
-                },
-                onUiEvent = mediaViewModel::onUIEvent,
-                enabled = isAudioReady
-            )
-        } else {
-            var totalDuration by remember { mutableStateOf(0L) }
+        LaunchedEffect(audioPath) {
             val mediaPlayer = MediaPlayer()
             try {
                 mediaPlayer.setDataSource(audioPath)
-                mediaPlayer.prepare()
-                totalDuration = mediaPlayer.duration.toLong()
-                onAudioReadyChange(true)
+                mediaPlayer.prepareAsync()
+                mediaPlayer.setOnPreparedListener {
+                    isAudioLoading = false
+                    isAudioPrepared = true
+                    onAudioReadyChange(true)
+                }
             } catch (e: IOException) {
                 e.printStackTrace()
+                isAudioLoading = false
+                onAudioReadyChange(false)
             }
-            totalDuration = mediaPlayer.duration.toLong()
-            if (isAudioReady) {
-                BottomPlayerUI(
-                    modifier = Modifier.fillMaxWidth(),
-                    durationString = formatTime(millis = totalDuration),
-                    playResourceProvider = { R.drawable.baseline_play_arrow_24 },
-                    progressProvider = { Pair(0f, "00:00") },
-                    onUiEvent = {
-                        mediaViewModel.loadData(audioPath, post.image?.path ?: "", post.title, postId.toString())
-                        mediaViewModel.onUIEvent(UIEvent.PlayPause)
-                    },
-                    enabled = isAudioReady
-                )
+        }
+
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (isAudioLoading) {
+                Text("Loading audio...")
+            }
+
+            if (isAudioPrepared) {
+                if (!isServiceRunning) {
+                    LaunchedEffect(Unit) {
+                        serviceManager.startMediaService()
+                    }
+                }
+
+                val isSame = postId.toString() == mediaViewModel.currentPostId
+
+                if (isSame) {
+                    BottomPlayerUI(
+                        durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
+                        playResourceProvider = {
+                            if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
+                        },
+                        progressProvider = {
+                            Pair(mediaViewModel.progress, mediaViewModel.progressString)
+                        },
+                        onUiEvent = mediaViewModel::onUIEvent,
+                        enabled = isAudioPrepared
+                    )
+                } else {
+                    BottomPlayerUI(
+                        modifier = Modifier.fillMaxWidth(),
+                        durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
+                        playResourceProvider = { R.drawable.baseline_play_arrow_24 },
+                        progressProvider = { Pair(0f, "00:00") },
+                        onUiEvent = {
+                            mediaViewModel.loadData(audioPath, post.image?.path ?: "", post.title, postId.toString())
+                            mediaViewModel.onUIEvent(UIEvent.PlayPause)
+                        },
+                        enabled = isAudioPrepared
+                    )
+                }
             }
         }
     }

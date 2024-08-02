@@ -25,7 +25,6 @@ fun BottomPlayerUI(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
             .background(Color.White),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
