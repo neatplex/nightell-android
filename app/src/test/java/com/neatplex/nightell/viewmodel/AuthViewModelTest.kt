@@ -4,16 +4,14 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.data.dto.LoginEmailRequest
-import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.domain.repository.AuthRepository
+import com.neatplex.nightell.domain.repository.IAuthRepository
 import com.neatplex.nightell.domain.usecase.AuthUseCase
 import com.neatplex.nightell.ui.auth.AuthViewModel
 import com.neatplex.nightell.utils.ITokenManager
 import com.neatplex.nightell.utils.IValidation
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.utils.Validation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -35,7 +33,7 @@ class AuthViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Mock
-    private lateinit var authRepository: AuthRepository
+    private lateinit var authRepository: IAuthRepository
 
     @Mock
     private lateinit var tokenManager: ITokenManager

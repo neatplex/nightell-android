@@ -9,7 +9,7 @@ import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
 import retrofit2.Response
-import com.neatplex.nightell.domain.repository.PostRepositoryImpl
+import com.neatplex.nightell.domain.repository.PostRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
@@ -20,15 +20,15 @@ import org.mockito.Mockito
 import org.mockito.Mockito.`when`
 
 @ExperimentalCoroutinesApi
-class PostRepositoryImplTest {
+class PostRepositoryTest {
 
     private lateinit var apiService: ApiService
-    private lateinit var postRepository: PostRepositoryImpl
+    private lateinit var postRepository: PostRepository
 
     @Before
     fun setUp() {
         apiService = Mockito.mock(ApiService::class.java)
-        postRepository = PostRepositoryImpl(apiService)
+        postRepository = PostRepository(apiService)
     }
 
     private val user = User("","","email@example.com",1, false,"username", "password", "username")

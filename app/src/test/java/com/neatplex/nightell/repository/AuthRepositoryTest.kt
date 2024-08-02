@@ -6,7 +6,7 @@ import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.domain.repository.AuthRepositoryImpl
+import com.neatplex.nightell.domain.repository.AuthRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import com.neatplex.nightell.utils.Result
@@ -19,16 +19,16 @@ import org.mockito.kotlin.whenever
 import retrofit2.Response
 
 @ExperimentalCoroutinesApi
-class AuthRepositoryImplTest {
+class AuthRepositoryTest {
 
     private lateinit var apiService: ApiService
-    private lateinit var authRepository: AuthRepositoryImpl
+    private lateinit var authRepository: AuthRepository
     private val user = User("","","email@example.com",1, false,"username", "password", "username")
 
     @Before
     fun setUp() {
         apiService = mock(ApiService::class.java)
-        authRepository = AuthRepositoryImpl(apiService)
+        authRepository = AuthRepository(apiService)
     }
 
     @Test

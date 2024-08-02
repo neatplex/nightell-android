@@ -2,9 +2,11 @@ package com.neatplex.nightell.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.domain.repository.IPostRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.ui.search.SearchViewModel
 import com.neatplex.nightell.utils.Result
@@ -38,6 +40,9 @@ class SearchViewModelTest {
     private lateinit var searchViewModel: SearchViewModel
 
     @Mock
+    private lateinit var postRepository: IPostRepository
+
+    @Mock
     private lateinit var postsObserver: Observer<List<Post>?>
 
     @Mock
@@ -47,7 +52,7 @@ class SearchViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        postUseCase = mock(PostUseCase::class.java)
+        postUseCase = PostUseCase(postRepository)
         searchViewModel = SearchViewModel(postUseCase)
     }
 
@@ -78,7 +83,7 @@ class SearchViewModelTest {
     @Test
     fun `test search success`() = runTest {
         val query = "test"
-        `when`(postUseCase.search(query, null)).thenReturn(Result.Success(posts))
+        `when`(postRepository.search(query, null)).thenReturn(Result.Success(PostCollection(posts)))
 
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)
@@ -94,7 +99,7 @@ class SearchViewModelTest {
     @Test
     fun `test search failure`() = runTest {
         val query = "test"
-        `when`(postUseCase.search(query, null)).thenReturn(Result.Failure("Error", null))
+        `when`(postRepository.search(query, null)).thenReturn(Result.Failure("Error", null))
 
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)
@@ -121,7 +126,7 @@ class SearchViewModelTest {
     fun `test search with same query and canLoadMore true`() = runTest {
         val query = "test"
         searchViewModel.canLoadMore = true
-        `when`(postUseCase.search(query, null)).thenReturn(Result.Success(posts))
+        `when`(postRepository.search(query, null)).thenReturn(Result.Success(PostCollection(posts)))
 
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)
@@ -136,7 +141,7 @@ class SearchViewModelTest {
     @Test
     fun `test search with different query`() = runTest {
         val query = "test"
-        `when`(postUseCase.search(query, null)).thenReturn(Result.Success(posts))
+        `when`(postRepository.search(query, null)).thenReturn(Result.Success(PostCollection(posts)))
 
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)

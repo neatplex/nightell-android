@@ -2,12 +2,16 @@ package com.neatplex.nightell.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.domain.repository.FollowRepository
+import com.neatplex.nightell.domain.repository.IFollowRepository
+import com.neatplex.nightell.domain.repository.IPostRepository
+import com.neatplex.nightell.domain.repository.IProfileRepository
+import com.neatplex.nightell.domain.usecase.FollowUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.ProfileUseCase
 import com.neatplex.nightell.ui.user.UserViewModel
@@ -38,12 +42,16 @@ class UserViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Mock
-    private lateinit var followRepository: FollowRepository
+    private lateinit var followRepository: IFollowRepository
 
     @Mock
+    private lateinit var profileRepository: IProfileRepository
+
+    @Mock
+    private lateinit var postRepository: IPostRepository
+
+    private lateinit var followUseCase: FollowUseCase
     private lateinit var profileUseCase: ProfileUseCase
-
-    @Mock
     private lateinit var postUseCase: PostUseCase
 
     @Mock
@@ -90,7 +98,10 @@ class UserViewModelTest {
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        userViewModel = UserViewModel(followRepository, profileUseCase, postUseCase)
+        followUseCase = FollowUseCase(followRepository)
+        profileUseCase = ProfileUseCase(profileRepository)
+        postUseCase = PostUseCase(postRepository)
+        userViewModel = UserViewModel(followUseCase, profileUseCase, postUseCase)
     }
 
     @After
@@ -102,7 +113,7 @@ class UserViewModelTest {
     fun `test get user info success`() = runTest {
 
         val showUserInfoResponse = Result.Success(profile)
-        `when`(profileUseCase.getUserProfile(1)).thenReturn(showUserInfoResponse)
+        `when`(profileRepository.showUserProfile(1)).thenReturn(showUserInfoResponse)
 
         userViewModel.showUserInfoResult.observeForever(showUserInfoObserver)
         userViewModel.isLoading.observeForever(isLoadingObserver)
@@ -118,7 +129,7 @@ class UserViewModelTest {
     fun `test get user info failure`() = runTest {
 
         val showUserInfoResponse = Result.Failure("Network Error")
-        `when`(profileUseCase.getUserProfile(1)).thenReturn(showUserInfoResponse)
+        `when`(profileRepository.showUserProfile(1)).thenReturn(showUserInfoResponse)
 
         userViewModel.showUserInfoResult.observeForever(showUserInfoObserver)
         userViewModel.isLoading.observeForever(isLoadingObserver)
@@ -205,9 +216,9 @@ class UserViewModelTest {
         val userId = 1
         val lastPostId = null
         val posts = listOf(mockPost)
-        val result = Result.Success(posts)
+        val result = Result.Success(PostCollection(posts))
 
-        `when`(postUseCase.loadUserPosts(userId, lastPostId)).thenReturn(result)
+        `when`(postRepository.showUserPosts(userId, lastPostId)).thenReturn(result)
 
         userViewModel.postList.observeForever(postListObserver)
         userViewModel.isLoading.observeForever(isLoadingObserver)
@@ -225,7 +236,7 @@ class UserViewModelTest {
         val lastPostId = null
         val result = Result.Failure("Failed to load posts")
 
-        `when`(postUseCase.loadUserPosts(userId, lastPostId)).thenReturn(result)
+        `when`(postRepository.showUserPosts(userId, lastPostId)).thenReturn(result)
 
         userViewModel.postList.observeForever(postListObserver)
         userViewModel.isLoading.observeForever(isLoadingObserver)

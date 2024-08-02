@@ -5,12 +5,14 @@ import androidx.lifecycle.Observer
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.dto.StoreLike
-import com.neatplex.nightell.data.network.ConnectivityObserver
 import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Like
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.domain.repository.ILikeRepository
 import com.neatplex.nightell.domain.repository.LikeRepository
+import com.neatplex.nightell.domain.repository.IPostRepository
+import com.neatplex.nightell.domain.usecase.LikeUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.post.PostViewModel
@@ -35,15 +37,15 @@ class PostViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     @Mock
-    private lateinit var postUseCase: PostUseCase
+    private lateinit var likeRepository: ILikeRepository
 
     @Mock
-    private lateinit var likeRepository: LikeRepository
+    private lateinit var postRepository: IPostRepository
 
-    @Mock
-    private lateinit var connectivityObserver: ConnectivityObserver
 
     private lateinit var postViewModel: PostViewModel
+    private lateinit var likeUseCase: LikeUseCase
+    private lateinit var postUseCase: PostUseCase
 
     @Mock
     private lateinit var postDetailObserver: Observer<Result<PostDetailResponse?>>
@@ -66,11 +68,16 @@ class PostViewModelTest {
     @Mock
     private lateinit var isLoadingObserver: Observer<Boolean>
 
+    @Mock
+    private lateinit var isFetchingObserver: Observer<Boolean>
+
     @Before
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        postViewModel = PostViewModel(postUseCase, likeRepository, connectivityObserver)
+        likeUseCase = LikeUseCase(likeRepository)
+        postUseCase = PostUseCase(postRepository)
+        postViewModel = PostViewModel(postUseCase, likeUseCase)
     }
 
     @After
@@ -99,36 +106,36 @@ class PostViewModelTest {
     @Test
     fun `test getPostDetail success`() = runTest {
         val postDetailResponse = PostDetailResponse(mockPost)
-        `when`(postUseCase.getPostDetail(1)).thenReturn(Result.Success(postDetailResponse))
+        `when`(postRepository.getPostById(1)).thenReturn(Result.Success(postDetailResponse))
 
         postViewModel.postDetailResult.observeForever(postDetailObserver)
-        postViewModel.isLoading.observeForever(isLoadingObserver)
+        postViewModel.isFetching.observeForever(isFetchingObserver)
 
         postViewModel.getPostDetail(1)
 
-        verify(isLoadingObserver).onChanged(true)
+        verify(isFetchingObserver).onChanged(true)
         verify(postDetailObserver).onChanged(Result.Success(postDetailResponse))
-        verify(isLoadingObserver).onChanged(false)
+        verify(isFetchingObserver).onChanged(false)
     }
 
     @Test
     fun `test getPostDetail failure`() = runTest {
-        `when`(postUseCase.getPostDetail(1)).thenReturn(Result.Failure("Error", null))
+        `when`(postRepository.getPostById(1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.postDetailResult.observeForever(postDetailObserver)
-        postViewModel.isLoading.observeForever(isLoadingObserver)
+        postViewModel.isFetching.observeForever(isFetchingObserver)
 
         postViewModel.getPostDetail(1)
 
-        verify(isLoadingObserver).onChanged(true)
+        verify(isFetchingObserver).onChanged(true)
         verify(postDetailObserver).onChanged(Result.Failure("Error", null))
-        verify(isLoadingObserver).onChanged(false)
+        verify(isFetchingObserver).onChanged(false)
     }
 
     @Test
     fun `test updatePost success`() = runTest {
         val postDetailResponse = PostDetailResponse(mockPost)
-        `when`(postUseCase.editPost(1, "title", "description")).thenReturn(Result.Success(postDetailResponse))
+        `when`(postRepository.editPost("title", "description",1)).thenReturn(Result.Success(postDetailResponse))
 
         postViewModel.postUpdateResult.observeForever(postUpdateObserver)
         postViewModel.isLoading.observeForever(isLoadingObserver)
@@ -142,7 +149,7 @@ class PostViewModelTest {
 
     @Test
     fun `test updatePost failure`() = runTest {
-        `when`(postUseCase.editPost(1, "title", "description")).thenReturn(Result.Failure("Error", null))
+        `when`(postRepository.editPost("title", "description", 1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.postUpdateResult.observeForever(postUpdateObserver)
         postViewModel.isLoading.observeForever(isLoadingObserver)
@@ -156,7 +163,7 @@ class PostViewModelTest {
 
     @Test
     fun `test deletePost success`() = runTest {
-        `when`(postUseCase.deletePost(1)).thenReturn(Result.Success(Unit))
+        `when`(postRepository.deletePost(1)).thenReturn(Result.Success(Unit))
 
         postViewModel.postDeleteResult.observeForever(postDeleteObserver)
         postViewModel.isLoading.observeForever(isLoadingObserver)
@@ -170,7 +177,7 @@ class PostViewModelTest {
 
     @Test
     fun `test deletePost failure`() = runTest {
-        `when`(postUseCase.deletePost(1)).thenReturn(Result.Failure("Error", null))
+        `when`(postRepository.deletePost(1)).thenReturn(Result.Failure("Error", null))
 
         postViewModel.postDeleteResult.observeForever(postDeleteObserver)
         postViewModel.isLoading.observeForever(isLoadingObserver)

@@ -2,14 +2,19 @@ package com.neatplex.nightell.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.domain.repository.IPostRepository
+import com.neatplex.nightell.domain.repository.IProfileRepository
+import com.neatplex.nightell.domain.repository.ProfileRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.ProfileUseCase
 import com.neatplex.nightell.ui.profile.ProfileViewModel
+import com.neatplex.nightell.utils.IValidation
 import com.neatplex.nightell.utils.Validation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -38,17 +43,19 @@ class ProfileViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    @Mock
     private lateinit var profileUseCase: ProfileUseCase
-
-    @Mock
     private lateinit var postUseCase: PostUseCase
+    private lateinit var profileViewModel: ProfileViewModel
 
     @Mock
-    private lateinit var validation: Validation
+    private lateinit var validation: IValidation
 
-    @InjectMocks
-    private lateinit var profileViewModel: ProfileViewModel
+    @Mock
+    private lateinit var profileRepository: IProfileRepository
+
+    @Mock
+    private lateinit var postRepository: IPostRepository
+
 
     @Mock
     private lateinit var profileObserver: Observer<Result<Profile>>
@@ -69,6 +76,8 @@ class ProfileViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
+        profileUseCase = ProfileUseCase(profileRepository)
+        postUseCase = PostUseCase(postRepository)
         profileViewModel = ProfileViewModel(profileUseCase, postUseCase, validation)
     }
 
@@ -111,7 +120,7 @@ class ProfileViewModelTest {
     fun `test fetchProfile success`() = runTest {
         val user = createUser()
         val profile = Profile(followers_count = 100, followings_count = 200, user = user)
-        whenever(profileUseCase.profile()).thenReturn(Result.Success(profile))
+        whenever(profileRepository.fetchProfile()).thenReturn(Result.Success(profile))
 
         profileViewModel.profileData.observeForever(profileObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -125,7 +134,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `test fetchProfile failure`() = runTest {
-        whenever(profileUseCase.profile()).thenReturn(Result.Failure("Error", null))
+        whenever(profileRepository.fetchProfile()).thenReturn(Result.Failure("Error", null))
 
         profileViewModel.profileData.observeForever(profileObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -141,7 +150,7 @@ class ProfileViewModelTest {
     fun `test updateProfileName success`() = runTest {
         val user = createUser()
         val userUpdated = UserUpdated(user)
-        whenever(profileUseCase.changeProfileName(any())).thenReturn(Result.Success(userUpdated))
+        whenever(profileRepository.changeProfileName(any())).thenReturn(Result.Success(userUpdated))
 
         profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -155,7 +164,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `test updateProfileName failure`() = runTest {
-        whenever(profileUseCase.changeProfileName(any())).thenReturn(Result.Failure("Error", null))
+        whenever(profileRepository.changeProfileName(any())).thenReturn(Result.Failure("Error", null))
 
         profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -181,7 +190,7 @@ class ProfileViewModelTest {
     fun `test updateBioOfUser success`() = runTest {
         val user = createUser()
         val userUpdated = UserUpdated(user)
-        whenever(profileUseCase.changeProfileBio(any())).thenReturn(Result.Success(userUpdated))
+        whenever(profileRepository.changeProfileBio(any())).thenReturn(Result.Success(userUpdated))
 
         profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -195,7 +204,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `test updateBioOfUser failure`() = runTest {
-        whenever(profileUseCase.changeProfileBio(any())).thenReturn(Result.Failure("Error", null))
+        whenever(profileRepository.changeProfileBio(any())).thenReturn(Result.Failure("Error", null))
 
         profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -211,7 +220,7 @@ class ProfileViewModelTest {
     fun `test updateUsernameOfUser success`() = runTest {
         val user = createUser()
         val userUpdated = UserUpdated(user)
-        whenever(profileUseCase.changeProfileUsername(any())).thenReturn(Result.Success(userUpdated))
+        whenever(profileRepository.changeProfileUsername(any())).thenReturn(Result.Success(userUpdated))
 
         profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -225,7 +234,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `test updateUsernameOfUser failure`() = runTest {
-        whenever(profileUseCase.changeProfileUsername(any())).thenReturn(Result.Failure("Error", null))
+        whenever(profileRepository.changeProfileUsername(any())).thenReturn(Result.Failure("Error", null))
 
         profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -240,7 +249,7 @@ class ProfileViewModelTest {
     @Test
     fun `test loadPosts success`() = runTest {
         val posts = listOf(mockPost)
-        whenever(postUseCase.loadUserPosts(1,null)).thenReturn(Result.Success(posts))
+        whenever(postRepository.showUserPosts(1,null)).thenReturn(Result.Success(PostCollection(posts)))
 
         profileViewModel.posts.observeForever(postsObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -255,7 +264,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `test loadPosts failure`() = runTest {
-        whenever(postUseCase.loadUserPosts(any(), any())).thenReturn(Result.Failure("Error", null))
+        whenever(postRepository.showUserPosts(any(), any())).thenReturn(Result.Failure("Error", null))
 
         profileViewModel.posts.observeForever(postsObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -269,7 +278,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `test deleteAccount success`() = runTest {
-        whenever(profileUseCase.deleteAccount()).thenReturn(Result.Success(Unit))
+        whenever(profileRepository.deleteAccount()).thenReturn(Result.Success(Unit))
 
         profileViewModel.accountDeleteResult.observeForever(accountDeleteObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
@@ -283,7 +292,7 @@ class ProfileViewModelTest {
 
     @Test
     fun `test deleteAccount failure`() = runTest {
-        whenever(profileUseCase.deleteAccount()).thenReturn(Result.Failure("Error", null))
+        whenever(profileRepository.deleteAccount()).thenReturn(Result.Failure("Error", null))
 
         profileViewModel.accountDeleteResult.observeForever(accountDeleteObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)

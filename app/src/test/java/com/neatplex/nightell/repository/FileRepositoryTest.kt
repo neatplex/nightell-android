@@ -7,20 +7,22 @@ import com.neatplex.nightell.domain.repository.FileRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import com.neatplex.nightell.utils.Result
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import org.junit.Test
 import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
 import retrofit2.Response
-import java.io.File
 
 @ExperimentalCoroutinesApi
 class FileRepositoryTest {
 
     private val apiService: ApiService = mock(ApiService::class.java)
     private val fileRepository = FileRepository(apiService)
-    private val file = File("test.txt")
+    val mockFile = MultipartBody.Part.createFormData("file", "test.txt")
+    val mockExtension = RequestBody.create(null, "txt")
 
     @Test
     fun `uploadFile should return failure on exception`() = runTest {
@@ -28,7 +30,7 @@ class FileRepositoryTest {
         `when`(apiService.uploadFile(any(), any())).thenThrow(RuntimeException("Network error"))
 
         // Act
-        val result = fileRepository.uploadFile(file, "txt")
+        val result = fileRepository.uploadFile(mockFile, mockExtension)
 
         // Assert
         assert(result is Result.Failure)
@@ -47,7 +49,7 @@ class FileRepositoryTest {
         `when`(apiService.uploadFile(any(), any())).thenReturn(response)
 
         // Act
-        val result = fileRepository.uploadFile(file, "txt")
+        val result = fileRepository.uploadFile(mockFile, mockExtension)
 
         // Assert
         assert(result is Result.Success)
