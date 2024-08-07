@@ -26,7 +26,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -61,8 +60,7 @@ import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSimpleButton
-import com.neatplex.nightell.component.media.BottomPlayerUI
-import com.neatplex.nightell.component.media.formatTime
+import com.neatplex.nightell.component.media.AudioPlayer
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.PostEntity
 import com.neatplex.nightell.service.ServiceManager
@@ -228,6 +226,7 @@ fun PostContent(
                 isLiked = true
                 likeId = it.data!!.like.id
                 icon = Icons.Filled.Favorite
+                likesCountNew++
             } else {
                 isLiked = false
             }
@@ -239,6 +238,7 @@ fun PostContent(
             if (it is Result.Success) {
                 isLiked = false
                 icon = Icons.Filled.FavoriteBorder
+                likesCountNew--
                 likeId = null
             } else {
                 isLiked = true
@@ -260,7 +260,9 @@ fun PostContent(
                 )
             },
             content = { space ->
-                Box(modifier = Modifier.padding(space)) {
+                Box(modifier = Modifier
+                    .padding(space)
+                    .verticalScroll(rememberScrollState())) {
                     Column(modifier = Modifier.fillMaxSize()) {
                         PostImage(post)
                         PostDetails(
@@ -273,14 +275,14 @@ fun PostContent(
                             icon = icon,
                             onLikeClick = {
                                 if (!isLiked) {
-                                    if (likesCountNew <= likesCount) {
-                                        likesCountNew++
-                                    }
+//                                    if (likesCountNew <= likesCount) {
+//                                        //likesCountNew++
+//                                    }
                                     postViewModel.like(post.id)
                                 } else {
-                                    if (likesCountNew >= 1) {
-                                        likesCountNew--
-                                    }
+//                                    if (likesCountNew >= 1) {
+//                                        //likesCountNew--
+//                                    }
                                     likeId?.let { id ->
                                         postViewModel.deleteLike(id)
                                     }
@@ -524,7 +526,7 @@ fun PostDetails(
                 val isSame = postId.toString() == mediaViewModel.currentPostId
 
                 if (isSame) {
-                    BottomPlayerUI(
+                    AudioPlayer(
                         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
                         playResourceProvider = {
                             if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
@@ -536,7 +538,7 @@ fun PostDetails(
                         enabled = isAudioPrepared
                     )
                 } else {
-                    BottomPlayerUI(
+                    AudioPlayer(
                         modifier = Modifier.fillMaxWidth(),
                         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
                         playResourceProvider = { R.drawable.baseline_play_arrow_24 },
@@ -565,7 +567,6 @@ fun PostDescription(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         if (isEditing) {
