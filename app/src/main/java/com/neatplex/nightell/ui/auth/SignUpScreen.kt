@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.TextFieldWithValidation
 import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
@@ -57,6 +58,8 @@ fun SignUpScreen(
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
+    val isLoading by authViewModel.isLoading.observeAsState(false)
+
 
     SignUpContent(
         authViewModel = authViewModel,
@@ -78,9 +81,11 @@ fun SignUpScreen(
                 popUpTo(0) { inclusive = true }
             }
         }
+        ,
+        iSignUpInProgress = isLoading
     )
     // Handle authentication result
-    authResultState?.let { AuthResult(it, navController) }
+    authResultState?.let { AuthResult(it, navController,isLoading) }
 }
 
 @Composable
@@ -95,11 +100,17 @@ fun SignUpContent(
     onPasswordChange: (String) -> Unit,
     onPasswordVisibilityChange: (Boolean) -> Unit,
     onSignUpClick: () -> Unit,
-    onSignInClick: () -> Unit
+    onSignInClick: () -> Unit,
+    iSignUpInProgress : Boolean
 ) {
     Box(modifier = Modifier
         .fillMaxSize()
         .background(brush = myLinearGradiant())) {
+
+        if (iSignUpInProgress) {
+            CustomCircularProgressIndicator()
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()

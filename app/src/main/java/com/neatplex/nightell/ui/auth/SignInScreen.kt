@@ -18,7 +18,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,7 +47,6 @@ import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.navigation.Screens
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
-import kotlinx.coroutines.delay
 
 @Composable
 fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
@@ -101,10 +99,10 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
         onSignUpClick = {
             navController.navigate("SignUp")
         },
-        isGoogleSignInInProgress = isLoading
+        iSignInInProgress = isLoading
     )
     // Handle authentication result
-    authResultState?.let { AuthResult(it, navController) }
+    authResultState?.let { AuthResult(it, navController,isLoading) }
 }
 
 @Composable
@@ -118,13 +116,15 @@ fun SignInContent(
     onSignInClick: () -> Unit,
     onGoogleSignInClick: () -> Unit,
     onSignUpClick: () -> Unit,
-    isGoogleSignInInProgress: Boolean
+    iSignInInProgress: Boolean
 ) {
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(brush = myLinearGradiant())) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(brush = myLinearGradiant())
+    ) {
 
-        if (isGoogleSignInInProgress) {
+        if (iSignInInProgress) {
             CustomCircularProgressIndicator()
         }
 
@@ -189,22 +189,29 @@ fun SignInContent(
 }
 
 @Composable
-fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavController) {
+fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavController, isLoading: Boolean) {
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    LaunchedEffect(authResultState) {
-        if (authResultState is Result.Failure) {
+    if(isLoading) {
+        showError = false
+    }
+
+    when (authResultState) {
+        is Result.Failure -> {
             showError = true
-            errorMessage = if (authResultState.code == 401) {
-                "Your username or password is incorrect."
-            } else if(authResultState.code == 422) {
-                authResultState.message
-            } else {
-                "Something went wrong! Please try again"
+            errorMessage = when (authResultState.code) {
+                401 -> "Your username or password is incorrect."
+                422 -> authResultState.message
+                else -> "Something went wrong! Please try again."
             }
-            delay(5000) // Show error for 5 seconds
-            showError = false
+        }
+
+        is Result.Success -> {
+            authResultState.data?.let {
+                navController.popBackStack()
+                navController.navigate(Screens.Home.route)
+            }
         }
     }
 
@@ -219,16 +226,6 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
                 text = errorMessage
             )
         }
-    }
-
-    when (authResultState) {
-        is Result.Success -> {
-            authResultState.data?.let {
-                navController.popBackStack()
-                navController.navigate(Screens.Home.route)
-            }
-        }
-        else -> {}
     }
 }
 
