@@ -108,9 +108,9 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier
                         .padding(space)
-                        .pullRefresh(refreshState)
                 ) {
                     if (user == null) {
+                        profileViewModel.fetchProfile()
                         Text(text = "Check your internet connection quality and go to home screen!",
                             modifier = Modifier.padding(16.dp))
                     } else {

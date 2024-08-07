@@ -65,10 +65,7 @@ class ProfileViewModel @Inject constructor(
 
     fun refreshProfile(userId : Int) {
         canLoadMore = true
-        _posts.value = emptyList()
-        loadPosts(userId , null)
-        fetchProfile()
-    }
+        _posts.value = emptyList() }
 
     fun updateBioOfUser(bio: String){
         viewModelScope.launch {
