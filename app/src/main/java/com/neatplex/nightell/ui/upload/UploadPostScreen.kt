@@ -115,7 +115,7 @@ fun AddPostScreen(
                 val (fileName, mainUri) = getFileNameAndUri(context, imageUri)
                 selectedImage = mainUri
                 val fileExtension = fileName?.substringAfterLast('.', "")
-                val fileSize = getFileSize(context, selectedAudio!!)
+                val fileSize = getFileSize(context, selectedImage!!)
                 val file = uriToFile(context, selectedImage!!)
                 if (fileExtension.equals("jpg", ignoreCase = true) ||
                     fileExtension.equals("jpeg", ignoreCase = true)
@@ -124,7 +124,7 @@ fun AddPostScreen(
                         selectedImageName = fileName!!
                         uploadViewModel.uploadFile(file!!, "JPG")
                     } else {
-                        errorMessage = "Audio file must be less than 2MB!"
+                        errorMessage = "Image file must be less than 2MB!"
                     }
                 } else {
                     errorMessage = "Only .jpg type is allowed for post image!"
@@ -271,7 +271,7 @@ fun AddPostScreen(
                         ) {
                             Icon(
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(32.dp)
                                     .padding(end = 8.dp),
                                 tint = colorResource(id = R.color.night),
                                 painter = painterResource(id = R.drawable.baseline_audio_file_48),
@@ -289,7 +289,7 @@ fun AddPostScreen(
                         ) {
                             Icon(
                                 modifier = Modifier
-                                    .size(40.dp)
+                                    .size(32.dp)
                                     .padding(end = 8.dp),
                                 tint = colorResource(id = R.color.night),
                                 painter = painterResource(id = R.drawable.baseline_image_48),
