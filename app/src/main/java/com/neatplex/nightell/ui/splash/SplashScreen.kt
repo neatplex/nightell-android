@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
@@ -27,49 +28,61 @@ import kotlinx.coroutines.delay
 
 @SuppressLint("ResourceAsColor")
 @Composable
-fun SplashScreen(navController: NavController, hasToken: Boolean) {
-
+fun SplashScreen(
+    navController: NavController,
+    hasToken: Boolean,
+    animationDurationMillis: Int = 3000,
+    gradientColors: List<Color> = listOf(Color(0xFF4Da1aB), Color(0xFF2D436C), Color(0xFFDA03BD))
+) {
     val infiniteTransition = rememberInfiniteTransition()
-
-    // Animate the offset for the gradient
     val offsetX by infiniteTransition.animateFloat(
         initialValue = 1.5f,
         targetValue = 2f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3000, easing = FastOutSlowInEasing),
+            animation = tween(durationMillis = animationDurationMillis, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
-        ), label = "gradiant animation"
+        )
     )
 
-    val colors = listOf(Color(0xFF4Da1aB), Color(0xFF2D436C), Color(0xFFDA03BD))
-
-    // Create the gradient brush
     val gradientBrush = Brush.linearGradient(
-        colors = colors,
-        start = androidx.compose.ui.geometry.Offset(100f, 100f),
-        end = androidx.compose.ui.geometry.Offset(1000f * offsetX, 1000f * offsetX)
+        colors = gradientColors,
+        start = Offset(100f, 100f),
+        end = Offset(1000f * offsetX, 1000f * offsetX)
     )
 
-    // Draw the canvas with the animated gradient
+    SplashScreenBackground(gradientBrush)
+    SplashScreenContent()
+
+    HandleSplashScreenNavigation(navController, hasToken)
+}
+
+@Composable
+fun SplashScreenBackground(gradientBrush: Brush) {
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawRect(brush = gradientBrush)
     }
+}
 
+@Composable
+fun SplashScreenContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Nightell",
+            fontFamily = feelFree,
+            fontSize = 85.sp,
+            color = Color.White
+        )
+    }
+}
+
+@Composable
+fun HandleSplashScreenNavigation(navController: NavController, hasToken: Boolean) {
     LaunchedEffect(key1 = true) {
-        // Simulate a delay for checking token (you can replace this with your actual token check logic)
         delay(3000)
-
-        // Remove the splash screen from the back stack
         navController.popBackStack()
         navController.navigate(if (hasToken) Screens.Home.route else Routes.SIGN_IN)
-    }
-
-     //Splash screen UI
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-            contentAlignment = Alignment.Center
-    ) {
-        Text(text = "Nightell", fontFamily = feelFree, fontSize = 85.sp, color = Color.White)
     }
 }
