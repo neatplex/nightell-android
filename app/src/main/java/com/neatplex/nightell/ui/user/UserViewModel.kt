@@ -84,7 +84,7 @@ class UserViewModel @Inject constructor(
     }
 
     fun loadPosts(userId : Int, lastPostId: Int?){
-        if (!canLoadMore || _isLoading.value == true) return
+        if (!canLoadMore) return
 
         viewModelScope.launch {
             _isLoading.value = true

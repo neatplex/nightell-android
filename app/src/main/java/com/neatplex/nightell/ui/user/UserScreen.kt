@@ -74,8 +74,6 @@ fun UserScreen(
     var isFollowed by remember { mutableStateOf(false) }
     var lastPostId by remember { mutableStateOf<Int?>(null) }
 
-
-
     LaunchedEffect(Unit) {
         userViewModel.fetchUserFollowings(myId)
     }
@@ -85,7 +83,6 @@ fun UserScreen(
             followings = result.data?.users.orEmpty()
             isFollowed = followings.any { it.id == user.id }
             userViewModel.getUserInfo(user.id)
-            userViewModel.loadPosts(user.id, lastPostId)
         }
 
         else -> {
@@ -129,7 +126,8 @@ fun UserScreen(
                             val user = result.data!!.user
                             val followers = result.data.followers_count
                             val followings = result.data.followings_count
-
+                            userViewModel.loadPosts(user.id, lastPostId)
+                            // Display the profile
                             ShowProfile(
                                 navController,
                                 user,
@@ -151,7 +149,6 @@ fun UserScreen(
                         }
 
                         else -> {}
-
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     LazyVerticalGrid(
@@ -167,7 +164,7 @@ fun UserScreen(
                                     "postScreen/${postId}"
                                 )
                             }
-                            if (index == posts.size - 1 && !isLoading && userViewModel.canLoadMore) {
+                            if (index == posts.size - 1 && userViewModel.canLoadMore) {
                                 lastPostId = post.id
                                 userViewModel.loadPosts(user.id, lastPostId)
                             }
