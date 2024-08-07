@@ -11,7 +11,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract  class AppModule {
+abstract class AppModule {
     @Binds
     abstract fun bindTokenManager(tokenManager: TokenManager): ITokenManager
 
