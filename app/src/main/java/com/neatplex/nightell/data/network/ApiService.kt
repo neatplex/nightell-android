@@ -127,5 +127,4 @@ interface ApiService {
     // Unfollow
     @DELETE("users/{user_id}/followings/{friend_id}")
     suspend fun unfollow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Unit>
-
 }

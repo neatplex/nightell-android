@@ -37,7 +37,6 @@ fun BottomNavHost(
     mediaViewModel : MediaViewModel,
     serviceManager: ServiceManager
 ) {
-
     val tokenState by tokenManager.tokenState.collectAsState()
     val sharedViewModel : SharedViewModel = hiltViewModel()
 
