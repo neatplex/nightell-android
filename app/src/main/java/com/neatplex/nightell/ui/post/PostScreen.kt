@@ -122,6 +122,7 @@ fun PostScreen(
                 navController = navController,
                 sharedViewModel = sharedViewModel,
                 post = post!!,
+                postViewModel = postViewModel,
                 postId = postId,
                 mediaViewModel = mediaViewModel,
                 serviceManager = serviceManager,
@@ -175,6 +176,7 @@ fun PostContent(
     navController: NavController,
     sharedViewModel: SharedViewModel,
     post: Post,
+    postViewModel: PostViewModel,
     postId: Int,
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
@@ -185,7 +187,6 @@ fun PostContent(
     onEditingChange: (Boolean) -> Unit
 ) {
     val userId = sharedViewModel.user.value?.id ?: return
-    val postViewModel: PostViewModel = hiltViewModel()
     val databaseViewModel: DatabaseViewModel = hiltViewModel()
     val menuExpanded = remember { mutableStateOf(false) }
     var isLiked by remember { mutableStateOf(false) }
@@ -212,10 +213,10 @@ fun PostContent(
             if (result is Result.Success) {
                 val likes = result.data?.likes.orEmpty()
                 likesCount = likes.size
-                likesCountNew = likesCount
                 isLiked = likes.any { it.user_id == userId }
                 icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
                 likeId = likes.find { it.user_id == userId }?.id
+                likesCountNew = likesCount
             }
         }
     }
@@ -225,9 +226,10 @@ fun PostContent(
             if (it is Result.Success) {
                 isLiked = true
                 likeId = it.data!!.like.id
+                // Ensure UI is updated
                 icon = Icons.Filled.Favorite
-                likesCountNew++
             } else {
+                // Handle error
                 isLiked = false
             }
         }
@@ -237,10 +239,11 @@ fun PostContent(
         unlikeResult?.let {
             if (it is Result.Success) {
                 isLiked = false
-                icon = Icons.Filled.FavoriteBorder
-                likesCountNew--
                 likeId = null
+                // Ensure UI is updated
+                icon = Icons.Filled.FavoriteBorder
             } else {
+                // Handle error
                 isLiked = true
             }
         }
@@ -274,18 +277,20 @@ fun PostContent(
                             isLiked = isLiked,
                             icon = icon,
                             onLikeClick = {
-                                if (!isLiked) {
-//                                    if (likesCountNew <= likesCount) {
-//                                        //likesCountNew++
-//                                    }
-                                    postViewModel.like(post.id)
-                                } else {
-//                                    if (likesCountNew >= 1) {
-//                                        //likesCountNew--
-//                                    }
-                                    likeId?.let { id ->
-                                        postViewModel.deleteLike(id)
+                                if (isLiked) {
+                                    // Unlike the post
+                                    likeId?.let {
+                                        postViewModel.deleteLike(it)
+                                        isLiked = false
+                                        icon = Icons.Filled.FavoriteBorder
+                                        likesCountNew -= 1
                                     }
+                                } else {
+                                    // Like the post
+                                    postViewModel.like(post.id)
+                                    isLiked = true
+                                    icon = Icons.Filled.Favorite
+                                    likesCountNew += 1
                                 }
                             },
                             mediaViewModel = mediaViewModel,
@@ -512,6 +517,7 @@ fun PostDetails(
         }
 
         Column(modifier = Modifier.padding(16.dp)) {
+
             if (isAudioLoading) {
                 Text("Loading audio...")
             }
@@ -535,7 +541,6 @@ fun PostDetails(
                             Pair(mediaViewModel.progress, mediaViewModel.progressString)
                         },
                         onUiEvent = mediaViewModel::onUIEvent,
-                        enabled = isAudioPrepared
                     )
                 } else {
                     AudioPlayer(
@@ -546,8 +551,7 @@ fun PostDetails(
                         onUiEvent = {
                             mediaViewModel.loadData(audioPath, post.image?.path ?: "", post.title, postId.toString())
                             mediaViewModel.onUIEvent(UIEvent.PlayPause)
-                        },
-                        enabled = isAudioPrepared
+                        }
                     )
                 }
             }

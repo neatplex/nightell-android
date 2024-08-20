@@ -2,9 +2,10 @@ package com.neatplex.nightell.domain.repository
 
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
+import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.utils.Result
 
-interface IProfileRepository {
+interface IUserRepository {
     suspend fun showUserProfile(userId: Int): Result<Profile>
 
     suspend fun fetchProfile(): Result<Profile>
@@ -16,4 +17,6 @@ interface IProfileRepository {
     suspend fun changeProfileUsername(username: String): Result<UserUpdated>
 
     suspend fun deleteAccount(): Result<Unit>
+
+    suspend fun searchUser(query: String, lastId: Int?): Result<Users>
 }

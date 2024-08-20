@@ -9,13 +9,11 @@ import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.repository.IPostRepository
-import com.neatplex.nightell.domain.repository.IProfileRepository
-import com.neatplex.nightell.domain.repository.ProfileRepository
+import com.neatplex.nightell.domain.repository.IUserRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
-import com.neatplex.nightell.domain.usecase.ProfileUseCase
+import com.neatplex.nightell.domain.usecase.UserUseCase
 import com.neatplex.nightell.ui.profile.ProfileViewModel
 import com.neatplex.nightell.utils.IValidation
-import com.neatplex.nightell.utils.Validation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import com.neatplex.nightell.utils.Result
@@ -27,7 +25,6 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
 import org.mockito.kotlin.any
@@ -43,7 +40,7 @@ class ProfileViewModelTest {
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
-    private lateinit var profileUseCase: ProfileUseCase
+    private lateinit var userUseCase: UserUseCase
     private lateinit var postUseCase: PostUseCase
     private lateinit var profileViewModel: ProfileViewModel
 
@@ -51,7 +48,7 @@ class ProfileViewModelTest {
     private lateinit var validation: IValidation
 
     @Mock
-    private lateinit var profileRepository: IProfileRepository
+    private lateinit var profileRepository: IUserRepository
 
     @Mock
     private lateinit var postRepository: IPostRepository
@@ -76,9 +73,9 @@ class ProfileViewModelTest {
     fun setUp() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        profileUseCase = ProfileUseCase(profileRepository)
+        userUseCase = UserUseCase(profileRepository)
         postUseCase = PostUseCase(postRepository)
-        profileViewModel = ProfileViewModel(profileUseCase, postUseCase, validation)
+        profileViewModel = ProfileViewModel(userUseCase, postUseCase, validation)
     }
 
     @After

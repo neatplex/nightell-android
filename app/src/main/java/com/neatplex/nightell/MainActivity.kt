@@ -99,6 +99,13 @@ fun AppContent(
     scaffoldState: ScaffoldState,
     isOnline: Boolean,
 ) {
+
+    val isServiceRunning by mediaViewModel.isServiceRunning.collectAsState()
+
+    if (isServiceRunning) {
+
+    }
+
     AppTheme {
         val listItems = listOf(
             Screens.Home,

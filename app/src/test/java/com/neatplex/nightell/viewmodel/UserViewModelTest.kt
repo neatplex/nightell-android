@@ -10,10 +10,10 @@ import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.repository.IFollowRepository
 import com.neatplex.nightell.domain.repository.IPostRepository
-import com.neatplex.nightell.domain.repository.IProfileRepository
+import com.neatplex.nightell.domain.repository.IUserRepository
 import com.neatplex.nightell.domain.usecase.FollowUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
-import com.neatplex.nightell.domain.usecase.ProfileUseCase
+import com.neatplex.nightell.domain.usecase.UserUseCase
 import com.neatplex.nightell.ui.user.UserViewModel
 import kotlinx.coroutines.Dispatchers
 import com.neatplex.nightell.utils.Result
@@ -45,13 +45,13 @@ class UserViewModelTest {
     private lateinit var followRepository: IFollowRepository
 
     @Mock
-    private lateinit var profileRepository: IProfileRepository
+    private lateinit var profileRepository: IUserRepository
 
     @Mock
     private lateinit var postRepository: IPostRepository
 
     private lateinit var followUseCase: FollowUseCase
-    private lateinit var profileUseCase: ProfileUseCase
+    private lateinit var userUseCase: UserUseCase
     private lateinit var postUseCase: PostUseCase
 
     @Mock
@@ -99,9 +99,9 @@ class UserViewModelTest {
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         followUseCase = FollowUseCase(followRepository)
-        profileUseCase = ProfileUseCase(profileRepository)
+        userUseCase = UserUseCase(profileRepository)
         postUseCase = PostUseCase(postRepository)
-        userViewModel = UserViewModel(followUseCase, profileUseCase, postUseCase)
+        userViewModel = UserViewModel(followUseCase, userUseCase, postUseCase)
     }
 
     @After

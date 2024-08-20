@@ -7,7 +7,9 @@ import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.repository.IPostRepository
+import com.neatplex.nightell.domain.repository.IUserRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
+import com.neatplex.nightell.domain.usecase.UserUseCase
 import com.neatplex.nightell.ui.search.SearchViewModel
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.Dispatchers
@@ -21,7 +23,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.Mock
-import org.mockito.Mockito.mock
 import org.mockito.Mockito.never
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
@@ -37,10 +38,14 @@ class SearchViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
 
     private lateinit var postUseCase: PostUseCase
+    private lateinit var userUseCase: UserUseCase
     private lateinit var searchViewModel: SearchViewModel
 
     @Mock
     private lateinit var postRepository: IPostRepository
+
+    @Mock
+    private lateinit var userRepository: IUserRepository
 
     @Mock
     private lateinit var postsObserver: Observer<List<Post>?>
@@ -53,7 +58,8 @@ class SearchViewModelTest {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
         postUseCase = PostUseCase(postRepository)
-        searchViewModel = SearchViewModel(postUseCase)
+        userUseCase = UserUseCase(userRepository)
+        searchViewModel = SearchViewModel(postUseCase, userUseCase)
     }
 
     @After
@@ -88,7 +94,7 @@ class SearchViewModelTest {
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)
 
-        searchViewModel.search(query, null, false)
+        searchViewModel.searchPost(query, null, false)
 
         verify(isLoadingObserver).onChanged(true)
         verify(postsObserver).onChanged(emptyList())
@@ -104,7 +110,7 @@ class SearchViewModelTest {
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)
 
-        searchViewModel.search(query, null, false)
+        searchViewModel.searchPost(query, null, false)
 
         verify(isLoadingObserver).onChanged(true)
         verify(postsObserver).onChanged(emptyList())
@@ -114,9 +120,9 @@ class SearchViewModelTest {
     @Test
     fun `test search with same query and canLoadMore false`() = runTest {
         val query = "test"
-        searchViewModel.canLoadMore = false
+        searchViewModel.canLoadMorePost = false
 
-        searchViewModel.search(query, null, true)
+        searchViewModel.searchPost(query, null, true)
 
         verify(postsObserver, never()).onChanged(any())
         verify(isLoadingObserver, never()).onChanged(any())
@@ -125,13 +131,13 @@ class SearchViewModelTest {
     @Test
     fun `test search with same query and canLoadMore true`() = runTest {
         val query = "test"
-        searchViewModel.canLoadMore = true
+        searchViewModel.canLoadMorePost = true
         `when`(postRepository.search(query, null)).thenReturn(Result.Success(PostCollection(posts)))
 
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)
 
-        searchViewModel.search(query, null, true)
+        searchViewModel.searchPost(query, null, true)
 
         verify(isLoadingObserver).onChanged(true)
         verify(postsObserver).onChanged(posts)
@@ -146,7 +152,7 @@ class SearchViewModelTest {
         searchViewModel.posts.observeForever(postsObserver)
         searchViewModel.isLoading.observeForever(isLoadingObserver)
 
-        searchViewModel.search(query, null, false)
+        searchViewModel.searchPost(query, null, false)
 
         verify(isLoadingObserver).onChanged(true)
         verify(postsObserver).onChanged(emptyList())

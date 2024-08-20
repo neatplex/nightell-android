@@ -180,7 +180,6 @@ fun HomePosts(
             itemsIndexed(posts.drop(3)) { index, post ->
                 HomePostCard(post = post, isLoading = isLoading) { selectedPost ->
                     if (!isLoading) {
-                        sharedViewModel.setPost(selectedPost)
                         navController.navigate("postScreen/${post.id}")
                     }
                 }

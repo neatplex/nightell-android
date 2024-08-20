@@ -3,11 +3,12 @@ package com.neatplex.nightell.domain.repository
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.dto.UserUpdated
+import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.utils.handleApiResponse
 import javax.inject.Inject
 
-class ProfileRepository @Inject constructor(private val apiService: ApiService) : IProfileRepository {
+class UserRepository @Inject constructor(private val apiService: ApiService) : IUserRepository {
 
     override suspend fun fetchProfile(): Result<Profile> {
         return try {
@@ -63,6 +64,15 @@ class ProfileRepository @Inject constructor(private val apiService: ApiService) 
     override suspend fun deleteAccount(): Result<Unit> {
         return try {
             val response = apiService.deleteAccount()
+            handleApiResponse(response)
+        } catch (e: Exception) {
+            Result.Failure(e.message ?: "An error occurred")
+        }
+    }
+
+    override suspend fun searchUser(query: String, lastId: Int?): Result<Users> {
+        return try {
+            val response = apiService.searchUser(query, lastId)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")

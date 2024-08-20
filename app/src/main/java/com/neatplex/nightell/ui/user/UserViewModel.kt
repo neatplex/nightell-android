@@ -9,7 +9,7 @@ import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.usecase.FollowUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
-import com.neatplex.nightell.domain.usecase.ProfileUseCase
+import com.neatplex.nightell.domain.usecase.UserUseCase
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -18,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class UserViewModel @Inject constructor(
     private val followUseCase: FollowUseCase,
-    private val profileUseCase: ProfileUseCase,
+    private val userUseCase: UserUseCase,
     private val postUseCase: PostUseCase
 ) : ViewModel() {
 
@@ -32,7 +32,7 @@ class UserViewModel @Inject constructor(
     private val _unfollowResult = MutableLiveData<Result<Unit>>()
     val unfollowResult: LiveData<Result<Unit>> get() = _unfollowResult
 
-    private val _postList = MutableLiveData<List<Post>>()
+    private val _postList = MutableLiveData<List<Post>>(emptyList())
     val postList: LiveData<List<Post>> get() = _postList
 
     private val _isLoading = MutableLiveData<Boolean>()
@@ -46,7 +46,7 @@ class UserViewModel @Inject constructor(
     fun getUserInfo(userId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            _showUserInfoResult.value = profileUseCase.getUserProfile(userId)
+            _showUserInfoResult.value = userUseCase.getUserProfile(userId)
             _isLoading.value = false
         }
     }
@@ -84,7 +84,7 @@ class UserViewModel @Inject constructor(
     }
 
     fun loadPosts(userId : Int, lastPostId: Int?){
-        if (!canLoadMore) return
+        if (!canLoadMore || _isLoading.value == true) return
 
         viewModelScope.launch {
             _isLoading.value = true

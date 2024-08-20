@@ -8,14 +8,14 @@ import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.domain.usecase.PostUseCase
-import com.neatplex.nightell.domain.usecase.ProfileUseCase
+import com.neatplex.nightell.domain.usecase.UserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val postUseCase: PostUseCase, private val profileUseCase: ProfileUseCase
+    private val postUseCase: PostUseCase, private val userUseCase: UserUseCase
 ) : ViewModel() {
 
     private val _feed = MutableLiveData<List<Post>>(emptyList()) // Initialize with an empty list
@@ -61,7 +61,7 @@ class HomeViewModel @Inject constructor(
         fun fetchProfile() {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = profileUseCase.profile()
+            val result = userUseCase.profile()
             _profileData.value = result
             _isLoading.value = false
         }

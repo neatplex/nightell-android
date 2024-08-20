@@ -18,9 +18,9 @@ import com.neatplex.nightell.domain.repository.IFollowRepository
 import com.neatplex.nightell.domain.repository.ILikeRepository
 import com.neatplex.nightell.domain.repository.IPostRepository
 import com.neatplex.nightell.domain.repository.PostRepository
-import com.neatplex.nightell.domain.repository.IProfileRepository
+import com.neatplex.nightell.domain.repository.IUserRepository
 import com.neatplex.nightell.domain.repository.LikeRepository
-import com.neatplex.nightell.domain.repository.ProfileRepository
+import com.neatplex.nightell.domain.repository.UserRepository
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.TokenManager
 import dagger.Binds
@@ -55,7 +55,7 @@ abstract class NetworkModule {
     abstract fun bindPostRepository(postRepository: PostRepository): IPostRepository
 
     @Binds
-    abstract fun bindProfileRepository(profileRepositoryImpl: ProfileRepository): IProfileRepository
+    abstract fun bindProfileRepository(profileRepositoryImpl: UserRepository): IUserRepository
 
     @Binds
     abstract fun bindFileRepository(fileRepository: FileRepository): IFileRepository

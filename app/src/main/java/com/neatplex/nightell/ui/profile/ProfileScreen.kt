@@ -67,11 +67,6 @@ fun ProfileScreen(
     var lastPostId by remember { mutableStateOf<Int?>(null) }
     val isRefreshing by profileViewModel.isRefreshing.observeAsState(false)
 
-    val refreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = { profileViewModel.refreshProfile(user!!.id) }
-    )
-
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry
         ?.savedStateHandle
@@ -147,15 +142,14 @@ fun ProfileScreen(
                             ) {
                                 itemsIndexed(posts!!) { index, post ->
                                     ProfilePostCard(post = post, isLoading = isLoading) { selectedPost ->
-                                        sharedViewModel.setPost(selectedPost)
-                                        val postId = post.id
-                                        navController.navigate(
-                                            "postScreen/${postId}"
-                                        )
+                                        if (!isLoading) {
+                                            navController.navigate(
+                                                "postScreen/${post.id}"
+                                            )
+                                        }
                                     }
                                     if (index == posts!!.size - 1 && !isLoading && profileViewModel.canLoadMore) {
-                                        lastPostId = post.id
-                                        profileViewModel.loadPosts(user.id, lastPostId)
+                                        profileViewModel.loadPosts(user.id, post.id)
                                     }
                                 }
                                 if (isLoading) {

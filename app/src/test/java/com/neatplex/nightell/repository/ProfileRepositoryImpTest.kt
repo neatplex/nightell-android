@@ -4,7 +4,7 @@ import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.domain.repository.ProfileRepository
+import com.neatplex.nightell.domain.repository.UserRepository
 import com.neatplex.nightell.utils.Result
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertTrue
@@ -20,7 +20,7 @@ import retrofit2.Response
 class ProfileRepositoryImpTest {
 
     private lateinit var apiService : ApiService
-    private lateinit var profileRepository : ProfileRepository
+    private lateinit var profileRepository : UserRepository
 
     private fun createUser(): User {
         return User("","",
@@ -35,7 +35,7 @@ class ProfileRepositoryImpTest {
     @Before
     fun setup() {
         apiService = mock(ApiService::class.java)
-        profileRepository = ProfileRepository(apiService)
+        profileRepository = UserRepository(apiService)
     }
 
     @Test

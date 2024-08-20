@@ -6,20 +6,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.Profile
 import com.neatplex.nightell.data.dto.UserUpdated
-import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.usecase.PostUseCase
-import com.neatplex.nightell.domain.usecase.ProfileUseCase
+import com.neatplex.nightell.domain.usecase.UserUseCase
 import com.neatplex.nightell.utils.IValidation
 import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.utils.Validation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val profileUseCase: ProfileUseCase,
+    private val userUseCase: UserUseCase,
     private val postUseCase: PostUseCase,
     private val validation: IValidation
 ) : ViewModel() {
@@ -48,7 +46,7 @@ class ProfileViewModel @Inject constructor(
     fun fetchProfile() {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = profileUseCase.profile()
+            val result = userUseCase.profile()
             _profileData.value = result
             _isLoading.value = false
         }
@@ -57,7 +55,7 @@ class ProfileViewModel @Inject constructor(
     fun updateProfileName(name: String){
         viewModelScope.launch {
             _isLoading.value = true
-            val result = profileUseCase.changeProfileName(name)
+            val result = userUseCase.changeProfileName(name)
             _userUpdatedData.value = result
             _isLoading.value = false
         }
@@ -70,7 +68,7 @@ class ProfileViewModel @Inject constructor(
     fun updateBioOfUser(bio: String){
         viewModelScope.launch {
             _isLoading.value = true
-            val result = profileUseCase.changeProfileBio(bio)
+            val result = userUseCase.changeProfileBio(bio)
             _userUpdatedData.value = result
             _isLoading.value = false
         }
@@ -79,7 +77,7 @@ class ProfileViewModel @Inject constructor(
     fun updateUsernameOfUser(username: String){
         viewModelScope.launch {
             _isLoading.value = true
-            val result = profileUseCase.changeProfileUsername(username)
+            val result = userUseCase.changeProfileUsername(username)
             _userUpdatedData.value = result
             _isLoading.value = false
         }
@@ -107,7 +105,7 @@ class ProfileViewModel @Inject constructor(
     fun deleteAccount() {
         viewModelScope.launch {
             _isLoading.value = true
-            _accountDeleteResult.value = profileUseCase.deleteAccount()
+            _accountDeleteResult.value = userUseCase.deleteAccount()
             _isLoading.value = false
         }
     }

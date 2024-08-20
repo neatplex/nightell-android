@@ -14,7 +14,7 @@ android {
 
     defaultConfig {
         applicationId = "com.neatplex.nightell"
-        minSdk = 25
+        minSdk = 29
         targetSdk = 34
         versionCode = 11
         versionName = "1.0.4"
@@ -162,3 +162,4 @@ dependencies {
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.37")
     androidTestImplementation("com.google.dagger:hilt-android-compiler:2.50")
 }
+

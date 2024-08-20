@@ -8,9 +8,9 @@ import com.neatplex.nightell.domain.model.CustomFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.repository.IPostRepository
-import com.neatplex.nightell.domain.repository.IProfileRepository
+import com.neatplex.nightell.domain.repository.IUserRepository
 import com.neatplex.nightell.domain.usecase.PostUseCase
-import com.neatplex.nightell.domain.usecase.ProfileUseCase
+import com.neatplex.nightell.domain.usecase.UserUseCase
 import com.neatplex.nightell.ui.home.HomeViewModel
 import com.neatplex.nightell.utils.Result
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,6 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TestRule
-import org.mockito.InjectMocks
 import org.mockito.Mock
 import org.mockito.Mockito.reset
 import org.mockito.Mockito.verify
@@ -43,11 +42,11 @@ class HomeViewModelTest {
     private lateinit var postRepository: IPostRepository
 
     @Mock
-    private lateinit var profileRepository: IProfileRepository
+    private lateinit var profileRepository: IUserRepository
 
 
     private lateinit var postUseCase: PostUseCase
-    private lateinit var profileUseCase: ProfileUseCase
+    private lateinit var userUseCase: UserUseCase
     private lateinit var homeViewModel: HomeViewModel
 
     @Mock
@@ -64,8 +63,8 @@ class HomeViewModelTest {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
         postUseCase = PostUseCase(postRepository)
-        profileUseCase = ProfileUseCase(profileRepository)
-        homeViewModel = HomeViewModel(postUseCase, profileUseCase)
+        userUseCase = UserUseCase(profileRepository)
+        homeViewModel = HomeViewModel(postUseCase, userUseCase)
     }
 
     @After
