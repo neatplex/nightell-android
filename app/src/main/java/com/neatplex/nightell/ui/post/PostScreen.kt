@@ -90,7 +90,6 @@ fun PostScreen(
 
     var post by remember { mutableStateOf<Post?>(null) }
     var isPostExist by remember { mutableStateOf(true) }
-    var isAudioReady by remember { mutableStateOf(false) }
     var txtLoadFailure by remember { mutableStateOf("") }
     var isEditing by remember { mutableStateOf(false) }
 
@@ -109,12 +108,11 @@ fun PostScreen(
                     isPostExist = result.code != 404
                     txtLoadFailure = if (result.code == 404) "Post not found" else "Something went wrong"
                 }
-                else -> {}
             }
         }
     }
 
-    if (isFetchingPost) {
+    if (isFetchingPost || isLoading) {
         LoadingScreen()
     } else {
         if (isPostExist && post != null) {
@@ -127,8 +125,6 @@ fun PostScreen(
                 mediaViewModel = mediaViewModel,
                 serviceManager = serviceManager,
                 isServiceRunning = isServiceRunning,
-                isAudioReady = isAudioReady,
-                onAudioReadyChange = { isAudioReady = it },
                 isEditing = isEditing,
                 onEditingChange = { isEditing = it }
             )
@@ -181,8 +177,6 @@ fun PostContent(
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
     isServiceRunning: Boolean,
-    isAudioReady: Boolean,
-    onAudioReadyChange: (Boolean) -> Unit,
     isEditing: Boolean,
     onEditingChange: (Boolean) -> Unit
 ) {
@@ -295,10 +289,7 @@ fun PostContent(
                             },
                             mediaViewModel = mediaViewModel,
                             serviceManager = serviceManager,
-                            isServiceRunning = isServiceRunning,
-                            isAudioReady = isAudioReady,
-                            onAudioReadyChange = onAudioReadyChange
-                        )
+                            isServiceRunning = isServiceRunning)
                         PostDescription(
                             isEditing = isEditing,
                             editedTitle = editedTitle,
@@ -450,8 +441,6 @@ fun PostDetails(
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
     isServiceRunning: Boolean,
-    isAudioReady: Boolean,
-    onAudioReadyChange: (Boolean) -> Unit
 ) {
     val audioPath = Constant.Files_URL + post.audio.path
 
@@ -496,8 +485,10 @@ fun PostDetails(
     }
 
     if (audioPath.isNotEmpty()) {
+
         var isAudioLoading by remember { mutableStateOf(true) }
         var isAudioPrepared by remember { mutableStateOf(false) }
+        var totalDuration by remember { mutableStateOf(0L) }
 
         LaunchedEffect(audioPath) {
             val mediaPlayer = MediaPlayer()
@@ -505,14 +496,13 @@ fun PostDetails(
                 mediaPlayer.setDataSource(audioPath)
                 mediaPlayer.prepareAsync()
                 mediaPlayer.setOnPreparedListener {
+                    totalDuration = mediaPlayer.duration.toLong()
                     isAudioLoading = false
                     isAudioPrepared = true
-                    onAudioReadyChange(true)
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
                 isAudioLoading = false
-                onAudioReadyChange(false)
             }
         }
 
@@ -544,8 +534,7 @@ fun PostDetails(
                     )
                 } else {
                     AudioPlayer(
-                        modifier = Modifier.fillMaxWidth(),
-                        durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
+                        durationString = mediaViewModel.formatDuration(totalDuration),
                         playResourceProvider = { R.drawable.baseline_play_arrow_24 },
                         progressProvider = { Pair(0f, "00:00") },
                         onUiEvent = {
