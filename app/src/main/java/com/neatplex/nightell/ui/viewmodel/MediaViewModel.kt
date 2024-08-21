@@ -27,6 +27,7 @@ class MediaViewModel @Inject constructor(
     private val serviceManager: ServiceManager
 ) : ViewModel() {
 
+    // State variables using SavedStateHandle for persistence
     var duration by savedStateHandle.saveable { mutableStateOf(0L) }
     var progress by savedStateHandle.saveable { mutableStateOf(0f) }
     var progressString by savedStateHandle.saveable { mutableStateOf("00:00") }
@@ -34,34 +35,21 @@ class MediaViewModel @Inject constructor(
     var initial = false
     val isServiceRunning: StateFlow<Boolean> = serviceManager.isServiceRunning
 
-
     var currentPostId by savedStateHandle.saveable { mutableStateOf("") }
     private val _uiState = MutableStateFlow<UIState>(UIState.Initial)
-    val uiState = _uiState.asStateFlow()
+    val uiState: StateFlow<UIState> = _uiState.asStateFlow()
 
     init {
+        // Collect media state updates
         viewModelScope.launch {
             mediaServiceHandler.simpleMediaState.collect { mediaState ->
-                when (mediaState) {
-                    is SimpleMediaState.Buffering -> calculateProgressValues(mediaState.progress)
-                    is SimpleMediaState.Initial -> _uiState.value = UIState.Initial
-                    is SimpleMediaState.Playing -> isPlaying = mediaState.isPlaying
-                    is SimpleMediaState.Progress -> calculateProgressValues(mediaState.progress)
-                    is SimpleMediaState.Ready -> {
-                        duration = mediaState.duration
-                        _uiState.value = UIState.Ready
-                    }
-                    is SimpleMediaState.Completed -> {
-                        isPlaying = false
-                        _uiState.value = UIState.Initial
-                        //progress = 0f
-                    }
-                }
+                handleMediaState(mediaState)
             }
         }
     }
 
     override fun onCleared() {
+        super.onCleared()
         viewModelScope.launch {
             mediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
         }
@@ -80,14 +68,13 @@ class MediaViewModel @Inject constructor(
     }
 
     fun formatDuration(duration: Long): String {
-        val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
-        val seconds: Long = (TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS)
-                - minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES))
+        val minutes = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
+        val seconds = (TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) - minutes * 60)
         return String.format("%02d:%02d", minutes, seconds)
     }
 
     fun calculateProgressValues(currentProgress: Long) {
-        progress = if (currentProgress > 0) (currentProgress.toFloat() / duration) else 0f
+        progress = if (duration > 0) (currentProgress.toFloat() / duration) else 0f
         progressString = formatDuration(currentProgress)
     }
 
@@ -111,8 +98,26 @@ class MediaViewModel @Inject constructor(
     fun startMediaService() {
         serviceManager.startMediaService()
     }
+
+    private fun handleMediaState(mediaState: SimpleMediaState) {
+        when (mediaState) {
+            is SimpleMediaState.Buffering -> calculateProgressValues(mediaState.progress)
+            is SimpleMediaState.Initial -> _uiState.value = UIState.Initial
+            is SimpleMediaState.Playing -> isPlaying = mediaState.isPlaying
+            is SimpleMediaState.Progress -> calculateProgressValues(mediaState.progress)
+            is SimpleMediaState.Ready -> {
+                duration = mediaState.duration
+                _uiState.value = UIState.Ready
+            }
+            is SimpleMediaState.Completed -> {
+                isPlaying = false
+                _uiState.value = UIState.Initial
+            }
+        }
+    }
 }
 
+// Sealed class for UI events
 sealed class UIEvent {
     object PlayPause : UIEvent()
     object Backward : UIEvent()
@@ -120,7 +125,9 @@ sealed class UIEvent {
     data class UpdateProgress(val newProgress: Float) : UIEvent()
 }
 
+// Sealed class for UI states
 sealed class UIState {
     object Initial : UIState()
     object Ready : UIState()
 }
+

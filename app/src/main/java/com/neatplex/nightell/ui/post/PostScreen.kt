@@ -112,7 +112,7 @@ fun PostScreen(
         }
     }
 
-    if (isFetchingPost || isLoading) {
+    if (isFetchingPost) {
         LoadingScreen()
     } else {
         if (isPostExist && post != null) {
