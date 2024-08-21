@@ -16,8 +16,8 @@ android {
         applicationId = "com.neatplex.nightell"
         minSdk = 29
         targetSdk = 34
-        versionCode = 11
-        versionName = "1.0.4"
+        versionCode = 16
+        versionName = "1.0.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
