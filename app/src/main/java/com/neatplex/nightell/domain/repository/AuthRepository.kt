@@ -8,6 +8,8 @@ import com.neatplex.nightell.data.dto.LoginUsernameRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.utils.handleApiResponse
+import retrofit2.HttpException
+import java.io.IOException
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(private val apiService: ApiService) : IAuthRepository {
@@ -45,6 +47,10 @@ class AuthRepository @Inject constructor(private val apiService: ApiService) : I
             val requestBody = mapOf("google_token" to idToken)
             val response = apiService.signInWithGoogle(requestBody)
             handleApiResponse(response)
+        } catch (e: HttpException) {
+            Result.Failure("HTTP error: ${e.code()} - ${e.message}", e)
+        } catch (e: IOException) {
+            Result.Failure("Network error: ${e.message}", e)
         } catch (e: Exception) {
             Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }

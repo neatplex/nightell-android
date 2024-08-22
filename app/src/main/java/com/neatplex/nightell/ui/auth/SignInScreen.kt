@@ -1,7 +1,9 @@
 package com.neatplex.nightell.ui.auth
 
 import android.app.Activity
+import android.content.IntentSender
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -34,9 +36,9 @@ import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalContext
-import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.identity.BeginSignInRequest
+import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.tasks.Task
 import com.neatplex.nightell.component.CustomBorderedCircleButton
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
@@ -58,23 +60,37 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     val context = LocalContext.current
     val isLoading by viewModel.isLoading.observeAsState(false)
 
-    val googleSignInClient = remember {
-        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(context.getString(R.string.web_client_id))
-            .requestEmail()
+    val oneTapSignInClient = remember {
+        Identity.getSignInClient(context)
+    }
+
+    val signInRequest = remember {
+        BeginSignInRequest.builder()
+            .setGoogleIdTokenRequestOptions(
+                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
+                    .setSupported(true)
+                    .setServerClientId(context.getString(R.string.web_client_id))
+                    .setFilterByAuthorizedAccounts(false)
+                    .build()
+            )
             .build()
-        GoogleSignIn.getClient(context, gso)
     }
 
     val googleSignInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
+        contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
-            handleSignInResult(task, viewModel)
+            result.data?.let { intent ->
+                val credential = oneTapSignInClient.getSignInCredentialFromIntent(intent)
+                val idToken = credential.googleIdToken
+                if (idToken != null) {
+                    viewModel.signInWithGoogle(idToken)
+                } else {
+                    // Handle the case where ID token is null
+                }
+            }
         } else {
             // Handle the case where the user closed the Google Sign-In launcher without completing sign-in
-            // Optionally, you can show an error message or handle this case as needed
         }
     }
 
@@ -91,18 +107,29 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
             }
         },
         onGoogleSignInClick = {
-            googleSignInClient.signOut().addOnCompleteListener {
-                val signInIntent = googleSignInClient.signInIntent
-                googleSignInLauncher.launch(signInIntent)
-            }
+            oneTapSignInClient.beginSignIn(signInRequest)
+                .addOnSuccessListener { result ->
+                    try {
+                        googleSignInLauncher.launch(
+                            IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
+                        )
+                    } catch (e: IntentSender.SendIntentException) {
+                        e.printStackTrace()
+                    }
+                }
+                .addOnFailureListener { e ->
+                    // Handle sign-in failure
+                    e.printStackTrace()
+                }
         },
         onSignUpClick = {
             navController.navigate("SignUp")
         },
         iSignInInProgress = isLoading
     )
+
     // Handle authentication result
-    authResultState?.let { AuthResult(it, navController,isLoading) }
+    authResultState?.let { AuthResult(it, navController, isLoading) }
 }
 
 @Composable

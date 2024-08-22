@@ -44,14 +44,16 @@ class AuthViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                _authResult.value = authUseCase.signInWithGoogle(idToken)
-                _isLoading.value = false
+                val result = authUseCase.signInWithGoogle(idToken)
+                _authResult.value = result
             } catch (e: Exception) {
-                _isLoading.value = false
                 _authResult.value = Result.Failure(e.localizedMessage ?: "An error occurred", e)
+            } finally {
+                _isLoading.value = false
             }
         }
     }
+
     fun isValidEmail(email: String): Boolean {
         return validation.isValidEmail(email)
     }
