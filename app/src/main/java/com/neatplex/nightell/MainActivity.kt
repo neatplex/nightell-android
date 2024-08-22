@@ -22,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -100,11 +103,6 @@ fun AppContent(
     isOnline: Boolean,
 ) {
 
-    val isServiceRunning by mediaViewModel.isServiceRunning.collectAsState()
-
-    if (isServiceRunning) {
-
-    }
 
     AppTheme {
         val listItems = listOf(
@@ -114,19 +112,21 @@ fun AppContent(
             Screens.Profile
         )
         val rootNavController = rememberNavController()
+        var activeRoute by remember { mutableStateOf("") }
 
         Box(modifier = Modifier.fillMaxSize()) {
             Scaffold(
                 scaffoldState = scaffoldState,
                 bottomBar = {
-                    BottomNavigationScreen(rootNavController, listItems)
+                    BottomNavigationScreen(rootNavController, listItems, serviceManager, mediaViewModel, activeRoute)
                 }
             ) {
                 BottomNavHost(
                     navController = rootNavController,
                     tokenManager = tokenManager,
                     mediaViewModel = mediaViewModel,
-                    serviceManager = serviceManager
+                    serviceManager = serviceManager,
+                    onRouteChange = { route -> activeRoute = route }
                 )
             }
 
