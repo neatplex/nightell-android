@@ -2,12 +2,14 @@ package com.neatplex.nightell.component.media
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,19 +20,44 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
+import kotlin.math.roundToInt
 
 @Composable
 fun PlayerBox(mediaViewModel: MediaViewModel, modifier: Modifier = Modifier) {
+    // State to hold the offset of the PlayerBox
+    var offsetX by remember { mutableStateOf(0f) }
+    var offsetY by remember { mutableStateOf(0f) }
+
+    // Modifier to handle dragging
+    val dragModifier = Modifier
+        .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
+        .pointerInput(Unit) {
+            detectDragGestures { change, dragAmount ->
+                change.consume()
+                //offsetX += dragAmount.x
+                offsetY += dragAmount.y
+            }
+        }
+
+    // Combine the drag modifier with the existing modifier
     CompactAudioPlayer(
-        modifier = modifier.padding(16.dp), // Padding around the entire player box
+        modifier = modifier
+            .then(dragModifier)
+            .padding(16.dp), // Padding around the entire player box
         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
         playResourceProvider = {
             if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
@@ -55,8 +82,8 @@ fun CompactAudioPlayer(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(Color.Black, shape = RoundedCornerShape(16.dp)) // Apply a curved border with rounded corners
-            .padding(16.dp), // Padding inside the Row
+            .background(Color.Black.copy(alpha = 0.8f), shape = RoundedCornerShape(16.dp)) // Apply a curved border with rounded corners
+            .padding(24.dp), // Padding inside the Row
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

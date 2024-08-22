@@ -77,9 +77,7 @@ fun BottomNavigationScreen(navController: NavController,
         }
     } else {
         AppTheme {
-            Box(
-                modifier = Modifier.height(160.dp)
-            ) {
+            Box {
                 // First, place the NavigationBar at the bottom of the screen.
                 NavigationBar(
                     modifier = Modifier
