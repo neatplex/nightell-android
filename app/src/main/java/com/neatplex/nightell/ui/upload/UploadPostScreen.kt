@@ -66,7 +66,6 @@ fun AddPostScreen(
     tokenState: String?,
     navController: NavController,
     uploadViewModel: UploadViewModel = hiltViewModel(),
-    onLogout: () -> Unit
 ) {
     var currentStep by rememberSaveable { mutableStateOf(1) }
 
