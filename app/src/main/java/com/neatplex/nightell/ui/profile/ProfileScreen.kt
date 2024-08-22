@@ -57,8 +57,10 @@ import com.neatplex.nightell.ui.theme.AppTheme
 fun ProfileScreen(
     navController: NavController,
     profileViewModel: ProfileViewModel = hiltViewModel(),
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
+    isPlayerBoxVisible: Boolean
 ) {
+    val bottomPadding = if (isPlayerBoxVisible) 135.dp else 65.dp
 
     val profileResult by profileViewModel.profileData.observeAsState()
     val user = sharedViewModel.user.value
@@ -136,7 +138,7 @@ fun ProfileScreen(
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                             LazyVerticalGrid(
-                                contentPadding = PaddingValues(bottom = 65.dp),
+                                contentPadding = PaddingValues(bottom = bottomPadding),
                                 columns = GridCells.Fixed(2), // Define the number of columns
                                 modifier = Modifier.fillMaxSize(),
                             ) {

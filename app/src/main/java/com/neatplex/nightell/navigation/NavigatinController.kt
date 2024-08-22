@@ -87,6 +87,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
     val homeNavController = rememberNavController()
     val navBackStackEntry by homeNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     // Notify parent composable of the active route
     onRouteChange(currentRoute)
@@ -94,7 +95,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
     NavHost(navController = homeNavController, startDestination = "feed"){
 
         composable("feed") {
-            HomeScreen(navController = homeNavController, sharedViewModel = sharedViewModel)
+            HomeScreen(navController = homeNavController, sharedViewModel = sharedViewModel, isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(
@@ -105,7 +106,7 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
         ) { backStackEntry ->
             val userString = backStackEntry.arguments?.getString("user") ?: ""
             val user = userString.fromJson(User::class.java)
-            UserScreen(navController = homeNavController, data = user, sharedViewModel = sharedViewModel)
+            UserScreen(navController = homeNavController, data = user, sharedViewModel = sharedViewModel,isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(
@@ -154,6 +155,8 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
     val searchNavController = rememberNavController()
     val navBackStackEntry by searchNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
+
 
     // Notify parent composable of the active route
     onRouteChange(currentRoute)
@@ -161,7 +164,7 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
     NavHost(navController = searchNavController, startDestination = "search"){
 
         composable("search") {
-            SearchScreen(navController = searchNavController, sharedViewModel = sharedViewModel)
+            SearchScreen(navController = searchNavController, sharedViewModel = sharedViewModel, isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(
@@ -183,7 +186,7 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
         ) { backStackEntry ->
             val userString = backStackEntry.arguments?.getString("user") ?: ""
             val user = userString.fromJson(User::class.java)
-            UserScreen(navController = searchNavController, data = user, sharedViewModel = sharedViewModel)
+            UserScreen(navController = searchNavController, data = user, sharedViewModel = sharedViewModel, isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(
@@ -214,13 +217,15 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
     val profileNavController = rememberNavController()
     val navBackStackEntry by profileNavController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
+
 
     // Notify parent composable of the active route
     onRouteChange(currentRoute)
 
     NavHost(navController = profileNavController, startDestination = "ProfileInfo"){
         composable("ProfileInfo") {
-            ProfileScreen(navController = profileNavController, sharedViewModel = sharedViewModel)
+            ProfileScreen(navController = profileNavController, sharedViewModel = sharedViewModel, isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(
@@ -242,7 +247,7 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
         ) { backStackEntry ->
             val userString = backStackEntry.arguments?.getString("user") ?: ""
             val user = userString.fromJson(User::class.java)
-            UserScreen(navController = profileNavController, data = user, sharedViewModel = sharedViewModel)
+            UserScreen(navController = profileNavController, data = user, sharedViewModel = sharedViewModel, isPlayerBoxVisible = isServiceRunning)
         }
 
         composable("editProfile") {

@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -40,8 +41,11 @@ import com.neatplex.nightell.utils.toJson
 fun SearchScreen(
     navController: NavController,
     sharedViewModel: SharedViewModel,
-    searchViewModel: SearchViewModel = hiltViewModel()
+    searchViewModel: SearchViewModel = hiltViewModel(),
+    isPlayerBoxVisible: Boolean
 ) {
+    val bottomPadding = if (isPlayerBoxVisible) 135.dp else 65.dp
+
     var query by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }
     val posts by searchViewModel.posts.observeAsState(emptyList())
@@ -99,7 +103,8 @@ fun SearchScreen(
                             lastPostId = posts!!.lastOrNull()?.id
                             searchViewModel.searchPost(query, lastPostId, true)
                         }
-                    }
+                    },
+                    bottomPadding
                 )
             }
         } else {
@@ -118,7 +123,8 @@ fun SearchScreen(
                             lastUserId = users!!.lastOrNull()?.id
                             searchViewModel.searchUser(query, lastUserId, true)
                         }
-                    }
+                    },
+                    bottomPadding
                 )
             }
         }
@@ -141,10 +147,11 @@ fun PostList(
     posts: List<Post>,
     isLoading: Boolean,
     onPostSelected: (Post) -> Unit,
-    onLoadMore: () -> Unit
+    onLoadMore: () -> Unit,
+    bottomPadding : Dp
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 65.dp),
+        contentPadding = PaddingValues(bottom = bottomPadding),
         modifier = Modifier.fillMaxSize()
     ) {
         itemsIndexed(posts) { index, post ->
@@ -164,10 +171,11 @@ fun UserList(
     users: List<User>,
     isLoading: Boolean,
     onUserSelected: (User) -> Unit,
-    onLoadMore: () -> Unit
+    onLoadMore: () -> Unit,
+    bottomPadding : Dp
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 65.dp),
+        contentPadding = PaddingValues(bottom = bottomPadding),
         modifier = Modifier.fillMaxSize()
     ) {
         itemsIndexed(users) { index, user ->

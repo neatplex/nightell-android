@@ -124,7 +124,7 @@ fun BottomNavigationScreen(navController: NavController,
                         mediaViewModel = mediaViewModel,
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
+                            .padding(vertical = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
                     )
                 }
             }

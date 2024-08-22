@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -39,12 +40,14 @@ import com.neatplex.nightell.ui.theme.feelFree
 fun HomeScreen(
     navController: NavController,
     homeViewModel: HomeViewModel = hiltViewModel(),
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
+    isPlayerBoxVisible: Boolean
 ) {
     val feed by homeViewModel.feed.observeAsState(emptyList())
     val isLoading by homeViewModel.isLoading.observeAsState(false)
     val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
     val profileResult by homeViewModel.profileData.observeAsState()
+    val bottomPadding = if (isPlayerBoxVisible) 135.dp else 65.dp
 
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry
@@ -72,7 +75,7 @@ fun HomeScreen(
         Scaffold(
             topBar = { HomeTopBar(navController) },
             content = { space ->
-                HomeContent(space, feed, isLoading, isRefreshing, refreshState, navController, sharedViewModel, homeViewModel)
+                HomeContent(space, feed, isLoading, isRefreshing, refreshState, navController, sharedViewModel, homeViewModel, bottomPadding)
             }
         )
     }
@@ -135,7 +138,8 @@ fun HomeContent(
     refreshState: PullRefreshState,
     navController: NavController,
     sharedViewModel: SharedViewModel,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    bottomPadding: Dp
 ) {
     Box(
         modifier = Modifier
@@ -143,7 +147,7 @@ fun HomeContent(
             .pullRefresh(refreshState)
     ) {
         Column {
-            HomePosts(feed, isLoading, navController, sharedViewModel, homeViewModel)
+            HomePosts(feed, isLoading, navController, sharedViewModel, homeViewModel, bottomPadding)
         }
 
         PullRefreshIndicator(
@@ -161,7 +165,8 @@ fun HomePosts(
     isLoading: Boolean,
     navController: NavController,
     sharedViewModel: SharedViewModel,
-    homeViewModel: HomeViewModel
+    homeViewModel: HomeViewModel,
+    bottomPadding: Dp
 ) {
 
     LazyRow {
@@ -174,7 +179,7 @@ fun HomePosts(
     }
 
     LazyColumn(
-        contentPadding = PaddingValues(bottom = 65.dp),
+        contentPadding = PaddingValues(bottom = bottomPadding),
         modifier = Modifier.fillMaxSize(),
         content = {
             itemsIndexed(posts.drop(3)) { index, post ->
