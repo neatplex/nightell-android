@@ -12,6 +12,7 @@ import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,7 +25,10 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.wear.compose.material.Text
 import com.neatplex.nightell.R
+import com.neatplex.nightell.component.media.PlayerBox
+import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.theme.AppTheme
+import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 
 
 sealed class Screens(
@@ -36,6 +40,7 @@ sealed class Screens(
     data object AddPost : Screens("addPost", R.drawable.add_post, "ADD POST")
     data object Profile : Screens("profile", R.drawable.profile, "PROFILE")
     data object Search : Screens("search", R.drawable.search, "SEARCH")
+    data object PostScreen : Screens("postScreen", R.drawable.baseline_message_24, "Post")
 }
 
 object Routes {
@@ -43,13 +48,18 @@ object Routes {
     const val SIGN_IN = "signIn"
     const val SIGN_UP = "signUp"
 }
+
 @Composable
-fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
+fun BottomNavigationScreen(navController: NavController,
+                           items: List<Screens>,
+                           serviceManager: ServiceManager,
+                           mediaViewModel: MediaViewModel,
+                           activeRoute: String) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentScreen = navBackStackEntry?.destination?.route
-
+    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
     val showBottomBar = currentScreen !in listOf(Routes.SIGN_IN, Routes.SIGN_UP, Routes.SPLASH)
 
     if (!showBottomBar) {
@@ -68,10 +78,12 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
     } else {
         AppTheme {
             Box(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.height(160.dp)
             ) {
+                // First, place the NavigationBar at the bottom of the screen.
                 NavigationBar(
                     modifier = Modifier
+                        .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .height(50.dp)
                         .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
@@ -106,6 +118,16 @@ fun BottomNavigationScreen(navController: NavController, items: List<Screens>) {
                             }
                         )
                     }
+                }
+
+                // Place the PlayerBox just above the NavigationBar.
+                if (isServiceRunning && !activeRoute.contains("postScreen")) {
+                    PlayerBox(
+                        mediaViewModel = mediaViewModel,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
+                    )
                 }
             }
         }
