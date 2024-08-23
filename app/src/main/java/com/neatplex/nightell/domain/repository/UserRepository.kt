@@ -1,6 +1,7 @@
 package com.neatplex.nightell.domain.repository
 
 import com.neatplex.nightell.data.dto.Profile
+import com.neatplex.nightell.data.dto.UserResponse
 import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.data.dto.Users
@@ -19,7 +20,7 @@ class UserRepository @Inject constructor(private val apiService: ApiService) : I
         }
     }
 
-    override suspend fun showUserProfile(userId: Int): Result<Profile> {
+    override suspend fun showUserProfile(userId: Int): Result<UserResponse> {
         return try {
             val response = apiService.showUserProfile(userId)
             handleApiResponse(response)

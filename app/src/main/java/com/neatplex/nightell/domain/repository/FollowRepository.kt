@@ -9,9 +9,9 @@ import javax.inject.Inject
 
 class FollowRepository @Inject constructor(private val apiService: ApiService) : IFollowRepository {
 
-    override suspend fun follow(userId: Int, friendId: Int): Result<Unit> {
+    override suspend fun follow(userId: Int): Result<Unit> {
         return try {
-            val response = apiService.follow(userId, friendId)
+            val response = apiService.follow(userId)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")
@@ -19,9 +19,9 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) :
         }
     }
 
-    override suspend fun unfollow(userId: Int, friendId: Int): Result<Unit> {
+    override suspend fun unfollow(userId: Int): Result<Unit> {
         return try {
-            val response = apiService.unfollow(userId, friendId)
+            val response = apiService.unfollow(userId)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")
@@ -29,9 +29,9 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) :
         }
     }
 
-    override suspend fun followers(userId: Int): Result<Users> {
+    override suspend fun followers(userId: Int, lastId: Int?, count: Int?): Result<Users> {
         return try {
-            val response = apiService.userFollowers(userId)
+            val response = apiService.userFollowers(userId,lastId,count)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")
@@ -39,9 +39,9 @@ class FollowRepository @Inject constructor(private val apiService: ApiService) :
         }
     }
 
-    override suspend fun followings(userId: Int): Result<Users> {
+    override suspend fun followings(userId: Int, lastId: Int?, count: Int?): Result<Users> {
         return try {
-            val response = apiService.userFollowings(userId)
+            val response = apiService.userFollowings(userId, lastId, count)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")

@@ -65,31 +65,15 @@ fun UserScreen(
     //Fetch user profile info
     val profileResult by userViewModel.showUserInfoResult.observeAsState()
     val posts by userViewModel.postList.observeAsState(emptyList())
-
-    //Fetch if user followed this profile
-    val followingsResult by userViewModel.usersList.observeAsState()
     val user = data
-    val myId = sharedViewModel.user.value!!.id
 
     val isLoading by userViewModel.isLoading.observeAsState(false)
-    var followings: List<User> by remember { mutableStateOf(emptyList()) }
-
-    var isFollowed by remember { mutableStateOf(false) }
+    var isFollowedByMe by remember { mutableStateOf(false) }
+    var hasFollowedMe by remember { mutableStateOf(false) }
     var lastPostId by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(Unit) {
-        userViewModel.fetchUserFollowings(myId)
-    }
-
-    when (val result = followingsResult) {
-        is Result.Success -> {
-            followings = result.data?.users.orEmpty()
-            isFollowed = followings.any { it.id == user.id }
-            userViewModel.getUserInfo(user.id)
-        }
-
-        else -> {
-        }
+        userViewModel.getUserInfo(user.id)
     }
 
     AppTheme {
@@ -125,21 +109,26 @@ fun UserScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     when (val result = profileResult) {
+
                         is Result.Success -> {
                             val user = result.data!!.user
-                            val followers = result.data.followers_count
-                            val followings = result.data.followings_count
+                            val followersCount = result.data.followers_count
+                            val followingsCount = result.data.followings_count
+                            isFollowedByMe = result.data.followed_by_me
+                            hasFollowedMe = result.data.follows_me
+
+                            // Load posts
                             userViewModel.loadPosts(user.id, lastPostId)
+
                             // Display the profile
                             ShowProfile(
                                 navController,
                                 user,
-                                followers,
-                                followings,
+                                followersCount,
+                                followingsCount,
                                 userViewModel,
-                                myId,
-                                user.id,
-                                isFollowed
+                                isFollowedByMe,
+                                hasFollowedMe
                             )
                         }
 
@@ -191,14 +180,15 @@ fun ShowProfile(
     followers: Int,
     followings: Int,
     userViewModel: UserViewModel,
-    myId: Int,
-    userId: Int,
-    isFollowed: Boolean
+    isFollowedByMe: Boolean,
+    followsMe: Boolean,
 ) {
 
     // Define a mutable state for the follower count
     var followers by remember { mutableIntStateOf(followers) }
-    var isFollowed by remember { mutableStateOf(isFollowed) }
+    var isFollowed by remember { mutableStateOf(isFollowedByMe) }
+    var hasFollowedMe by remember { mutableStateOf(followsMe) }
+    val userId = user.id
 
     // Function to update follower count
     val updateFollowerCount: (Int) -> Unit = { increment ->
@@ -293,16 +283,18 @@ fun ShowProfile(
             CustomSimpleButton(
                 onClick = {
                     if (!isFollowed) {
-                        userViewModel.followUser(myId, userId)
+                        userViewModel.followUser(userId)
                         isFollowed = true
                         updateFollowerCount(1)
                     } else {
-                        userViewModel.unfollowUser(myId, userId)
+                        userViewModel.unfollowUser(userId)
                         isFollowed = false
                         updateFollowerCount(-1)
                     }
                 },
-                text = if (!isFollowed) "Follow" else "Unfollow"
+                text = if (!isFollowed) {
+                    if (hasFollowedMe) "Follow Back" else "Follow"
+                } else "Unfollow"
             )
         }
     }

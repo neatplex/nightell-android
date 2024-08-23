@@ -5,8 +5,8 @@ import com.neatplex.nightell.utils.Result
 
 
 interface IFollowRepository {
-    suspend fun follow(userId: Int, friendId: Int): Result<Unit>
-    suspend fun unfollow(userId: Int, friendId: Int): Result<Unit>
-    suspend fun followers(userId: Int): Result<Users>
-    suspend fun followings(userId: Int): Result<Users>
+    suspend fun follow(userId: Int): Result<Unit>
+    suspend fun unfollow(userId: Int): Result<Unit>
+    suspend fun followers(userId: Int, lastId: Int?, count: Int?): Result<Users>
+    suspend fun followings(userId: Int, lastId: Int?, count: Int?): Result<Users>
 }

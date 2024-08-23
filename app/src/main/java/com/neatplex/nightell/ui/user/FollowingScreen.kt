@@ -1,12 +1,16 @@
 package com.neatplex.nightell.ui.user
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
@@ -21,10 +25,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.neatplex.nightell.component.ShowUsers
+import com.neatplex.nightell.component.CustomCircularProgressIndicator
+import com.neatplex.nightell.component.UserCard
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.utils.toJson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
@@ -32,10 +37,14 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 fun FollowingScreen(navController: NavController,
                     userId: Int,
                     sharedViewModel : SharedViewModel) {
+
     val userViewModel : UserViewModel = hiltViewModel()
-    val usersObserve by userViewModel.usersList.observeAsState()
+    val users by userViewModel.usersList.observeAsState(emptyList())
+    val count = 20
+    val isLoading by userViewModel.isLoading.observeAsState(false)
+
     LaunchedEffect(Unit) {
-        userViewModel.fetchUserFollowings(userId)
+        userViewModel.fetchUserFollowings(userId, null , count)
     }
 
     AppTheme {
@@ -48,7 +57,7 @@ fun FollowingScreen(navController: NavController,
                         .background(Color.White)
                 ) {
                     TopAppBar(
-                        title = { Text(text = "Followers") },
+                        title = { Text(text = "Followings") },
                         navigationIcon = {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(
@@ -64,29 +73,33 @@ fun FollowingScreen(navController: NavController,
                 }
             },
             content = { space ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(space),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                Box(
+                    modifier = Modifier.padding(space)
                 ) {
-
-                    usersObserve.let { result ->
-                        when (result) {
-                            is Result.Success -> {
-                                result.data?.users.let { users ->
-                                    ShowUsers(users, navController, sharedViewModel)
+                    LazyColumn(
+                        contentPadding = PaddingValues(bottom = 56.dp),
+                        modifier = Modifier.fillMaxSize(),
+                        content = {
+                            itemsIndexed(users) { index, user ->
+                                UserCard(user = user) { selectedUser ->
+                                    if (sharedViewModel.user.value?.id != selectedUser.id) {
+                                        val userJson = selectedUser.toJson()
+                                        navController.navigate("userScreen/${Uri.encode(userJson)}")
+                                    }
+                                }
+                                if (index == users.size - 1 && !isLoading && userViewModel.canLoadMoreFollowings) {
+                                    userViewModel.fetchUserFollowings(
+                                        userId,
+                                        user.id,
+                                        count
+                                    )
                                 }
                             }
-
-                            is Result.Failure -> {
-                                // Handle error
+                            if (isLoading) {
+                                item { CustomCircularProgressIndicator() }
                             }
-
-                            else -> {}
                         }
-                    }
-
+                    )
                 }
             }
         )

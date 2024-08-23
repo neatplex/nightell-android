@@ -1,6 +1,7 @@
 package com.neatplex.nightell.domain.usecase
 
 import com.neatplex.nightell.data.dto.Profile
+import com.neatplex.nightell.data.dto.UserResponse
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.data.dto.Users
 import com.neatplex.nightell.domain.model.User
@@ -14,7 +15,7 @@ class UserUseCase @Inject constructor(private val userRepository: IUserRepositor
         return userRepository.fetchProfile()
     }
 
-    suspend fun getUserProfile(userId: Int): Result<Profile> {
+    suspend fun getUserProfile(userId: Int): Result<UserResponse> {
         return userRepository.showUserProfile(userId)
     }
 
