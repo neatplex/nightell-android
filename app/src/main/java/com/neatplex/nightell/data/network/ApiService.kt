@@ -13,6 +13,7 @@ import com.neatplex.nightell.data.dto.PostUpdateRequest
 import com.neatplex.nightell.data.dto.StoreLike
 import com.neatplex.nightell.data.dto.PostUploadRequest
 import com.neatplex.nightell.data.dto.PostDetailResponse
+import com.neatplex.nightell.data.dto.UserResponse
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.data.dto.Users
 import okhttp3.MultipartBody
@@ -105,7 +106,7 @@ interface ApiService {
 
     // Users Profile Info
     @GET("users/{user_id}")
-    suspend fun showUserProfile(@Path("user_id") userId: Int) : Response<Profile>
+    suspend fun showUserProfile(@Path("user_id") userId: Int) : Response<UserResponse>
 
     // Search posts
     @GET("search/posts")
@@ -119,17 +120,21 @@ interface ApiService {
 
     // Show Followers
     @GET("users/{user_id}/followers")
-    suspend fun userFollowers(@Path("user_id") userId: Int) : Response<Users>
+    suspend fun userFollowers(@Path("user_id") userId: Int,
+                              @Query("lastId") lastId: Int?,
+                              @Query("count") count: Int?) : Response<Users>
 
     // Show Followings
     @GET("users/{user_id}/followings")
-    suspend fun userFollowings(@Path("user_id") userId: Int) : Response<Users>
+    suspend fun userFollowings(@Path("user_id") userId: Int,
+                               @Query("lastId") lastId: Int?,
+                               @Query("count") count: Int?) : Response<Users>
 
     // Follow
-    @POST("users/{user_id}/followings/{friend_id}")
-    suspend fun follow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Unit>
+    @POST("users/{user_id}/followers")
+    suspend fun follow(@Path("user_id") userId: Int) : Response<Unit>
 
     // Unfollow
-    @DELETE("users/{user_id}/followings/{friend_id}")
-    suspend fun unfollow(@Path("user_id") userId: Int, @Path("friend_id") friendId: Int) : Response<Unit>
+    @DELETE("users/{user_id}/followers")
+    suspend fun unfollow(@Path("user_id") userId: Int) : Response<Unit>
 }
