@@ -185,7 +185,7 @@ fun HomePosts(
             itemsIndexed(posts.drop(3)) { index, post ->
                 HomePostCard(post = post, isLoading = isLoading) { selectedPost ->
                     if (!isLoading) {
-                        navController.navigate("postScreen/${post.id}")
+                        navController.navigate("postScreen/${selectedPost.id}")
                     }
                 }
                 if (index == posts.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {

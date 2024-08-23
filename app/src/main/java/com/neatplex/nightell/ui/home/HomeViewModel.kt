@@ -33,7 +33,7 @@ class HomeViewModel @Inject constructor(
     val isRefreshing: LiveData<Boolean> get() = _isRefreshing
 
     fun loadFeed(lastPostId: Int?) {
-        if (!canLoadMore || _isLoading.value == true) return
+        if (!canLoadMore) return
 
         viewModelScope.launch {
             _isLoading.value = true
