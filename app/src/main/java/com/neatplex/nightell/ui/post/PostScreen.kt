@@ -513,12 +513,6 @@ fun PostDetails(
             }
 
             if (isAudioPrepared) {
-                if (!isServiceRunning) {
-                    LaunchedEffect(Unit) {
-                        serviceManager.startMediaService()
-                    }
-                }
-
                 val isSame = postId.toString() == mediaViewModel.currentPostId
 
                 if (isSame) {
@@ -538,6 +532,9 @@ fun PostDetails(
                         playResourceProvider = { R.drawable.baseline_play_arrow_24 },
                         progressProvider = { Pair(0f, "00:00") },
                         onUiEvent = {
+                            if (!isServiceRunning) {
+                                serviceManager.startMediaService()
+                            }
                             mediaViewModel.loadData(audioPath, post.image?.path ?: "", post.title, postId.toString())
                             mediaViewModel.onUIEvent(UIEvent.PlayPause)
                         }
