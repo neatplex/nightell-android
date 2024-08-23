@@ -18,11 +18,6 @@ import dagger.hilt.android.UnstableApi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
-private const val NOTIFICATION_ID = 200
-private const val NOTIFICATION_CHANNEL_NAME = "notification channel 1"
-private const val NOTIFICATION_CHANNEL_ID = "notification channel id 1"
-
-
 class MediaNotificationManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val player: ExoPlayer
@@ -30,6 +25,12 @@ class MediaNotificationManager @Inject constructor(
 
     private var notificationManager: NotificationManagerCompat =
         NotificationManagerCompat.from(context)
+
+    companion object {
+        private const val NOTIFICATION_ID = 200
+        private const val NOTIFICATION_CHANNEL_NAME = "notification channel 1"
+        private const val NOTIFICATION_CHANNEL_ID = "notification channel id 1"
+    }
 
     init {
         createNotificationChannel()
@@ -44,7 +45,7 @@ class MediaNotificationManager @Inject constructor(
         startForegroundNotification(mediaSessionService)
     }
 
-    @OptIn(androidx.media3.common.util.UnstableApi::class) @UnstableApi
+    @OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun buildNotification(mediaSession: MediaSession) {
         PlayerNotificationManager.Builder(context, NOTIFICATION_ID, NOTIFICATION_CHANNEL_ID)
             .setMediaDescriptionAdapter(
@@ -87,6 +88,10 @@ class MediaNotificationManager @Inject constructor(
         mediaSessionService.startForeground(NOTIFICATION_ID, notification)
     }
 
+    fun cancelNotification() {
+        notificationManager.cancel(NOTIFICATION_ID)
+    }
+
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
@@ -100,3 +105,4 @@ class MediaNotificationManager @Inject constructor(
         }
     }
 }
+

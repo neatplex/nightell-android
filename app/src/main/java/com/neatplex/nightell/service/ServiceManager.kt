@@ -3,11 +3,13 @@ package com.neatplex.nightell.service
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
-class ServiceManager @Inject constructor(private val context: Context) {
+class ServiceManager @Inject constructor(private val context: Context,
+                                         private val mediaNotificationManager: MediaNotificationManager) {
 
     private val _isServiceRunning = MutableStateFlow(false)
     val isServiceRunning: StateFlow<Boolean> get() = _isServiceRunning
@@ -28,6 +30,7 @@ class ServiceManager @Inject constructor(private val context: Context) {
         if (_isServiceRunning.value) {
             context.stopService(Intent(context, MediaService::class.java))
             _isServiceRunning.value = false
+            mediaNotificationManager.cancelNotification()
         }
     }
 }
