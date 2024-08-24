@@ -37,10 +37,11 @@ fun BottomNavHost(
     tokenManager: TokenManager,
     mediaViewModel : MediaViewModel,
     serviceManager: ServiceManager,
+    sharedViewModel: SharedViewModel,
     onRouteChange: (String) -> Unit
 ) {
     val tokenState by tokenManager.tokenState.collectAsState()
-    val sharedViewModel : SharedViewModel = hiltViewModel()
+
 
     // Observe the current route
     val navBackStackEntry by navController.currentBackStackEntryAsState()

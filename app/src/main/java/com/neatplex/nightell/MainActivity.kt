@@ -40,6 +40,7 @@ import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.ConnectivityViewModel
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.TokenManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -52,6 +53,7 @@ class MainActivity : ComponentActivity() {
 
     private val mediaViewModel: MediaViewModel by viewModels()
     private val connectionViewModel: ConnectivityViewModel by viewModels()
+    private val sharedViewModel : SharedViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -77,6 +79,7 @@ class MainActivity : ComponentActivity() {
                 serviceManager = serviceManager,
                 scaffoldState = scaffoldState,
                 isOnline = isOnline,
+                sharedViewModel = sharedViewModel
             )
         }
     }
@@ -101,6 +104,7 @@ fun AppContent(
     serviceManager: ServiceManager,
     scaffoldState: ScaffoldState,
     isOnline: Boolean,
+    sharedViewModel : SharedViewModel
 ) {
 
 
@@ -118,7 +122,7 @@ fun AppContent(
             Scaffold(
                 scaffoldState = scaffoldState,
                 bottomBar = {
-                    BottomNavigationScreen(rootNavController, listItems, serviceManager, mediaViewModel, activeRoute)
+                    BottomNavigationScreen(rootNavController, listItems, serviceManager, mediaViewModel, activeRoute, sharedViewModel = sharedViewModel)
                 }
             ) {
                 BottomNavHost(
@@ -126,6 +130,7 @@ fun AppContent(
                     tokenManager = tokenManager,
                     mediaViewModel = mediaViewModel,
                     serviceManager = serviceManager,
+                    sharedViewModel = sharedViewModel,
                     onRouteChange = { route -> activeRoute = route }
                 )
             }

@@ -29,6 +29,7 @@ import com.neatplex.nightell.component.media.PlayerBox
 import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 
 sealed class Screens(
@@ -54,7 +55,9 @@ fun BottomNavigationScreen(navController: NavController,
                            items: List<Screens>,
                            serviceManager: ServiceManager,
                            mediaViewModel: MediaViewModel,
-                           activeRoute: String) {
+                           activeRoute: String,
+                           sharedViewModel: SharedViewModel
+) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -118,14 +121,21 @@ fun BottomNavigationScreen(navController: NavController,
                     }
                 }
 
-                // Place the PlayerBox just above the NavigationBar.
-                if (isServiceRunning && !activeRoute.contains("postScreen")) {
-                    PlayerBox(
-                        mediaViewModel = mediaViewModel,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(vertical = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
-                    )
+
+                if (isServiceRunning) {
+                    // Check if the current screen is showing the post being played
+                    val isCurrentPostScreen = activeRoute.contains("postScreen") &&
+                            sharedViewModel.post.value?.id == mediaViewModel.currentPostId.toInt()
+
+                    // Display PlayerBox if not on the screen showing the currently running post
+                    if (!isCurrentPostScreen) {
+                        PlayerBox(
+                            mediaViewModel = mediaViewModel,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(vertical = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
+                        )
+                    }
                 }
             }
         }
