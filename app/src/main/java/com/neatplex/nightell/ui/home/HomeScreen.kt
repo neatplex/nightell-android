@@ -1,10 +1,12 @@
 package com.neatplex.nightell.ui.home
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.PullRefreshState
@@ -15,6 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -34,6 +40,7 @@ import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.post.HomePostCard
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.theme.feelFree
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -63,7 +70,12 @@ fun HomeScreen(
 
     val refreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
-        onRefresh = { homeViewModel.refreshFeed() }
+        onRefresh = {
+            homeViewModel.clearFeed()
+            if (feed.isEmpty()) {
+                homeViewModel.refreshFeed()
+            }
+        }
     )
 
     LaunchedEffect(Unit) {
@@ -75,7 +87,7 @@ fun HomeScreen(
         Scaffold(
             topBar = { HomeTopBar(navController) },
             content = { space ->
-                HomeContent(space, feed, isLoading, isRefreshing, refreshState, navController, sharedViewModel, homeViewModel, bottomPadding)
+                HomeContent(space, feed, isLoading, isRefreshing, navController, sharedViewModel, homeViewModel, bottomPadding)
             }
         )
     }
@@ -135,65 +147,98 @@ fun HomeContent(
     feed: List<Post>,
     isLoading: Boolean,
     isRefreshing: Boolean,
-    refreshState: PullRefreshState,
     navController: NavController,
     sharedViewModel: SharedViewModel,
     homeViewModel: HomeViewModel,
     bottomPadding: Dp
 ) {
+    val lazyRowState = rememberLazyListState()
+    val lazyColumnState = rememberLazyListState()
+    var lazyRowHeight by remember { mutableStateOf(280.dp) } // Initial height of LazyRow
+    val lazyRowHeightAnim by animateDpAsState(targetValue = lazyRowHeight)
+    var lastScrollOffset by remember { mutableStateOf(0) }
+
+    // Handle scroll direction and LazyRow visibility
+    LaunchedEffect(lazyColumnState.firstVisibleItemScrollOffset) {
+        val currentScrollOffset = lazyColumnState.firstVisibleItemScrollOffset
+
+        if (currentScrollOffset > lastScrollOffset) {
+            // Scrolling down
+            lazyRowHeight = 0.dp
+        } else if (currentScrollOffset < lastScrollOffset) {
+            // Scrolling up
+            lazyRowHeight = 280.dp
+        }
+
+        lastScrollOffset = currentScrollOffset
+    }
+
+    // Smooth Scroll Up/Down Logic
+    val coroutineScope = rememberCoroutineScope()
+
+    fun scrollToTop() {
+        coroutineScope.launch {
+            lazyColumnState.animateScrollToItem(0)
+            lazyRowState.animateScrollToItem(0)
+        }
+    }
+
+    fun scrollToBottom() {
+        coroutineScope.launch {
+            lazyColumnState.animateScrollToItem(lazyColumnState.layoutInfo.totalItemsCount - 1)
+        }
+    }
+
     Box(
         modifier = Modifier
             .padding(space)
-            .pullRefresh(refreshState)
     ) {
         Column {
-            HomePosts(feed, isLoading, navController, sharedViewModel, homeViewModel, bottomPadding)
-        }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(lazyRowHeightAnim)
+            ) {
+                LazyRow(
+                    state = lazyRowState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    itemsIndexed(feed.take(3)) { index, post ->
+                        RecentPostCard(post = post, isLoading) { selectedPost ->
+                            sharedViewModel.setPost(selectedPost)
+                            navController.navigate("postScreen/${post.id}")
+                        }
+                    }
+                }
+            }
 
-        PullRefreshIndicator(
-            refreshing = isRefreshing,
-            state = refreshState,
-            modifier = Modifier.align(Alignment.TopCenter),
-            contentColor = MaterialTheme.colorScheme.primary
-        )
+            LazyColumn(
+                state = lazyColumnState,
+                contentPadding = PaddingValues(bottom = bottomPadding),
+                modifier = Modifier.fillMaxSize(),
+                content = {
+                    itemsIndexed(feed.drop(3)) { index, post ->
+                        HomePostCard(post = post, isLoading = isLoading) { selectedPost ->
+                            sharedViewModel.setPost(selectedPost)
+                            navController.navigate("postScreen/${selectedPost.id}")
+                        }
+                        if (index == feed.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
+                            homeViewModel.loadFeed(post.id)
+                        }
+                    }
+                    if (isLoading) {
+                        item { CustomCircularProgressIndicator() }
+                    }
+                }
+            )
+        }
+    }
+
+    // Call scrollToTop() or scrollToBottom() as needed
+    LaunchedEffect(isRefreshing) {
+        if (isRefreshing) {
+            scrollToTop()
+        }
     }
 }
 
-@Composable
-fun HomePosts(
-    posts: List<Post>,
-    isLoading: Boolean,
-    navController: NavController,
-    sharedViewModel: SharedViewModel,
-    homeViewModel: HomeViewModel,
-    bottomPadding: Dp
-) {
-
-    LazyRow {
-        itemsIndexed(posts.take(3)) { index, post ->
-            RecentPostCard(post = post, isLoading) { selectedPost ->
-                sharedViewModel.setPost(selectedPost)
-                navController.navigate("postScreen/${post.id}")
-            }
-        }
-    }
-
-    LazyColumn(
-        contentPadding = PaddingValues(bottom = bottomPadding),
-        modifier = Modifier.fillMaxSize(),
-        content = {
-            itemsIndexed(posts.drop(3)) { index, post ->
-                HomePostCard(post = post, isLoading = isLoading) { selectedPost ->
-                    sharedViewModel.setPost(selectedPost)
-                    navController.navigate("postScreen/${selectedPost.id}")
-                }
-                if (index == posts.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
-                    homeViewModel.loadFeed(post.id)
-                }
-            }
-            if (isLoading) {
-                item { CustomCircularProgressIndicator() }
-            }
-        }
-    )
-}
