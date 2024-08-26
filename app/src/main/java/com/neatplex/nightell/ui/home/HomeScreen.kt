@@ -8,9 +8,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.PullRefreshState
-import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -140,7 +137,6 @@ fun HomeTopBar(navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeContent(
     space: PaddingValues,
@@ -156,21 +152,27 @@ fun HomeContent(
     val lazyColumnState = rememberLazyListState()
     var lazyRowHeight by remember { mutableStateOf(280.dp) } // Initial height of LazyRow
     val lazyRowHeightAnim by animateDpAsState(targetValue = lazyRowHeight)
-    var lastScrollOffset by remember { mutableStateOf(0) }
 
-    // Handle scroll direction and LazyRow visibility
-    LaunchedEffect(lazyColumnState.firstVisibleItemScrollOffset) {
-        val currentScrollOffset = lazyColumnState.firstVisibleItemScrollOffset
+    // Track if the first item was seen after loading
+    var firstItemSeenAfterLoad by remember { mutableStateOf(false) }
 
-        if (currentScrollOffset > lastScrollOffset) {
-            // Scrolling down
-            lazyRowHeight = 0.dp
-        } else if (currentScrollOffset < lastScrollOffset) {
-            // Scrolling up
+    // Monitor scroll state and LazyRow visibility
+    LaunchedEffect(lazyColumnState.firstVisibleItemIndex, lazyColumnState.firstVisibleItemScrollOffset) {
+        val currentIndex = lazyColumnState.firstVisibleItemIndex
+        val currentOffset = lazyColumnState.firstVisibleItemScrollOffset
+
+        if (currentIndex == 0 && currentOffset == 0 && !firstItemSeenAfterLoad) {
+            // First item is fully visible
             lazyRowHeight = 280.dp
+            firstItemSeenAfterLoad = true
+        } else if (currentIndex > 0 && lazyRowHeight != 0.dp) {
+            // Scrolling down: hide the LazyRow
+            lazyRowHeight = 0.dp
+            firstItemSeenAfterLoad = false // Reset for next scroll-up
+        } else if (currentIndex == 0 && currentOffset > 0 && lazyRowHeight == 0.dp) {
+            // If the first item is partially visible, keep the LazyRow hidden
+            lazyRowHeight = 0.dp
         }
-
-        lastScrollOffset = currentScrollOffset
     }
 
     // Smooth Scroll Up/Down Logic
@@ -241,4 +243,3 @@ fun HomeContent(
         }
     }
 }
-
