@@ -3,7 +3,6 @@ package com.neatplex.nightell.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -121,7 +120,8 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
                 sharedViewModel = sharedViewModel,
                 postId = postId,
                 mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager)
+                serviceManager = serviceManager,
+                isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(
@@ -176,7 +176,7 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = searchNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager)
+                serviceManager = serviceManager, isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(
@@ -237,7 +237,7 @@ fun ProfileNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMo
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
             PostScreen(navController = profileNavController, sharedViewModel = sharedViewModel, postId = postId, mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager)
+                serviceManager = serviceManager, isPlayerBoxVisible = isServiceRunning)
         }
 
         composable(

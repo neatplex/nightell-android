@@ -52,6 +52,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -81,12 +82,15 @@ fun PostScreen(
     postId: Int,
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
+    isPlayerBoxVisible: Boolean
 ) {
     val postViewModel: PostViewModel = hiltViewModel()
     val isLoading by postViewModel.isLoading.observeAsState(true)
     val isFetchingPost by postViewModel.isFetching.observeAsState(true)
     val postDetailResult by postViewModel.postDetailResult.observeAsState()
     val isServiceRunning by mediaViewModel.isServiceRunning.collectAsState()
+    val bottomPadding = if (isPlayerBoxVisible && mediaViewModel.currentPostId.toInt() != postId) 135.dp else 65.dp
+
 
     var post by remember { mutableStateOf<Post?>(null) }
     var isPostExist by remember { mutableStateOf(true) }
@@ -126,7 +130,8 @@ fun PostScreen(
                 serviceManager = serviceManager,
                 isServiceRunning = isServiceRunning,
                 isEditing = isEditing,
-                onEditingChange = { isEditing = it }
+                onEditingChange = { isEditing = it },
+                bottomPadding = bottomPadding
             )
         } else {
             ErrorScreen(txtLoadFailure)
@@ -178,7 +183,8 @@ fun PostContent(
     serviceManager: ServiceManager,
     isServiceRunning: Boolean,
     isEditing: Boolean,
-    onEditingChange: (Boolean) -> Unit
+    onEditingChange: (Boolean) -> Unit,
+    bottomPadding: Dp
 ) {
     val userId = sharedViewModel.user.value?.id ?: return
     val databaseViewModel: DatabaseViewModel = hiltViewModel()
@@ -290,6 +296,7 @@ fun PostContent(
                             mediaViewModel = mediaViewModel,
                             serviceManager = serviceManager,
                             isServiceRunning = isServiceRunning)
+
                         PostDescription(
                             isEditing = isEditing,
                             editedTitle = editedTitle,
@@ -302,7 +309,8 @@ fun PostContent(
                                 } else {
                                     onEditingChange(false)
                                 }
-                            }
+                            },
+                            bottomPadding = bottomPadding
                         )
                     }
                 }
@@ -349,7 +357,10 @@ fun PostTopBar(
     TopAppBar(
         title = { Text(text = "", fontSize = 18.sp) },
         navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
+            IconButton(onClick = {
+                navController.popBackStack()
+                onEditingChange(false)
+            }) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
         },
@@ -512,7 +523,7 @@ fun PostDetails(
                 Text("Loading audio...")
             }
 
-            if (isAudioPrepared) {
+            if (isAudioPrepared && !isAudioLoading) {
                 val isSame = postId.toString() == mediaViewModel.currentPostId
 
                 if (isSame) {
@@ -552,7 +563,8 @@ fun PostDescription(
     editedDescription: String,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
-    onSaveClick: () -> Unit
+    onSaveClick: () -> Unit,
+    bottomPadding: Dp
 ) {
     Column(
         modifier = Modifier
@@ -607,6 +619,6 @@ fun PostDescription(
                 text = editedDescription.take(150) // Display up to 150 characters
             )
         }
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(modifier = Modifier.height(bottomPadding))
     }
 }
