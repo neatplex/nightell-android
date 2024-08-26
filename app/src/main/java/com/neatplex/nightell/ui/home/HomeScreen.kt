@@ -7,8 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +37,6 @@ import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.theme.feelFree
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -65,18 +62,8 @@ fun HomeScreen(
         }
     }
 
-    val refreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = {
-            homeViewModel.clearFeed()
-            if (feed.isEmpty()) {
-                homeViewModel.refreshFeed()
-            }
-        }
-    )
-
     LaunchedEffect(Unit) {
-        homeViewModel.loadFeed(null)
+        homeViewModel.loadFeed()
         homeViewModel.fetchProfile()
     }
 
@@ -84,7 +71,28 @@ fun HomeScreen(
         Scaffold(
             topBar = { HomeTopBar(navController) },
             content = { space ->
-                HomeContent(space, feed, isLoading, isRefreshing, navController, sharedViewModel, homeViewModel, bottomPadding)
+                if (isLoading && feed.isEmpty()) {
+                    // Show a loading indicator while loading the feed for the first time
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(space),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    HomeContent(
+                        space,
+                        feed,
+                        isLoading,
+                        isRefreshing,
+                        navController,
+                        sharedViewModel,
+                        homeViewModel,
+                        bottomPadding
+                    )
+                }
             }
         )
     }
@@ -225,7 +233,7 @@ fun HomeContent(
                             navController.navigate("postScreen/${selectedPost.id}")
                         }
                         if (index == feed.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
-                            homeViewModel.loadFeed(post.id)
+                            homeViewModel.loadFeed()
                         }
                     }
                     if (isLoading) {
