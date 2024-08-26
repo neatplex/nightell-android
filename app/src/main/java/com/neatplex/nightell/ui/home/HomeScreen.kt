@@ -57,7 +57,7 @@ fun HomeScreen(
 
     LaunchedEffect(postChanged?.value) {
         if (postChanged?.value == true) {
-            homeViewModel.refreshFeed()
+            // homeViewModel.refreshFeed()
             navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
         }
     }

@@ -65,6 +65,7 @@ class HomeViewModel @Inject constructor(
     fun refreshFeed() {
         canLoadMore = true
         lastPostId = null
+        _feed.value = emptyList()
         _isRefreshing.value = true
         loadFeed() // Load the feed from the start
     }
