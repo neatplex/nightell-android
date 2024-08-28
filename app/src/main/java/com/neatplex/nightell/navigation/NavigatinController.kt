@@ -40,9 +40,6 @@ fun BottomNavHost(
     onRouteChange: (String) -> Unit
 ) {
     val tokenState by tokenManager.tokenState.collectAsState()
-
-
-    // Observe the current route
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: ""
 
@@ -63,7 +60,12 @@ fun BottomNavHost(
         }
 
         composable(Screens.Home.route) {
-            HomeNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, serviceManager = serviceManager, onRouteChange = onRouteChange)
+            HomeNavHost(
+                sharedViewModel = sharedViewModel,
+                mediaViewModel = mediaViewModel,
+                serviceManager = serviceManager,
+                onRouteChange = onRouteChange
+            )
         }
 
         composable(Screens.AddPost.route) {
@@ -71,13 +73,22 @@ fun BottomNavHost(
         }
 
         composable(Screens.Search.route) {
-            SearchNavHost(sharedViewModel = sharedViewModel, mediaViewModel = mediaViewModel, serviceManager = serviceManager, onRouteChange = onRouteChange)
+            SearchNavHost(
+                sharedViewModel = sharedViewModel,
+                mediaViewModel = mediaViewModel,
+                serviceManager = serviceManager,
+                onRouteChange = onRouteChange
+            )
         }
 
         composable(Screens.Profile.route) {
-            ProfileNavHost(sharedViewModel, mediaViewModel = mediaViewModel, serviceManager = serviceManager, onRouteChange = onRouteChange)
+            ProfileNavHost(
+                sharedViewModel = sharedViewModel,
+                mediaViewModel = mediaViewModel,
+                serviceManager = serviceManager,
+                onRouteChange = onRouteChange
+            )
         }
-
     }
 }
 
@@ -95,7 +106,11 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
     NavHost(navController = homeNavController, startDestination = "feed"){
 
         composable("feed") {
-            HomeScreen(navController = homeNavController, sharedViewModel = sharedViewModel, isPlayerBoxVisible = isServiceRunning)
+            HomeScreen(
+                navController = homeNavController,
+                sharedViewModel = sharedViewModel,
+                isPlayerBoxVisible = isServiceRunning
+            )
         }
 
         composable(
@@ -116,12 +131,14 @@ fun HomeNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewModel
             })
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getInt("postId") ?: -1
-            PostScreen(navController = homeNavController,
+            PostScreen(
+                navController = homeNavController,
                 sharedViewModel = sharedViewModel,
                 postId = postId,
                 mediaViewModel = mediaViewModel,
                 serviceManager = serviceManager,
-                isPlayerBoxVisible = isServiceRunning)
+                isPlayerBoxVisible = isServiceRunning
+            )
         }
 
         composable(
@@ -162,7 +179,7 @@ fun SearchNavHost(sharedViewModel: SharedViewModel, mediaViewModel: MediaViewMod
     // Notify parent composable of the active route
     onRouteChange(currentRoute)
 
-    NavHost(navController = searchNavController, startDestination = "search"){
+    NavHost(navController = searchNavController, startDestination = "search") {
 
         composable("search") {
             SearchScreen(navController = searchNavController, sharedViewModel = sharedViewModel, isPlayerBoxVisible = isServiceRunning)
