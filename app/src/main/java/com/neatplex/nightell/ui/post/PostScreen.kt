@@ -295,7 +295,8 @@ fun PostContent(
                             },
                             mediaViewModel = mediaViewModel,
                             serviceManager = serviceManager,
-                            isServiceRunning = isServiceRunning)
+                            isServiceRunning = isServiceRunning,
+                            sharedViewModel = sharedViewModel)
 
                         PostDescription(
                             isEditing = isEditing,
@@ -452,6 +453,7 @@ fun PostDetails(
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
     isServiceRunning: Boolean,
+    sharedViewModel: SharedViewModel
 ) {
     val audioPath = Constant.Files_URL + post.audio.path
 
@@ -546,6 +548,9 @@ fun PostDetails(
                             if (!isServiceRunning) {
                                 serviceManager.startMediaService()
                             }
+                            sharedViewModel.saveLastRoute(navController.currentDestination?.route ?: "")
+                            sharedViewModel.setActivePostRoute("postScreen/$postId")
+                            sharedViewModel.setCurrentPostId(postId)
                             mediaViewModel.loadData(audioPath, post.image?.path ?: "", post.title, postId.toString())
                             mediaViewModel.onUIEvent(UIEvent.PlayPause)
                         }
