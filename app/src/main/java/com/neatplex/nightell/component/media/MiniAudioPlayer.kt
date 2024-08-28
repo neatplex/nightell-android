@@ -47,17 +47,6 @@ fun PlayerBox(navController: NavController,
         },
         onUiEvent = mediaViewModel::onUIEvent,
         onMaximizeClick = {
-            sharedViewModel.lastRoute.value?.let { savedRoute ->
-                // Navigate to the saved route
-                navController.navigate(savedRoute) {
-                    popUpTo(navController.graph.findStartDestination().id) {
-                        saveState = true
-                    }
-                    restoreState = true
-                }
-                // Clear the saved route after navigation
-                sharedViewModel.clearLastRoute()
-            }
         }
     )
 }
