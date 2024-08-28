@@ -16,8 +16,8 @@ android {
         applicationId = "com.neatplex.nightell"
         minSdk = 29
         targetSdk = 34
-        versionCode = 16
-        versionName = "1.0.6"
+        versionCode = 17
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -89,7 +89,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
     // Google auth
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation ("androidx.credentials:credentials:1.2.2") // For Credential Manager
+    implementation ("com.google.android.gms:play-services-auth:21.2.0") // For Google AuthorizationClient
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
