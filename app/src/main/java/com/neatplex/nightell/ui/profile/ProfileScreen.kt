@@ -145,6 +145,7 @@ fun ProfileScreen(
                                 itemsIndexed(posts!!) { index, post ->
                                     ProfilePostCard(post = post, isLoading = isLoading) { selectedPost ->
                                         if (!isLoading) {
+                                            sharedViewModel.setPost(selectedPost)
                                             navController.navigate(
                                                 "postScreen/${post.id}"
                                             )
