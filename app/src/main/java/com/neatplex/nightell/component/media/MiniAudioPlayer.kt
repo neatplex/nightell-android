@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -23,12 +22,20 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 @Composable
-fun PlayerBox(mediaViewModel: MediaViewModel, modifier: Modifier = Modifier) {
+fun PlayerBox(navController: NavController,
+              mediaViewModel: MediaViewModel,
+              sharedViewModel: SharedViewModel,
+              modifier: Modifier = Modifier,
+) {
+
     CompactAudioPlayer(
         modifier = modifier.padding(bottom = 0.dp), // Padding around the entire player box
         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
@@ -39,6 +46,19 @@ fun PlayerBox(mediaViewModel: MediaViewModel, modifier: Modifier = Modifier) {
             Pair(mediaViewModel.progress, mediaViewModel.progressString)
         },
         onUiEvent = mediaViewModel::onUIEvent,
+        onMaximizeClick = {
+            sharedViewModel.lastRoute.value?.let { savedRoute ->
+                // Navigate to the saved route
+                navController.navigate(savedRoute) {
+                    popUpTo(navController.graph.findStartDestination().id) {
+                        saveState = true
+                    }
+                    restoreState = true
+                }
+                // Clear the saved route after navigation
+                sharedViewModel.clearLastRoute()
+            }
+        }
     )
 }
 
@@ -48,7 +68,8 @@ fun CompactAudioPlayer(
     durationString: String,
     playResourceProvider: () -> Int,
     progressProvider: () -> Pair<Float, String>,
-    onUiEvent: (UIEvent) -> Unit
+    onUiEvent: (UIEvent) -> Unit,
+    onMaximizeClick: () -> Unit
 ) {
     val (progress, progressString) = progressProvider()
 
@@ -56,10 +77,22 @@ fun CompactAudioPlayer(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.Black.copy(alpha = 0.8f)) // Apply a curved border with rounded corners
-            .padding(16.dp), // Padding inside the Row
+            .padding(horizontal = 16.dp, vertical = 24.dp), // Padding inside the Row
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
+
+        Icon(
+            modifier = Modifier
+                .clickable(onClick = { onUiEvent(UIEvent.PlayPause) })
+                .size(32.dp),
+            painter = painterResource(id = playResourceProvider()),
+            contentDescription = "play/pause Button",
+            tint = Color.White // White color for the icon
+        )
+
+        Spacer(modifier = Modifier.width(8.dp))
+
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -94,11 +127,11 @@ fun CompactAudioPlayer(
 
         Icon(
             modifier = Modifier
-                .clickable(onClick = { onUiEvent(UIEvent.PlayPause) })
+                .clickable(onClick = onMaximizeClick)
                 .size(32.dp),
-            painter = painterResource(id = playResourceProvider()),
-            contentDescription = "play/pause Button",
-            tint = Color.White // White color for the icon
+            painter = painterResource(id = R.drawable.baseline_open_in_new_24), // Use your maximize icon here
+            contentDescription = "Maximize Button",
+            tint = Color.White
         )
     }
 }
