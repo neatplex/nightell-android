@@ -34,14 +34,12 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 sealed class Screens(
     val route: String,
-    val icon: Int,
-    val lablel : String
+    val icon: Int
 ) {
-    data object Home : Screens("home", R.drawable.home, "HOME")
-    data object AddPost : Screens("addPost", R.drawable.add_post, "ADD POST")
-    data object Profile : Screens("profile", R.drawable.profile, "PROFILE")
-    data object Search : Screens("search", R.drawable.search, "SEARCH")
-    data object PostScreen : Screens("postScreen", R.drawable.baseline_message_24, "Post")
+    data object Home : Screens("home", R.drawable.home)
+    data object AddPost : Screens("addPost", R.drawable.add_post)
+    data object Profile : Screens("profile", R.drawable.profile)
+    data object Search : Screens("search", R.drawable.search)
 }
 
 object Routes {
@@ -130,7 +128,9 @@ fun BottomNavigationScreen(navController: NavController,
                     // Display PlayerBox if not on the screen showing the currently running post
                     if (!isCurrentPostScreen) {
                         PlayerBox(
+                            navController = navController,  // Pass the navController here
                             mediaViewModel = mediaViewModel,
+                            sharedViewModel = sharedViewModel,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
                                 .padding(vertical = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
