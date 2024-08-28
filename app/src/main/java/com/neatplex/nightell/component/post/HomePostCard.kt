@@ -115,24 +115,24 @@ fun HomePostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit) 
                     }
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(start = 8.dp)) {
-                        Column {
-                            Icon(
-                                painter = painterResource(id = R.drawable.baseline_message_24),
-                                contentDescription = null,
-                                tint = colorResource(id = R.color.night),
-                                modifier = Modifier
-                                    .size(16.dp)
-                                    .graphicsLayer {
-                                        scaleX = -1f
-                                    }
-                            )
-                        }
-                        Column(modifier = Modifier.padding(start = 3.dp)) {
-                            Text(
-                                post.comments_count.toString(),
-                                fontSize = 14.sp
-                            )
-                        }
+//                        Column {
+//                            Icon(
+//                                painter = painterResource(id = R.drawable.baseline_message_24),
+//                                contentDescription = null,
+//                                tint = colorResource(id = R.color.night),
+//                                modifier = Modifier
+//                                    .size(16.dp)
+//                                    .graphicsLayer {
+//                                        scaleX = -1f
+//                                    }
+//                            )
+//                        }
+//                        Column(modifier = Modifier.padding(start = 3.dp)) {
+//                            Text(
+//                                post.comments_count.toString(),
+//                                fontSize = 14.sp
+//                            )
+//                        }
 
                     }
                 }
