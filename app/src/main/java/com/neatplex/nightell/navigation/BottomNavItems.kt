@@ -32,112 +32,120 @@ import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
 
-sealed class Screens(
-    val route: String,
-    val icon: Int
-) {
-    data object Home : Screens("home", R.drawable.home)
-    data object AddPost : Screens("addPost", R.drawable.add_post)
-    data object Profile : Screens("profile", R.drawable.profile)
-    data object Search : Screens("search", R.drawable.search)
-}
-
-object Routes {
-    const val SPLASH = "splash"
-    const val SIGN_IN = "signIn"
-    const val SIGN_UP = "signUp"
-}
-
-@Composable
-fun BottomNavigationScreen(navController: NavController,
-                           items: List<Screens>,
-                           serviceManager: ServiceManager,
-                           mediaViewModel: MediaViewModel,
-                           activeRoute: String,
-                           sharedViewModel: SharedViewModel
-) {
-
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-    val currentScreen = navBackStackEntry?.destination?.route
-    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
-    val showBottomBar = currentScreen !in listOf(Routes.SIGN_IN, Routes.SIGN_UP, Routes.SPLASH)
-
-    if (!showBottomBar) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Created by Neatplex",
-                modifier = Modifier
-                    .padding(30.dp)
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
-    } else {
-        AppTheme {
-            Box {
-                // First, place the NavigationBar at the bottom of the screen.
-                NavigationBar(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(50.dp)
-                        .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
-                        .background(Color.White),
-                    containerColor = Color.White
-                ) {
-                    items.forEachIndexed { index, item ->
-                        val isSelected = item.route == currentDestination?.route
-                        val icon = painterResource(id = item.icon)
-                        BottomNavigationItem(
-                            modifier = Modifier.fillMaxHeight(),
-                            icon = {
-                                Icon(
-                                    painter = icon,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(22.dp),
-                                    tint = if (isSelected) Color.Black else Color.Black.copy(alpha = 0.5f)
-                                )
-                            },
-                            selected = isSelected,
-                            onClick = {
-                                navController.navigate(item.route) {
-                                    launchSingleTop = true
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    popUpTo(item.route) {
-                                        inclusive = true
-                                    }
-                                    restoreState = true
-                                }
-                            }
-                        )
-                    }
-                }
-
-
-                if (isServiceRunning) {
-                    // Check if the current screen is showing the post being played
-                    val isCurrentPostScreen = activeRoute.contains("postScreen") &&
-                            sharedViewModel.post.value?.id == mediaViewModel.currentPostId.toInt()
-
-                    // Display PlayerBox if not on the screen showing the currently running post
-                    if (!isCurrentPostScreen) {
-                        PlayerBox(
-                            navController = navController,  // Pass the navController here
-                            mediaViewModel = mediaViewModel,
-                            sharedViewModel = sharedViewModel,
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(vertical = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
+//sealed class BottomNavScreens(
+//    val route: String,
+//    val icon: Int
+//) {
+//    data object Home : BottomNavScreens("home", R.drawable.home)
+//    data object AddPost : BottomNavScreens("addPost", R.drawable.add_post)
+//    data object Profile : BottomNavScreens("profile", R.drawable.profile)
+//    data object Search : BottomNavScreens("search", R.drawable.search)
+//}
+//
+//sealed class MainDestinations(val route: String) {
+//    object Splash : MainDestinations("splash")
+//    object SignIn : MainDestinations("sign_in")
+//    object SignUp : MainDestinations("sign_up")
+//    object Main : MainDestinations("main")
+//}
+//
+//
+//object Routes {
+//    const val SPLASH = "splash"
+//    const val SIGN_IN = "signIn"
+//    const val SIGN_UP = "signUp"
+//}
+//
+//@Composable
+//fun BottomNavigationScreen(navController: NavController,
+//                           items: List<BottomNavScreens>,
+//                           serviceManager: ServiceManager,
+//                           mediaViewModel: MediaViewModel,
+//                           activeRoute: String,
+//                           sharedViewModel: SharedViewModel
+//) {
+//
+//    val navBackStackEntry by navController.currentBackStackEntryAsState()
+//    val currentDestination = navBackStackEntry?.destination
+//    val currentScreen = navBackStackEntry?.destination?.route
+//    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
+//    val showBottomBar = currentScreen !in listOf(Routes.SIGN_IN, Routes.SIGN_UP, Routes.SPLASH)
+//
+//    if (!showBottomBar) {
+//        Box(
+//            modifier = Modifier.fillMaxWidth(),
+//            contentAlignment = Alignment.Center
+//        ) {
+//            Text(
+//                text = "Created by Neatplex",
+//                modifier = Modifier
+//                    .padding(30.dp)
+//                    .fillMaxWidth(),
+//                textAlign = TextAlign.Center
+//            )
+//        }
+//    } else {
+//        AppTheme {
+//            Box {
+//                // First, place the NavigationBar at the bottom of the screen.
+//                NavigationBar(
+//                    modifier = Modifier
+//                        .align(Alignment.BottomCenter)
+//                        .fillMaxWidth()
+//                        .height(50.dp)
+//                        .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+//                        .background(Color.White),
+//                    containerColor = Color.White
+//                ) {
+//                    items.forEachIndexed { index, item ->
+//                        val isSelected = item.route == currentDestination?.route
+//                        val icon = painterResource(id = item.icon)
+//                        BottomNavigationItem(
+//                            modifier = Modifier.fillMaxHeight(),
+//                            icon = {
+//                                Icon(
+//                                    painter = icon,
+//                                    contentDescription = null,
+//                                    modifier = Modifier.size(22.dp),
+//                                    tint = if (isSelected) Color.Black else Color.Black.copy(alpha = 0.5f)
+//                                )
+//                            },
+//                            selected = isSelected,
+//                            onClick = {
+//                                navController.navigate(item.route) {
+//                                    launchSingleTop = true
+//                                    popUpTo(navController.graph.findStartDestination().id) {
+//                                        saveState = true
+//                                    }
+//                                    popUpTo(item.route) {
+//                                        inclusive = true
+//                                    }
+//                                    restoreState = true
+//                                }
+//                            }
+//                        )
+//                    }
+//                }
+//
+//
+//                if (isServiceRunning) {
+//                    // Check if the current screen is showing the post being played
+//                    val isCurrentPostScreen = activeRoute.contains("postScreen") &&
+//                            sharedViewModel.post.value?.id == mediaViewModel.currentPostId.toInt()
+//
+//                    // Display PlayerBox if not on the screen showing the currently running post
+//                    if (!isCurrentPostScreen) {
+//                        PlayerBox(
+//                            navController = navController,  // Pass the navController here
+//                            mediaViewModel = mediaViewModel,
+//                            sharedViewModel = sharedViewModel,
+//                            modifier = Modifier
+//                                .align(Alignment.BottomCenter)
+//                                .padding(vertical = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
+//                        )
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

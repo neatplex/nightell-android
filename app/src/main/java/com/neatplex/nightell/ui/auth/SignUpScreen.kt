@@ -45,6 +45,7 @@ import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.TextFieldWithValidation
+import com.neatplex.nightell.navigation.MainDestinations
 import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 
@@ -77,7 +78,7 @@ fun SignUpScreen(
             }
         },
         onSignInClick = {
-            navController.navigate("SignIn") {
+            navController.navigate(MainDestinations.SignIn.route) {
                 popUpTo(0) { inclusive = true }
             }
         }
