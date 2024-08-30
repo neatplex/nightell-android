@@ -84,11 +84,8 @@ fun AppNavHost(
         composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
         composable(MainDestinations.Main.route) {
             MainScreen(
-                navController = navController,
-                tokenManager = tokenManager,
                 mediaViewModel = mediaViewModel,
                 serviceManager = serviceManager,
-                isOnline = isOnline,
                 sharedViewModel = sharedViewModel
             )
         }
@@ -138,16 +135,14 @@ sealed class MainDestinations(val route: String) {
 
 @Composable
 fun MainScreen(
-    navController: NavHostController,
-    tokenManager: TokenManager,
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
-    isOnline: Boolean,
     sharedViewModel: SharedViewModel
 ) {
     val selectedTab = rememberSaveable { mutableStateOf(BottomNavScreens.Home.route) }
 
     // Use remember to create NavHostControllers for each tab
+    val navController = rememberNavController()
     val homeNavController = rememberNavController()
     val searchNavController = rememberNavController()
     val addPostNavController = rememberNavController()
@@ -249,7 +244,8 @@ fun MainScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab.value) {
-                BottomNavScreens.Home.route -> HomeNavHost(
+                BottomNavScreens.Home.route ->
+                    HomeNavHost(
                     homeNavController,
                     sharedViewModel,
                     mediaViewModel,
