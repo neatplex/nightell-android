@@ -58,6 +58,7 @@ import com.neatplex.nightell.ui.bookmark.BookmarkedScreen
 import com.neatplex.nightell.ui.splash.SplashScreen
 import com.neatplex.nightell.ui.post.PostScreen
 import com.neatplex.nightell.ui.search.SearchScreen
+import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.user.UserScreen
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
@@ -158,86 +159,98 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
-                    .background(Color.White),
-                containerColor = Color.White
-            ) {
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.Home.route,
-                    onClick = {
-                        handleTabClick(BottomNavScreens.Home.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.Home.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
+            AppTheme {
+                Box {
+                    if (isServiceRunning) {
+                        PlayerBox(
+                            navController = homeNavController,
+                            mediaViewModel = mediaViewModel,
+                            sharedViewModel = sharedViewModel,
+                            modifier = Modifier.padding(vertical = 50.dp)
                         )
                     }
-                )
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.Search.route,
-                    onClick = {
-                        handleTabClick(BottomNavScreens.Search.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.Search.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
+                    NavigationBar(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+                            .background(Color.White),
+                        containerColor = Color.White
+                    ) {
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.Home.route,
+                            onClick = {
+                                handleTabClick(BottomNavScreens.Home.route, selectedTab, tabStack)
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.Home.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
+                        )
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.Search.route,
+                            onClick = {
+                                handleTabClick(BottomNavScreens.Search.route, selectedTab, tabStack)
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.Search.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
+                        )
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.AddPost.route,
+                            onClick = {
+                                handleTabClick(
+                                    BottomNavScreens.AddPost.route,
+                                    selectedTab,
+                                    tabStack
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.AddPost.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
+                        )
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.Profile.route,
+                            onClick = {
+                                Log.d("profile", profileNavController.toString())
+                                handleTabClick(
+                                    BottomNavScreens.Profile.route,
+                                    selectedTab,
+                                    tabStack
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.Profile.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
                         )
                     }
-                )
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.AddPost.route,
-                    onClick = {
-                        handleTabClick(BottomNavScreens.AddPost.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.AddPost.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
-                        )
-                    }
-                )
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.Profile.route,
-                    onClick = {
-                        Log.d("profile", profileNavController.toString())
-                        handleTabClick(BottomNavScreens.Profile.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.Profile.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
-                        )
-                    }
-                )
-            }
-            if (isServiceRunning) {
-                PlayerBox(
-                    navController = homeNavController,
-                    mediaViewModel = mediaViewModel,
-                    sharedViewModel = sharedViewModel,
-                    modifier = Modifier.padding(vertical = 50.dp)
-                )
+                }
             }
         }
     ) { innerPadding ->
@@ -292,8 +305,14 @@ fun MainScreen(
                         tabStack.removeLastOrNull()
                         selectedTab.value = tabStack.last()
                     } else {
-                        // No more tabs in the stack, close the app
-                        backPressedDispatcher?.onBackPressed()
+                        // Check if the last remaining tab is Home
+                        if (selectedTab.value != BottomNavScreens.Home.route) {
+                            // Navigate to Home tab
+                            selectedTab.value = BottomNavScreens.Home.route
+                        } else {
+                            // No more tabs and we're on Home, close the app
+                            backPressedDispatcher?.onBackPressed()
+                        }
                     }
                 } else {
                     // Navigate back within the current tab's stack
@@ -307,7 +326,6 @@ fun MainScreen(
         }
     }
 }
-
     private fun handleTabClick(
     tabRoute: String,
     selectedTab: MutableState<String>,
