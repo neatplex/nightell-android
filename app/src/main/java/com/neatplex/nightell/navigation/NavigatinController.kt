@@ -1,5 +1,7 @@
 package com.neatplex.nightell.navigation
 
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,6 +17,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -141,8 +144,7 @@ fun MainScreen(
 ) {
     val selectedTab = rememberSaveable { mutableStateOf(BottomNavScreens.Home.route) }
 
-    // Use remember to create NavHostControllers for each tab
-    val navController = rememberNavController()
+    // Separate NavHostControllers for each tab
     val homeNavController = rememberNavController()
     val searchNavController = rememberNavController()
     val addPostNavController = rememberNavController()
@@ -150,102 +152,77 @@ fun MainScreen(
 
     val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
-
     Scaffold(
         bottomBar = {
-            AppTheme {
-                NavigationBar(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
-                        .background(Color.White),
-                    containerColor = Color.White
-                ) {
-                    BottomNavigationItem(
-                        selected = selectedTab.value == BottomNavScreens.Home.route,
-                        onClick = {
-                            selectedTab.value = BottomNavScreens.Home.route
-                        },
-                        label = { },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = BottomNavScreens.Home.icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(
-                                    alpha = 0.5f
-                                )
-                            )
-                        }
-                    )
-                    BottomNavigationItem(
-                        selected = selectedTab.value == BottomNavScreens.Search.route,
-                        onClick = {
-                            selectedTab.value = BottomNavScreens.Search.route
-                        },
-                        label = { },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = BottomNavScreens.Search.icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(
-                                    alpha = 0.5f
-                                )
-                            )
-                        }
-                    )
-                    BottomNavigationItem(
-                        selected = selectedTab.value == BottomNavScreens.AddPost.route,
-                        onClick = {
-                            selectedTab.value = BottomNavScreens.AddPost.route
-                        },
-                        label = { },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = BottomNavScreens.AddPost.icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(
-                                    alpha = 0.5f
-                                )
-                            )
-                        }
-                    )
-                    BottomNavigationItem(
-                        selected = selectedTab.value == BottomNavScreens.Profile.route,
-                        onClick = {
-                            selectedTab.value = BottomNavScreens.Profile.route
-                        },
-                        label = { },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = BottomNavScreens.Profile.icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(22.dp),
-                                tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(
-                                    alpha = 0.5f
-                                )
-                            )
-                        }
-                    )
-                }
-                if (isServiceRunning) {
-                    PlayerBox(
-                        navController = homeNavController,  // Pass the navController here
-                        mediaViewModel = mediaViewModel,
-                        sharedViewModel = sharedViewModel,
-                        modifier = Modifier
-                            .padding(vertical = 50.dp) // Adjust this padding to ensure it sits right above the NavigationBar
-                    )
-                }
+            NavigationBar(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+                    .background(Color.White),
+                containerColor = Color.White
+            ) {
+                BottomNavigationItem(
+                    selected = selectedTab.value == BottomNavScreens.Home.route,
+                    onClick = { selectedTab.value = BottomNavScreens.Home.route },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = BottomNavScreens.Home.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                        )
+                    }
+                )
+                BottomNavigationItem(
+                    selected = selectedTab.value == BottomNavScreens.Search.route,
+                    onClick = { selectedTab.value = BottomNavScreens.Search.route },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = BottomNavScreens.Search.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                        )
+                    }
+                )
+                BottomNavigationItem(
+                    selected = selectedTab.value == BottomNavScreens.AddPost.route,
+                    onClick = { selectedTab.value = BottomNavScreens.AddPost.route },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = BottomNavScreens.AddPost.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                        )
+                    }
+                )
+                BottomNavigationItem(
+                    selected = selectedTab.value == BottomNavScreens.Profile.route,
+                    onClick = { selectedTab.value = BottomNavScreens.Profile.route },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = BottomNavScreens.Profile.icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(22.dp),
+                            tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                        )
+                    }
+                )
+            }
+            if (isServiceRunning) {
+                PlayerBox(
+                    navController = homeNavController,
+                    mediaViewModel = mediaViewModel,
+                    sharedViewModel = sharedViewModel,
+                    modifier = Modifier.padding(vertical = 50.dp)
+                )
             }
         }
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab.value) {
-                BottomNavScreens.Home.route ->
-                    HomeNavHost(
+                BottomNavScreens.Home.route -> HomeNavHost(
                     homeNavController,
                     sharedViewModel,
                     mediaViewModel,
@@ -267,8 +244,38 @@ fun MainScreen(
             }
         }
     }
-}
 
+    // Handle back press
+    val backPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+
+    DisposableEffect(Unit) {
+        val callback = object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                val currentController = when (selectedTab.value) {
+                    BottomNavScreens.Home.route -> homeNavController
+                    BottomNavScreens.Search.route -> searchNavController
+                    BottomNavScreens.AddPost.route -> addPostNavController
+                    BottomNavScreens.Profile.route -> profileNavController
+                    else -> homeNavController
+                }
+
+                // If the current tab's back stack can be popped, do so; otherwise, exit the app
+                if (!currentController.popBackStack()) {
+                    if (selectedTab.value != BottomNavScreens.Home.route) {
+                        // If it's not the home tab, go to the home tab instead of closing the app
+                        selectedTab.value = BottomNavScreens.Home.route
+                    } else {
+                        backPressedDispatcher?.onBackPressed()
+                    }
+                }
+            }
+        }
+        backPressedDispatcher?.addCallback(callback)
+        onDispose {
+            callback.remove()
+        }
+    }
+}
 
 @Composable
 fun AddPostNavHost(navController: NavHostController) {
