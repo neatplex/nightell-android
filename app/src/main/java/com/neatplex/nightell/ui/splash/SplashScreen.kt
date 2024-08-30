@@ -21,8 +21,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.neatplex.nightell.navigation.Routes
-import com.neatplex.nightell.navigation.Screens
+import com.neatplex.nightell.navigation.MainDestinations
 import com.neatplex.nightell.ui.theme.feelFree
 import kotlinx.coroutines.delay
 
@@ -83,6 +82,14 @@ fun HandleSplashScreenNavigation(navController: NavController, hasToken: Boolean
     LaunchedEffect(key1 = true) {
         delay(3000)
         navController.popBackStack()
-        navController.navigate(if (hasToken) Screens.Home.route else Routes.SIGN_IN)
+        if (hasToken) {
+            navController.navigate(MainDestinations.Main.route) {
+                popUpTo(MainDestinations.Splash.route) { inclusive = true }
+            }
+        } else {
+            navController.navigate(MainDestinations.SignIn.route) {
+                popUpTo(MainDestinations.Splash.route) { inclusive = true }
+            }
+        }
     }
 }

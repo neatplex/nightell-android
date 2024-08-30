@@ -47,6 +47,7 @@ fun PlayerBox(navController: NavController,
         },
         onUiEvent = mediaViewModel::onUIEvent,
         onMaximizeClick = {
+            navController.navigate("postScreen/${mediaViewModel.currentPostId.toInt()}")
         }
     )
 }

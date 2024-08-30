@@ -63,7 +63,6 @@ import kotlinx.coroutines.launch
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AddPostScreen(
-    tokenState: String?,
     navController: NavController,
     uploadViewModel: UploadViewModel = hiltViewModel(),
 ) {

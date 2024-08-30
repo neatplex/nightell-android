@@ -45,10 +45,11 @@ import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.component.OutlinedTextFieldWithIcon
 import com.neatplex.nightell.data.dto.AuthResponse
-import com.neatplex.nightell.navigation.Screens
+import com.neatplex.nightell.navigation.BottomNavScreens
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
 import com.google.android.gms.common.api.ApiException
+import com.neatplex.nightell.navigation.MainDestinations
 
 @Composable
 fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
@@ -123,7 +124,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
                 }
         },
         onSignUpClick = {
-            navController.navigate("SignUp")
+            navController.navigate(MainDestinations.SignUp.route)
         },
         iSignInInProgress = isLoading
     )
@@ -237,7 +238,7 @@ fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavControl
         is Result.Success -> {
             authResultState.data?.let {
                 navController.popBackStack()
-                navController.navigate(Screens.Home.route)
+                navController.navigate(MainDestinations.Main.route)
             }
         }
     }
