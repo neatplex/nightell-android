@@ -282,13 +282,22 @@ fun MainScreen(
                     else -> homeNavController
                 }
 
-                if (currentController.popBackStack().not()) {
+                // Check if the current nav controller is at the start destination
+                val isAtStartDestination =
+                    currentController.currentDestination?.route == currentController.graph.startDestinationRoute
+
+                if (isAtStartDestination) {
                     if (tabStack.size > 1) {
+                        // If more tabs exist in the stack, switch to the previous tab
                         tabStack.removeLastOrNull()
                         selectedTab.value = tabStack.last()
                     } else {
+                        // No more tabs in the stack, close the app
                         backPressedDispatcher?.onBackPressed()
                     }
+                } else {
+                    // Navigate back within the current tab's stack
+                    currentController.popBackStack()
                 }
             }
         }
@@ -299,7 +308,7 @@ fun MainScreen(
     }
 }
 
-private fun handleTabClick(
+    private fun handleTabClick(
     tabRoute: String,
     selectedTab: MutableState<String>,
     tabStack: SnapshotStateList<String>
