@@ -1,5 +1,6 @@
 package com.neatplex.nightell.navigation
 
+import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.Image
@@ -18,11 +19,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +35,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -54,7 +58,6 @@ import com.neatplex.nightell.ui.bookmark.BookmarkedScreen
 import com.neatplex.nightell.ui.splash.SplashScreen
 import com.neatplex.nightell.ui.post.PostScreen
 import com.neatplex.nightell.ui.search.SearchScreen
-import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.user.UserScreen
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
@@ -143,6 +146,7 @@ fun MainScreen(
     sharedViewModel: SharedViewModel
 ) {
     val selectedTab = rememberSaveable { mutableStateOf(BottomNavScreens.Home.route) }
+    val tabStack = remember { mutableStateListOf(BottomNavScreens.Home.route) }
 
     // Separate NavHostControllers for each tab
     val homeNavController = rememberNavController()
@@ -163,49 +167,66 @@ fun MainScreen(
             ) {
                 BottomNavigationItem(
                     selected = selectedTab.value == BottomNavScreens.Home.route,
-                    onClick = { selectedTab.value = BottomNavScreens.Home.route },
+                    onClick = {
+                        handleTabClick(BottomNavScreens.Home.route, selectedTab, tabStack)
+                    },
                     icon = {
                         Icon(
                             painter = painterResource(id = BottomNavScreens.Home.icon),
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                            tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(
+                                alpha = 0.5f
+                            )
                         )
                     }
                 )
                 BottomNavigationItem(
                     selected = selectedTab.value == BottomNavScreens.Search.route,
-                    onClick = { selectedTab.value = BottomNavScreens.Search.route },
+                    onClick = {
+                        handleTabClick(BottomNavScreens.Search.route, selectedTab, tabStack)
+                    },
                     icon = {
                         Icon(
                             painter = painterResource(id = BottomNavScreens.Search.icon),
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                            tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(
+                                alpha = 0.5f
+                            )
                         )
                     }
                 )
                 BottomNavigationItem(
                     selected = selectedTab.value == BottomNavScreens.AddPost.route,
-                    onClick = { selectedTab.value = BottomNavScreens.AddPost.route },
+                    onClick = {
+                        handleTabClick(BottomNavScreens.AddPost.route, selectedTab, tabStack)
+                    },
                     icon = {
                         Icon(
                             painter = painterResource(id = BottomNavScreens.AddPost.icon),
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                            tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(
+                                alpha = 0.5f
+                            )
                         )
                     }
                 )
                 BottomNavigationItem(
                     selected = selectedTab.value == BottomNavScreens.Profile.route,
-                    onClick = { selectedTab.value = BottomNavScreens.Profile.route },
+                    onClick = {
+                        Log.d("profile", profileNavController.toString())
+                        handleTabClick(BottomNavScreens.Profile.route, selectedTab, tabStack)
+                    },
                     icon = {
                         Icon(
                             painter = painterResource(id = BottomNavScreens.Profile.icon),
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(alpha = 0.5f)
+                            tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(
+                                alpha = 0.5f
+                            )
                         )
                     }
                 )
@@ -228,12 +249,14 @@ fun MainScreen(
                     mediaViewModel,
                     serviceManager
                 )
+
                 BottomNavScreens.Search.route -> SearchNavHost(
                     searchNavController,
                     sharedViewModel,
                     mediaViewModel,
                     serviceManager
                 )
+
                 BottomNavScreens.AddPost.route -> AddPostNavHost(addPostNavController)
                 BottomNavScreens.Profile.route -> ProfileNavHost(
                     profileNavController,
@@ -259,11 +282,10 @@ fun MainScreen(
                     else -> homeNavController
                 }
 
-                // If the current tab's back stack can be popped, do so; otherwise, exit the app
-                if (!currentController.popBackStack()) {
-                    if (selectedTab.value != BottomNavScreens.Home.route) {
-                        // If it's not the home tab, go to the home tab instead of closing the app
-                        selectedTab.value = BottomNavScreens.Home.route
+                if (currentController.popBackStack().not()) {
+                    if (tabStack.size > 1) {
+                        tabStack.removeLastOrNull()
+                        selectedTab.value = tabStack.last()
                     } else {
                         backPressedDispatcher?.onBackPressed()
                     }
@@ -274,6 +296,23 @@ fun MainScreen(
         onDispose {
             callback.remove()
         }
+    }
+}
+
+private fun handleTabClick(
+    tabRoute: String,
+    selectedTab: MutableState<String>,
+    tabStack: SnapshotStateList<String>
+) {
+    if (selectedTab.value != tabRoute) {
+        // If the tab already exists in the stack, remove it
+        if (tabRoute in tabStack) {
+            tabStack.remove(tabRoute)
+        }
+        // Add the tab to the top of the stack
+        tabStack.add(tabRoute)
+        // Update the selected tab
+        selectedTab.value = tabRoute
     }
 }
 
