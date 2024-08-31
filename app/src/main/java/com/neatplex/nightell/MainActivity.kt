@@ -33,7 +33,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-
             val navController = rememberNavController()
 
             // Observe connectivity state

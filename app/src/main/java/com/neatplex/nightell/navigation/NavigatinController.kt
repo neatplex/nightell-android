@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.BottomNavigationItem
@@ -19,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,7 +78,6 @@ fun AppNavHost(
     isOnline: Boolean,
     sharedViewModel: SharedViewModel
 ) {
-
     NavHost(
         navController = navController,
         startDestination = MainDestinations.Splash.route
@@ -93,8 +95,7 @@ fun AppNavHost(
             MainScreen(
                 mediaViewModel = mediaViewModel,
                 serviceManager = serviceManager,
-                sharedViewModel = sharedViewModel
-            )
+                sharedViewModel = sharedViewModel)
         }
     }
 
@@ -144,8 +145,10 @@ sealed class MainDestinations(val route: String) {
 fun MainScreen(
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
 ) {
+    var activeRoute by remember { mutableStateOf("") }
+
     val selectedTab = rememberSaveable { mutableStateOf(BottomNavScreens.Home.route) }
     val tabStack = remember { mutableStateListOf(BottomNavScreens.Home.route) }
 
@@ -161,17 +164,11 @@ fun MainScreen(
         bottomBar = {
             AppTheme {
                 Box {
-                    if (isServiceRunning) {
-                        PlayerBox(
-                            navController = homeNavController,
-                            mediaViewModel = mediaViewModel,
-                            sharedViewModel = sharedViewModel,
-                            modifier = Modifier.padding(vertical = 50.dp)
-                        )
-                    }
                     NavigationBar(
                         modifier = Modifier
+                            .align(Alignment.BottomCenter)
                             .fillMaxWidth()
+                            .height(60.dp)
                             .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
                             .background(Color.White),
                         containerColor = Color.White
@@ -250,6 +247,19 @@ fun MainScreen(
                             }
                         )
                     }
+
+                    val isCurrentPostScreen = activeRoute.contains("postScreen")
+
+                    if (isServiceRunning && !isCurrentPostScreen) {
+                        PlayerBox(
+                            navController = homeNavController,
+                            mediaViewModel = mediaViewModel,
+                            sharedViewModel = sharedViewModel,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 60.dp) // Adjust this padding as necessary to avoid overlap
+                        )
+                    }
                 }
             }
         }
@@ -260,14 +270,16 @@ fun MainScreen(
                     homeNavController,
                     sharedViewModel,
                     mediaViewModel,
-                    serviceManager
+                    serviceManager,
+                    onRouteChange = { route -> activeRoute = route }
                 )
 
                 BottomNavScreens.Search.route -> SearchNavHost(
                     searchNavController,
                     sharedViewModel,
                     mediaViewModel,
-                    serviceManager
+                    serviceManager,
+                    onRouteChange = { route -> activeRoute = route }
                 )
 
                 BottomNavScreens.AddPost.route -> AddPostNavHost(addPostNavController)
@@ -275,7 +287,8 @@ fun MainScreen(
                     profileNavController,
                     sharedViewModel,
                     mediaViewModel,
-                    serviceManager
+                    serviceManager,
+                    onRouteChange = { route -> activeRoute = route }
                 )
             }
         }
@@ -326,7 +339,8 @@ fun MainScreen(
         }
     }
 }
-    private fun handleTabClick(
+
+private fun handleTabClick(
     tabRoute: String,
     selectedTab: MutableState<String>,
     tabStack: SnapshotStateList<String>
@@ -357,11 +371,14 @@ fun HomeNavHost(
     navController: NavHostController,
     sharedViewModel: SharedViewModel,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager,
+    onRouteChange: (String) -> Unit
 ) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    LaunchedEffect(navBackStackEntry) {
+        onRouteChange(navBackStackEntry?.destination?.route ?: "feed")
+    }
     val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "feed") {
@@ -440,11 +457,14 @@ fun SearchNavHost(
     navController: NavHostController,
     sharedViewModel: SharedViewModel,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager,
+    onRouteChange: (String) -> Unit
 ) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    LaunchedEffect(navBackStackEntry) {
+        onRouteChange(navBackStackEntry?.destination?.route ?: "search")
+    }
     val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "search") {
@@ -521,11 +541,14 @@ fun ProfileNavHost(
     navController: NavHostController,
     sharedViewModel: SharedViewModel,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager,
+    onRouteChange: (String) -> Unit
 ) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    LaunchedEffect(navBackStackEntry) {
+        onRouteChange(navBackStackEntry?.destination?.route ?: "profile")
+    }
     val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "profile") {
