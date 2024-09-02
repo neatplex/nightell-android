@@ -78,32 +78,35 @@ fun AppNavHost(
     isOnline: Boolean,
     sharedViewModel: SharedViewModel
 ) {
-    NavHost(
-        navController = navController,
-        startDestination = MainDestinations.Splash.route
-    ) {
 
-        composable(MainDestinations.Splash.route) {
-            SplashScreen(
-                navController,
-                hasToken = tokenManager.getToken() != null
-            )
-        }
-        composable(MainDestinations.SignIn.route) { SignInScreen(navController) }
-        composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
-        composable(MainDestinations.Main.route) {
-            MainScreen(
-                mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager,
-                sharedViewModel = sharedViewModel)
+    if (isOnline) {
+        NavHost(
+            navController = navController,
+            startDestination = MainDestinations.Splash.route
+        ) {
+
+            composable(MainDestinations.Splash.route) {
+                SplashScreen(
+                    navController,
+                    hasToken = tokenManager.getToken() != null
+                )
+            }
+            composable(MainDestinations.SignIn.route) { SignInScreen(navController) }
+            composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
+            composable(MainDestinations.Main.route) {
+                MainScreen(
+                    mediaViewModel = mediaViewModel,
+                    serviceManager = serviceManager,
+                    sharedViewModel = sharedViewModel
+                )
+            }
         }
     }
-
-    if (!isOnline) {
+    else {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.8f)),
+                .background(Color.Black.copy(alpha = 0.5f)),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -250,14 +253,18 @@ fun MainScreen(
 
                     val isCurrentPostScreen = activeRoute.contains("postScreen")
 
+                    val navToPostScreen: () -> Unit = {
+                        selectedTab.value = BottomNavScreens.Home.route
+                        homeNavController.navigate("postScreen/${mediaViewModel.currentPostId}")
+                    }
+
                     if (isServiceRunning && !isCurrentPostScreen) {
                         PlayerBox(
-                            navController = homeNavController,
                             mediaViewModel = mediaViewModel,
-                            sharedViewModel = sharedViewModel,
                             modifier = Modifier
                                 .align(Alignment.BottomCenter)
-                                .padding(bottom = 60.dp) // Adjust this padding as necessary to avoid overlap
+                                .padding(bottom = 60.dp),
+                            onMaximizeClick = navToPostScreen
                         )
                     }
                 }

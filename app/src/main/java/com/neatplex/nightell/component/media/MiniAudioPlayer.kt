@@ -30,10 +30,10 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 @Composable
-fun PlayerBox(navController: NavController,
+fun PlayerBox(
               mediaViewModel: MediaViewModel,
-              sharedViewModel: SharedViewModel,
               modifier: Modifier = Modifier,
+              onMaximizeClick: () -> Unit
 ) {
 
     CompactAudioPlayer(
@@ -47,7 +47,7 @@ fun PlayerBox(navController: NavController,
         },
         onUiEvent = mediaViewModel::onUIEvent,
         onMaximizeClick = {
-            navController.navigate("postScreen/${mediaViewModel.currentPostId.toInt()}")
+            onMaximizeClick()
         }
     )
 }
