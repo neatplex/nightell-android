@@ -32,9 +32,9 @@ class ProfileViewModel @Inject constructor(
     val usernameUpdatedData: LiveData<Result<UserUpdated>>
         get() = _usernameUpdatedData
 
-    private val _userUpdatedData = MutableLiveData<Result<UserUpdated>>()
-    val userUpdatedData: LiveData<Result<UserUpdated>>
-        get() = _userUpdatedData
+    private val _profileNameUpdatedData = MutableLiveData<Result<UserUpdated>>()
+    val profileNameUpdatedData: LiveData<Result<UserUpdated>>
+        get() = _profileNameUpdatedData
 
     private val _userBioUpdatedData = MutableLiveData<Result<UserUpdated>>()
     val userBioUpdatedData: LiveData<Result<UserUpdated>>
@@ -64,7 +64,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoading.value = true
             val result = userUseCase.changeProfileName(name)
-            _userUpdatedData.value = result
+            _profileNameUpdatedData.value = result
             _isLoading.value = false
         }
     }
