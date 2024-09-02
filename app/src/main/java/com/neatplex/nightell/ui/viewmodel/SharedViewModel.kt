@@ -24,31 +24,6 @@ class SharedViewModel @Inject constructor(
 
     val tokenState: StateFlow<String?> = tokenManager.tokenState
 
-    private val _activePostRoute = MutableLiveData<String?>()
-    val activePostRoute: LiveData<String?> get() = _activePostRoute
-
-    private val _currentPostId = MutableLiveData<Int?>()
-    val currentPostId: LiveData<Int?> get() = _currentPostId
-
-    private val _lastRoute = MutableStateFlow<String?>(null)
-    val lastRoute: StateFlow<String?> = _lastRoute
-
-    fun saveLastRoute(route: String) {
-        _lastRoute.value = route
-    }
-
-    fun clearLastRoute() {
-        _lastRoute.value = null
-    }
-
-    fun setActivePostRoute(route: String) {
-        _activePostRoute.value = route
-    }
-
-    fun setCurrentPostId(postId: Int) {
-        _currentPostId.value = postId
-    }
-
     fun setPost(post: Post) {
         _post.value = post
     }
