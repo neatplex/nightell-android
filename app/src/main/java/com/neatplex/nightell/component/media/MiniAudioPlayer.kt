@@ -22,18 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 @Composable
 fun PlayerBox(
-              mediaViewModel: MediaViewModel,
-              modifier: Modifier = Modifier,
-              onMaximizeClick: () -> Unit
+    mediaViewModel: MediaViewModel,
+    modifier: Modifier = Modifier,
+    onMaximizeClick: () -> Unit
 ) {
 
     CompactAudioPlayer(
