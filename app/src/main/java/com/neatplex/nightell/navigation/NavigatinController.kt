@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.BottomNavigationItem
@@ -19,6 +20,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -27,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,6 +61,7 @@ import com.neatplex.nightell.ui.bookmark.BookmarkedScreen
 import com.neatplex.nightell.ui.splash.SplashScreen
 import com.neatplex.nightell.ui.post.PostScreen
 import com.neatplex.nightell.ui.search.SearchScreen
+import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.user.UserScreen
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
@@ -75,33 +79,34 @@ fun AppNavHost(
     sharedViewModel: SharedViewModel
 ) {
 
-    NavHost(
-        navController = navController,
-        startDestination = MainDestinations.Splash.route
-    ) {
+    if (isOnline) {
+        NavHost(
+            navController = navController,
+            startDestination = MainDestinations.Splash.route
+        ) {
 
-        composable(MainDestinations.Splash.route) {
-            SplashScreen(
-                navController,
-                hasToken = tokenManager.getToken() != null
-            )
-        }
-        composable(MainDestinations.SignIn.route) { SignInScreen(navController) }
-        composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
-        composable(MainDestinations.Main.route) {
-            MainScreen(
-                mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager,
-                sharedViewModel = sharedViewModel
-            )
+            composable(MainDestinations.Splash.route) {
+                SplashScreen(
+                    navController,
+                    hasToken = tokenManager.getToken() != null
+                )
+            }
+            composable(MainDestinations.SignIn.route) { SignInScreen(navController) }
+            composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
+            composable(MainDestinations.Main.route) {
+                MainScreen(
+                    mediaViewModel = mediaViewModel,
+                    serviceManager = serviceManager,
+                    sharedViewModel = sharedViewModel
+                )
+            }
         }
     }
-
-    if (!isOnline) {
+    else {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.8f)),
+                .background(Color.Black.copy(alpha = 0.5f)),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -143,8 +148,10 @@ sealed class MainDestinations(val route: String) {
 fun MainScreen(
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
-    sharedViewModel: SharedViewModel
+    sharedViewModel: SharedViewModel,
 ) {
+    var activeRoute by remember { mutableStateOf("") }
+
     val selectedTab = rememberSaveable { mutableStateOf(BottomNavScreens.Home.route) }
     val tabStack = remember { mutableStateListOf(BottomNavScreens.Home.route) }
 
@@ -158,86 +165,109 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
-                    .background(Color.White),
-                containerColor = Color.White
-            ) {
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.Home.route,
-                    onClick = {
-                        handleTabClick(BottomNavScreens.Home.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.Home.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
+            AppTheme {
+                Box {
+                    NavigationBar(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(60.dp)
+                            .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
+                            .background(Color.White),
+                        containerColor = Color.White
+                    ) {
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.Home.route,
+                            onClick = {
+                                handleTabClick(BottomNavScreens.Home.route, selectedTab, tabStack)
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.Home.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.Home.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
+                        )
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.Search.route,
+                            onClick = {
+                                handleTabClick(BottomNavScreens.Search.route, selectedTab, tabStack)
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.Search.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
+                        )
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.AddPost.route,
+                            onClick = {
+                                handleTabClick(
+                                    BottomNavScreens.AddPost.route,
+                                    selectedTab,
+                                    tabStack
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.AddPost.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
+                        )
+                        BottomNavigationItem(
+                            selected = selectedTab.value == BottomNavScreens.Profile.route,
+                            onClick = {
+                                Log.d("profile", profileNavController.toString())
+                                handleTabClick(
+                                    BottomNavScreens.Profile.route,
+                                    selectedTab,
+                                    tabStack
+                                )
+                            },
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = BottomNavScreens.Profile.icon),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(22.dp),
+                                    tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(
+                                        alpha = 0.5f
+                                    )
+                                )
+                            }
                         )
                     }
-                )
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.Search.route,
-                    onClick = {
-                        handleTabClick(BottomNavScreens.Search.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.Search.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Search.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
+
+                    val isCurrentPostScreen = activeRoute.contains("postScreen")
+
+                    val navToPostScreen: () -> Unit = {
+                        selectedTab.value = BottomNavScreens.Home.route
+                        homeNavController.navigate("postScreen/${mediaViewModel.currentPostId}")
+                    }
+
+                    if (isServiceRunning && !isCurrentPostScreen) {
+                        PlayerBox(
+                            mediaViewModel = mediaViewModel,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 60.dp),
+                            onMaximizeClick = navToPostScreen
                         )
                     }
-                )
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.AddPost.route,
-                    onClick = {
-                        handleTabClick(BottomNavScreens.AddPost.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.AddPost.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.AddPost.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
-                        )
-                    }
-                )
-                BottomNavigationItem(
-                    selected = selectedTab.value == BottomNavScreens.Profile.route,
-                    onClick = {
-                        Log.d("profile", profileNavController.toString())
-                        handleTabClick(BottomNavScreens.Profile.route, selectedTab, tabStack)
-                    },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = BottomNavScreens.Profile.icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = if (selectedTab.value == BottomNavScreens.Profile.route) Color.Black else Color.Black.copy(
-                                alpha = 0.5f
-                            )
-                        )
-                    }
-                )
-            }
-            if (isServiceRunning) {
-                PlayerBox(
-                    navController = homeNavController,
-                    mediaViewModel = mediaViewModel,
-                    sharedViewModel = sharedViewModel,
-                    modifier = Modifier.padding(vertical = 50.dp)
-                )
+                }
             }
         }
     ) { innerPadding ->
@@ -247,14 +277,16 @@ fun MainScreen(
                     homeNavController,
                     sharedViewModel,
                     mediaViewModel,
-                    serviceManager
+                    serviceManager,
+                    onRouteChange = { route -> activeRoute = route }
                 )
 
                 BottomNavScreens.Search.route -> SearchNavHost(
                     searchNavController,
                     sharedViewModel,
                     mediaViewModel,
-                    serviceManager
+                    serviceManager,
+                    onRouteChange = { route -> activeRoute = route }
                 )
 
                 BottomNavScreens.AddPost.route -> AddPostNavHost(addPostNavController)
@@ -262,7 +294,8 @@ fun MainScreen(
                     profileNavController,
                     sharedViewModel,
                     mediaViewModel,
-                    serviceManager
+                    serviceManager,
+                    onRouteChange = { route -> activeRoute = route }
                 )
             }
         }
@@ -292,8 +325,14 @@ fun MainScreen(
                         tabStack.removeLastOrNull()
                         selectedTab.value = tabStack.last()
                     } else {
-                        // No more tabs in the stack, close the app
-                        backPressedDispatcher?.onBackPressed()
+                        // Check if the last remaining tab is Home
+                        if (selectedTab.value != BottomNavScreens.Home.route) {
+                            // Navigate to Home tab
+                            selectedTab.value = BottomNavScreens.Home.route
+                        } else {
+                            // No more tabs and we're on Home, close the app
+                            backPressedDispatcher?.onBackPressed()
+                        }
                     }
                 } else {
                     // Navigate back within the current tab's stack
@@ -308,7 +347,7 @@ fun MainScreen(
     }
 }
 
-    private fun handleTabClick(
+private fun handleTabClick(
     tabRoute: String,
     selectedTab: MutableState<String>,
     tabStack: SnapshotStateList<String>
@@ -339,11 +378,14 @@ fun HomeNavHost(
     navController: NavHostController,
     sharedViewModel: SharedViewModel,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager,
+    onRouteChange: (String) -> Unit
 ) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    LaunchedEffect(navBackStackEntry) {
+        onRouteChange(navBackStackEntry?.destination?.route ?: "feed")
+    }
     val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "feed") {
@@ -422,11 +464,14 @@ fun SearchNavHost(
     navController: NavHostController,
     sharedViewModel: SharedViewModel,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager,
+    onRouteChange: (String) -> Unit
 ) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    LaunchedEffect(navBackStackEntry) {
+        onRouteChange(navBackStackEntry?.destination?.route ?: "search")
+    }
     val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "search") {
@@ -503,11 +548,14 @@ fun ProfileNavHost(
     navController: NavHostController,
     sharedViewModel: SharedViewModel,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager
+    serviceManager: ServiceManager,
+    onRouteChange: (String) -> Unit
 ) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route ?: ""
+    LaunchedEffect(navBackStackEntry) {
+        onRouteChange(navBackStackEntry?.destination?.route ?: "profile")
+    }
     val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "profile") {

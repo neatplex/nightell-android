@@ -60,7 +60,7 @@ fun UserScreen(
     isPlayerBoxVisible: Boolean
 ) {
 
-    val bottomPadding = if (isPlayerBoxVisible) 135.dp else 65.dp
+    val bottomPadding = 65.dp
 
     //Fetch user profile info
     val profileResult by userViewModel.showUserInfoResult.observeAsState()
