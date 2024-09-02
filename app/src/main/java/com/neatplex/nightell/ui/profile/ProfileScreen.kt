@@ -60,7 +60,7 @@ fun ProfileScreen(
     sharedViewModel: SharedViewModel,
     isPlayerBoxVisible: Boolean
 ) {
-    val bottomPadding = if (isPlayerBoxVisible) 135.dp else 65.dp
+    val bottomPadding = 65.dp
 
     val profileResult by profileViewModel.profileData.observeAsState()
     val user = sharedViewModel.user.value

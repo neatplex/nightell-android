@@ -44,7 +44,7 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = hiltViewModel(),
     isPlayerBoxVisible: Boolean
 ) {
-    val bottomPadding = if (isPlayerBoxVisible) 135.dp else 65.dp
+    val bottomPadding = 65.dp
 
     var query by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }

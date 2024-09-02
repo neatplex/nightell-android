@@ -48,7 +48,7 @@ fun HomeScreen(
     val isLoading by homeViewModel.isLoading.observeAsState(false)
     val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
     val profileResult by homeViewModel.profileData.observeAsState()
-    val bottomPadding = if (isPlayerBoxVisible) 135.dp else 65.dp
+    val bottomPadding = 65.dp
 
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry

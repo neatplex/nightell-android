@@ -89,7 +89,7 @@ fun PostScreen(
     val isFetchingPost by postViewModel.isFetching.observeAsState(true)
     val postDetailResult by postViewModel.postDetailResult.observeAsState()
     val isServiceRunning by mediaViewModel.isServiceRunning.collectAsState()
-    val bottomPadding = if (isPlayerBoxVisible && mediaViewModel.currentPostId.toInt() != postId) 135.dp else 65.dp
+    val bottomPadding = 65.dp
 
 
     var post by remember { mutableStateOf<Post?>(null) }
@@ -523,9 +523,7 @@ fun PostDetails(
 
             if (isAudioLoading) {
                 Text("Loading audio...")
-            }
-
-            if (isAudioPrepared && !isAudioLoading) {
+            } else if (isAudioPrepared && !isAudioLoading) {
                 val isSame = postId.toString() == mediaViewModel.currentPostId
 
                 if (isSame) {
@@ -548,9 +546,6 @@ fun PostDetails(
                             if (!isServiceRunning) {
                                 serviceManager.startMediaService()
                             }
-                            sharedViewModel.saveLastRoute(navController.currentDestination?.route ?: "")
-                            sharedViewModel.setActivePostRoute("postScreen/$postId")
-                            sharedViewModel.setCurrentPostId(postId)
                             mediaViewModel.loadData(audioPath, post.image?.path ?: "", post.title, postId.toString())
                             mediaViewModel.onUIEvent(UIEvent.PlayPause)
                         }
