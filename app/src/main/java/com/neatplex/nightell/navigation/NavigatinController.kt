@@ -1,6 +1,5 @@
 package com.neatplex.nightell.navigation
 
-import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.Image
@@ -238,7 +237,6 @@ fun MainScreen(
                         BottomNavigationItem(
                             selected = selectedTab.value == BottomNavScreens.Profile.route,
                             onClick = {
-                                Log.d("profile", profileNavController.toString())
                                 handleTabClick(
                                     BottomNavScreens.Profile.route,
                                     selectedTab,
@@ -475,7 +473,6 @@ fun SearchNavHost(
     LaunchedEffect(navBackStackEntry) {
         onRouteChange(navBackStackEntry?.destination?.route ?: "search")
     }
-    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "search") {
         composable("search") {
