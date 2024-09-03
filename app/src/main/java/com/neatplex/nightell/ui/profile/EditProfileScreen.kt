@@ -7,18 +7,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,8 +37,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
@@ -53,7 +47,6 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.AlertDialogCustom
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.EditProfileTextFieldWithValidation
-import com.neatplex.nightell.component.ErrorText
 import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
@@ -67,8 +60,19 @@ fun EditProfileScreen(
 ) {
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val user = sharedViewModel.user
-    val updateProfileResult by profileViewModel.userUpdatedData.observeAsState()
+    val updateProfileNameResult by profileViewModel.profileNameUpdatedData.observeAsState()
+    val updateUsernameResult by profileViewModel.usernameUpdatedData.observeAsState()
+    val updateProfileBioResult by profileViewModel.userBioUpdatedData.observeAsState()
     val deleteProfileResult by profileViewModel.accountDeleteResult.observeAsState()
+
+    var isNameLoading by remember { mutableStateOf(false) }
+    var isNameSuccess by remember { mutableStateOf(false) }
+
+    var isUsernameLoading by remember { mutableStateOf(false) }
+    var isUsernameSuccess by remember { mutableStateOf(false) }
+
+    var isBioLoading by remember { mutableStateOf(false) }
+    var isBioSuccess by remember { mutableStateOf(false) }
 
     // State for edited fields
     var editedName by remember { mutableStateOf(user.value!!.name) }
@@ -80,16 +84,12 @@ fun EditProfileScreen(
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
     var errorMessage by remember { mutableStateOf("") }
+    var resultErrorMessage by remember { mutableStateOf("") }
 
     // Track changes in fields
     var isNameChanged by remember { mutableStateOf(false) }
     var isBioChanged by remember { mutableStateOf(false) }
     var isUsernameChanged by remember { mutableStateOf(false) }
-
-    // Track original values
-    var originalName = user.value?.name ?: ""
-    var originalBio = user.value?.bio ?: ""
-    var originalUsername = user.value?.username ?: ""
 
     // State to track the token deletion process
     var isTokenDeletionInProgress by remember { mutableStateOf(false) }
@@ -152,6 +152,10 @@ fun EditProfileScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        Text(resultErrorMessage)
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         EditProfileTextFieldWithValidation(
                             label = "Username",
                             value = editedUsername,
@@ -161,25 +165,24 @@ fun EditProfileScreen(
                             },
                             isChanged = isUsernameChanged,
                             errorText = getUserNameErrorMessage(editedUsername),
-                            isValid = editedUsername.isEmpty() || profileViewModel.isValidUsername(
+                            isValid = editedUsername.isNotEmpty() && profileViewModel.isValidUsername(
                                 editedUsername
                             ),
                             onSaveClicked = {
                                 if (isUsernameChanged && editedUsername.length >= 5) {
+                                    isUsernameLoading = true
                                     profileViewModel.updateUsernameOfUser(editedUsername)
                                     isUsernameChanged = false
                                 } else {
-                                    errorMessage = "Username shouldn't be less than 5 character."
+                                    errorMessage = "Username shouldn't be less than 5 characters."
                                 }
-                            },
-                            onCancelClicked = {
-                                editedUsername = originalUsername
-                                isUsernameChanged = false
                             },
                             length = 75,
                             singleLine = true,
                             imeAction = ImeAction.Next,
-                            height = 65
+                            height = 65,
+                            isLoading = isUsernameLoading,
+                            isSuccess = isUsernameSuccess
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -195,20 +198,19 @@ fun EditProfileScreen(
                             isChanged = isNameChanged,
                             onSaveClicked = {
                                 if (isNameChanged) {
+                                    isNameLoading = true
                                     profileViewModel.updateProfileName(editedName)
                                     isNameChanged = false
                                 }
-                            },
-                            onCancelClicked = {
-                                editedName = originalName
-                                isNameChanged = false
                             },
                             errorText = "",
                             length = 75,
                             singleLine = true,
                             isValid = editedName.length <= 75,
                             imeAction = ImeAction.Next,
-                            height = 65
+                            height = 65,
+                            isLoading = isNameLoading,
+                            isSuccess = isNameSuccess
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         EditProfileTextFieldWithValidation(
@@ -221,20 +223,19 @@ fun EditProfileScreen(
                             isChanged = isBioChanged,
                             onSaveClicked = {
                                 if (isBioChanged) {
+                                    isBioLoading = true
                                     profileViewModel.updateBioOfUser(editedBio)
                                     isBioChanged = false
                                 }
-                            },
-                            onCancelClicked = {
-                                editedBio = originalBio
-                                isBioChanged = false
                             },
                             errorText = "",
                             length = 156,
                             singleLine = false,
                             isValid = editedBio.length <= 156,
                             imeAction = ImeAction.Default,
-                            height = 200
+                            height = 200,
+                            isLoading = isBioLoading,
+                            isSuccess = isBioSuccess
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -264,10 +265,6 @@ fun EditProfileScreen(
                             fontSize = 13.sp
                         )
 
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        ErrorText(text = errorMessage)
-
                         if (showSignOutDialog) {
                             AlertDialogCustom(
                                 onDismissRequest = {
@@ -276,9 +273,9 @@ fun EditProfileScreen(
                                 dialogTitle = "Sign Out!",
                                 dialogText = "Are you sure you want to sign out?",
                                 onConfirmation = {
-                                        sharedViewModel.deleteToken()
-                                        isTokenDeletionInProgress = true
-                                        showSignOutDialog = false
+                                    sharedViewModel.deleteToken()
+                                    isTokenDeletionInProgress = true
+                                    showSignOutDialog = false
                                 })
                         }
 
@@ -288,9 +285,9 @@ fun EditProfileScreen(
                                     showDeleteAccountDialog = false
                                 },
                                 dialogTitle = "Delete Account!",
-                                dialogText ="Are you sure you want to delete your account?",
+                                dialogText = "Are you sure you want to delete your account?",
                                 onConfirmation = {
-                                        profileViewModel.deleteAccount()
+                                    profileViewModel.deleteAccount()
                                 })
                         }
                     }
@@ -299,23 +296,62 @@ fun EditProfileScreen(
         }
     )
 
-    // Observe update result
-    updateProfileResult?.let { result ->
+    // Observe update result for Name
+    updateProfileNameResult?.let { result ->
+        isNameLoading = false
         when (result) {
             is Result.Success -> {
                 result.data?.let { updatedUser ->
                     // Update user in shared view model
                     sharedViewModel.setUser(updatedUser.user)
-                    originalName = user.value?.name ?: ""
-                    originalBio = user.value?.bio ?: ""
-                    originalUsername = user.value?.username ?: ""
-                    errorMessage = ""
+                    resultErrorMessage = ""
                 }
             }
 
             is Result.Failure -> {
                 // Reset to original values on error
-                errorMessage = result.message
+                resultErrorMessage = result.message
+                editedName = user.value!!.name
+            }
+        }
+    }
+
+    // Observe update result for Username
+    updateUsernameResult?.let { result ->
+        isUsernameLoading = false
+        when (result) {
+            is Result.Success -> {
+                result.data?.let { updatedUser ->
+                    // Update user in shared view model
+                    sharedViewModel.setUser(updatedUser.user)
+                    resultErrorMessage = ""
+                }
+            }
+
+            is Result.Failure -> {
+                // Reset to original values on error
+                resultErrorMessage = result.message
+                editedUsername = user.value!!.username
+            }
+        }
+    }
+
+    // Observe update result for Bio
+    updateProfileBioResult?.let { result ->
+        isBioLoading = false
+        when (result) {
+            is Result.Success -> {
+                result.data?.let { updatedUser ->
+                    // Update user in shared view model
+                    sharedViewModel.setUser(updatedUser.user)
+                    resultErrorMessage = ""
+                }
+            }
+
+            is Result.Failure -> {
+                // Reset to original values on error
+                resultErrorMessage = result.message
+                editedBio = user.value!!.bio
             }
         }
     }
@@ -331,7 +367,7 @@ fun EditProfileScreen(
 
             is Result.Failure -> {
                 // Reset to original values on error
-                errorMessage = result.message
+                resultErrorMessage = result.message
             }
         }
     }

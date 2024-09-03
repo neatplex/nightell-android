@@ -22,6 +22,7 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -223,17 +224,19 @@ fun EditProfileTextFieldWithValidation(
     onValueChange: (String) -> Unit,
     isChanged: Boolean,
     onSaveClicked: () -> Unit,
-    onCancelClicked: () -> Unit,
     label: String,
     errorText: String,
     length: Int,
     isValid: Boolean,
     singleLine: Boolean,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    imeAction : ImeAction,
-    height : Int
+    imeAction: ImeAction,
+    height: Int,
+    isLoading: Boolean,          // New state for loading
+    isSuccess: Boolean           // New state for success
 ) {
     val purpleErrorColor = colorResource(id = R.color.purple_light)
+    val greenSuccessColor = Color(0xFF4CAF50) // Green color for success
 
     androidx.compose.material3.OutlinedTextField(
         value = value,
@@ -242,7 +245,9 @@ fun EditProfileTextFieldWithValidation(
                 onValueChange(it)
             }
         },
-        modifier = Modifier.fillMaxWidth().height(height.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(height.dp),
         label = { androidx.compose.material3.Text(label) },
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,
@@ -263,14 +268,26 @@ fun EditProfileTextFieldWithValidation(
         ),
         singleLine = singleLine,
         trailingIcon = {
-            if (isChanged && isValid) {
-                Row {
+            when {
+                isLoading -> {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                isSuccess -> {
+                    Icon(
+                        Icons.Filled.Check,
+                        contentDescription = "Success",
+                        tint = greenSuccessColor,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                }
+                isChanged && isValid -> {
                     IconButton(
                         onClick = onSaveClicked,
-                        modifier = Modifier
-                            .padding(end = 8.dp)
+                        modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        androidx.compose.material3.Icon(
+                        Icon(
                             Icons.Filled.Check,
                             contentDescription = "Save",
                             tint = Color.Black
