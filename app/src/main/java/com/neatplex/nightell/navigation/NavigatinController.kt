@@ -1,5 +1,6 @@
 package com.neatplex.nightell.navigation
 
+import android.app.Activity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.Image
@@ -33,6 +34,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -308,6 +310,7 @@ fun MainScreen(
 
     // Handle back press
     val backPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    val context = LocalContext.current
 
     DisposableEffect(Unit) {
         val callback = object : OnBackPressedCallback(true) {
@@ -336,7 +339,7 @@ fun MainScreen(
                             selectedTab.value = BottomNavScreens.Home.route
                         } else {
                             // No more tabs and we're on Home, close the app
-                            backPressedDispatcher?.onBackPressed()
+                            (context as? Activity)?.finish()
                         }
                     }
                 } else {
