@@ -70,7 +70,6 @@ import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.fromJson
 import kotlinx.coroutines.delay
 
-
 @Composable
 fun AppNavHost(
     navController: NavHostController,
