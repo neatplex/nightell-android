@@ -393,14 +393,12 @@ fun HomeNavHost(
     LaunchedEffect(navBackStackEntry) {
         onRouteChange(navBackStackEntry?.destination?.route ?: "feed")
     }
-    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
 
     NavHost(navController = navController, startDestination = "feed") {
         composable("feed") {
             HomeScreen(
                 navController = navController,
                 sharedViewModel = sharedViewModel,
-                isPlayerBoxVisible = isServiceRunning
             )
         }
         composable(
@@ -415,7 +413,6 @@ fun HomeNavHost(
                 navController = navController,
                 data = user,
                 sharedViewModel = sharedViewModel,
-                isPlayerBoxVisible = isServiceRunning
             )
         }
         composable(
@@ -430,8 +427,7 @@ fun HomeNavHost(
                 sharedViewModel = sharedViewModel,
                 postId = postId,
                 mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager,
-                isPlayerBoxVisible = isServiceRunning
+                serviceManager = serviceManager
             )
         }
         composable(
@@ -485,9 +481,7 @@ fun SearchNavHost(
         composable("search") {
             SearchScreen(
                 navController = navController,
-                sharedViewModel = sharedViewModel,
-                isPlayerBoxVisible = isServiceRunning
-            )
+                sharedViewModel = sharedViewModel)
         }
         composable(
             "userScreen/{user}",
@@ -500,8 +494,7 @@ fun SearchNavHost(
             UserScreen(
                 navController = navController,
                 data = user,
-                sharedViewModel = sharedViewModel,
-                isPlayerBoxVisible = isServiceRunning
+                sharedViewModel = sharedViewModel
             )
         }
         composable(
@@ -516,9 +509,7 @@ fun SearchNavHost(
                 sharedViewModel = sharedViewModel,
                 postId = postId,
                 mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager,
-                isPlayerBoxVisible = isServiceRunning
-            )
+                serviceManager = serviceManager)
         }
 
         composable(
@@ -563,15 +554,11 @@ fun ProfileNavHost(
     LaunchedEffect(navBackStackEntry) {
         onRouteChange(navBackStackEntry?.destination?.route ?: "profile")
     }
-    val isServiceRunning by serviceManager.isServiceRunning.collectAsState()
-
     NavHost(navController = navController, startDestination = "profile") {
         composable("profile") {
             ProfileScreen(
                 navController = navController,
-                sharedViewModel = sharedViewModel,
-                isPlayerBoxVisible = isServiceRunning
-            )
+                sharedViewModel = sharedViewModel)
         }
         composable(
             route = "postScreen/{postId}",
@@ -585,9 +572,7 @@ fun ProfileNavHost(
                 sharedViewModel = sharedViewModel,
                 postId = postId,
                 mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager,
-                isPlayerBoxVisible = isServiceRunning
-            )
+                serviceManager = serviceManager)
         }
 
         composable(
@@ -601,9 +586,7 @@ fun ProfileNavHost(
             UserScreen(
                 navController = navController,
                 data = user,
-                sharedViewModel = sharedViewModel,
-                isPlayerBoxVisible = isServiceRunning
-            )
+                sharedViewModel = sharedViewModel)
         }
 
         composable("editProfile") {

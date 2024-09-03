@@ -42,13 +42,11 @@ fun HomeScreen(
     navController: NavController,
     homeViewModel: HomeViewModel = hiltViewModel(),
     sharedViewModel: SharedViewModel,
-    isPlayerBoxVisible: Boolean
 ) {
     val feed by homeViewModel.feed.observeAsState(emptyList())
     val isLoading by homeViewModel.isLoading.observeAsState(false)
     val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
     val profileResult by homeViewModel.profileData.observeAsState()
-    val bottomPadding = 65.dp
 
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry
@@ -89,8 +87,7 @@ fun HomeScreen(
                         isRefreshing,
                         navController,
                         sharedViewModel,
-                        homeViewModel,
-                        bottomPadding
+                        homeViewModel
                     )
                 }
             }
@@ -154,7 +151,6 @@ fun HomeContent(
     navController: NavController,
     sharedViewModel: SharedViewModel,
     homeViewModel: HomeViewModel,
-    bottomPadding: Dp
 ) {
     val lazyRowState = rememberLazyListState()
     val lazyColumnState = rememberLazyListState()
@@ -224,7 +220,6 @@ fun HomeContent(
 
             LazyColumn(
                 state = lazyColumnState,
-                contentPadding = PaddingValues(bottom = bottomPadding),
                 modifier = Modifier.fillMaxSize(),
                 content = {
                     itemsIndexed(feed.drop(3)) { index, post ->

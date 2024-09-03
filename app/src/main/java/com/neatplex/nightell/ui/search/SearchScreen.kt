@@ -42,10 +42,7 @@ fun SearchScreen(
     navController: NavController,
     sharedViewModel: SharedViewModel,
     searchViewModel: SearchViewModel = hiltViewModel(),
-    isPlayerBoxVisible: Boolean
 ) {
-    val bottomPadding = 65.dp
-
     var query by remember { mutableStateOf("") }
     var selectedTab by remember { mutableStateOf(0) }
     val posts by searchViewModel.posts.observeAsState(emptyList())
@@ -103,9 +100,7 @@ fun SearchScreen(
                             lastPostId = posts!!.lastOrNull()?.id
                             searchViewModel.searchPost(query, lastPostId, true)
                         }
-                    },
-                    bottomPadding
-                )
+                    })
             }
         } else {
             users?.let {
@@ -123,9 +118,7 @@ fun SearchScreen(
                             lastUserId = users!!.lastOrNull()?.id
                             searchViewModel.searchUser(query, lastUserId, true)
                         }
-                    },
-                    bottomPadding
-                )
+                    })
             }
         }
     }
@@ -148,10 +141,8 @@ fun PostList(
     isLoading: Boolean,
     onPostSelected: (Post) -> Unit,
     onLoadMore: () -> Unit,
-    bottomPadding : Dp
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(bottom = bottomPadding),
         modifier = Modifier.fillMaxSize()
     ) {
         itemsIndexed(posts) { index, post ->
@@ -172,10 +163,8 @@ fun UserList(
     isLoading: Boolean,
     onUserSelected: (User) -> Unit,
     onLoadMore: () -> Unit,
-    bottomPadding : Dp
 ) {
     LazyColumn(
-        contentPadding = PaddingValues(bottom = bottomPadding),
         modifier = Modifier.fillMaxSize()
     ) {
         itemsIndexed(users) { index, user ->

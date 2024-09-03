@@ -82,14 +82,12 @@ fun PostScreen(
     postId: Int,
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
-    isPlayerBoxVisible: Boolean
 ) {
     val postViewModel: PostViewModel = hiltViewModel()
     val isLoading by postViewModel.isLoading.observeAsState(true)
     val isFetchingPost by postViewModel.isFetching.observeAsState(true)
     val postDetailResult by postViewModel.postDetailResult.observeAsState()
     val isServiceRunning by mediaViewModel.isServiceRunning.collectAsState()
-    val bottomPadding = 65.dp
 
 
     var post by remember { mutableStateOf<Post?>(null) }
@@ -130,9 +128,7 @@ fun PostScreen(
                 serviceManager = serviceManager,
                 isServiceRunning = isServiceRunning,
                 isEditing = isEditing,
-                onEditingChange = { isEditing = it },
-                bottomPadding = bottomPadding
-            )
+                onEditingChange = { isEditing = it })
         } else {
             ErrorScreen(txtLoadFailure)
         }
@@ -184,7 +180,6 @@ fun PostContent(
     isServiceRunning: Boolean,
     isEditing: Boolean,
     onEditingChange: (Boolean) -> Unit,
-    bottomPadding: Dp
 ) {
     val userId = sharedViewModel.user.value?.id ?: return
     val databaseViewModel: DatabaseViewModel = hiltViewModel()
@@ -310,9 +305,7 @@ fun PostContent(
                                 } else {
                                     onEditingChange(false)
                                 }
-                            },
-                            bottomPadding = bottomPadding
-                        )
+                            })
                     }
                 }
             }
@@ -564,7 +557,6 @@ fun PostDescription(
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onSaveClick: () -> Unit,
-    bottomPadding: Dp
 ) {
     Column(
         modifier = Modifier
@@ -619,6 +611,5 @@ fun PostDescription(
                 text = editedDescription.take(150) // Display up to 150 characters
             )
         }
-        Spacer(modifier = Modifier.height(bottomPadding))
     }
 }

@@ -56,11 +56,7 @@ fun UserScreen(
     navController: NavController,
     data: User,
     userViewModel: UserViewModel = hiltViewModel(),
-    sharedViewModel: SharedViewModel,
-    isPlayerBoxVisible: Boolean
-) {
-
-    val bottomPadding = 65.dp
+    sharedViewModel: SharedViewModel) {
 
     //Fetch user profile info
     val profileResult by userViewModel.showUserInfoResult.observeAsState()
@@ -144,7 +140,6 @@ fun UserScreen(
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     LazyVerticalGrid(
-                        contentPadding = PaddingValues(bottom = bottomPadding),
                         columns = GridCells.Fixed(2), // Define the number of columns
                         modifier = Modifier.fillMaxSize(),
                     ) {
