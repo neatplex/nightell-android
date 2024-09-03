@@ -67,6 +67,7 @@ import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.utils.TokenManager
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.fromJson
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -79,12 +80,19 @@ fun AppNavHost(
     sharedViewModel: SharedViewModel
 ) {
 
-    if (isOnline) {
+    var shouldShowConnectionMessage by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isOnline) {
+        // Add a small delay to ensure the initial state is stabilized
+        delay(100) // 100ms delay; adjust as needed
+        shouldShowConnectionMessage = !isOnline
+    }
+
+    if (!shouldShowConnectionMessage) {
         NavHost(
             navController = navController,
             startDestination = MainDestinations.Splash.route
         ) {
-
             composable(MainDestinations.Splash.route) {
                 SplashScreen(
                     navController,
@@ -101,8 +109,7 @@ fun AppNavHost(
                 )
             }
         }
-    }
-    else {
+    } else {
         Box(
             modifier = Modifier
                 .fillMaxSize()
