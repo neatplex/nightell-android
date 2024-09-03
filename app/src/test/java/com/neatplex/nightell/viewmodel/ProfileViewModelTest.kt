@@ -1,6 +1,5 @@
 package com.neatplex.nightell.viewmodel
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import com.neatplex.nightell.data.dto.PostCollection
 import com.neatplex.nightell.data.dto.Profile
@@ -34,9 +33,6 @@ import org.mockito.kotlin.whenever
 
 @ExperimentalCoroutinesApi
 class ProfileViewModelTest {
-
-    @get:Rule
-    var rule = InstantTaskExecutorRule()
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -149,7 +145,7 @@ class ProfileViewModelTest {
         val userUpdated = UserUpdated(user)
         whenever(profileRepository.changeProfileName(any())).thenReturn(Result.Success(userUpdated))
 
-        profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
+        profileViewModel.profileNameUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
 
         profileViewModel.updateProfileName("New Name")
@@ -163,7 +159,7 @@ class ProfileViewModelTest {
     fun `test updateProfileName failure`() = runTest {
         whenever(profileRepository.changeProfileName(any())).thenReturn(Result.Failure("Error", null))
 
-        profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
+        profileViewModel.profileNameUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
 
         profileViewModel.updateProfileName("New Name")
@@ -189,7 +185,7 @@ class ProfileViewModelTest {
         val userUpdated = UserUpdated(user)
         whenever(profileRepository.changeProfileBio(any())).thenReturn(Result.Success(userUpdated))
 
-        profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
+        profileViewModel.profileNameUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
 
         profileViewModel.updateBioOfUser("New Bio")
@@ -203,7 +199,7 @@ class ProfileViewModelTest {
     fun `test updateBioOfUser failure`() = runTest {
         whenever(profileRepository.changeProfileBio(any())).thenReturn(Result.Failure("Error", null))
 
-        profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
+        profileViewModel.profileNameUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
 
         profileViewModel.updateBioOfUser("New Bio")
@@ -219,7 +215,7 @@ class ProfileViewModelTest {
         val userUpdated = UserUpdated(user)
         whenever(profileRepository.changeProfileUsername(any())).thenReturn(Result.Success(userUpdated))
 
-        profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
+        profileViewModel.profileNameUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
 
         profileViewModel.updateUsernameOfUser("New Username")
@@ -233,7 +229,7 @@ class ProfileViewModelTest {
     fun `test updateUsernameOfUser failure`() = runTest {
         whenever(profileRepository.changeProfileUsername(any())).thenReturn(Result.Failure("Error", null))
 
-        profileViewModel.userUpdatedData.observeForever(userUpdatedObserver)
+        profileViewModel.profileNameUpdatedData.observeForever(userUpdatedObserver)
         profileViewModel.isLoading.observeForever(isLoadingObserver)
 
         profileViewModel.updateUsernameOfUser("New Username")
