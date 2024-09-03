@@ -174,7 +174,7 @@ fun EditProfileScreen(
                                     profileViewModel.updateUsernameOfUser(editedUsername)
                                     isUsernameChanged = false
                                 } else {
-                                    errorMessage = "Username shouldn't be less than 5 character."
+                                    errorMessage = "Username shouldn't be less than 5 characters."
                                 }
                             },
                             length = 75,
@@ -273,9 +273,9 @@ fun EditProfileScreen(
                                 dialogTitle = "Sign Out!",
                                 dialogText = "Are you sure you want to sign out?",
                                 onConfirmation = {
-                                        sharedViewModel.deleteToken()
-                                        isTokenDeletionInProgress = true
-                                        showSignOutDialog = false
+                                    sharedViewModel.deleteToken()
+                                    isTokenDeletionInProgress = true
+                                    showSignOutDialog = false
                                 })
                         }
 
@@ -285,9 +285,9 @@ fun EditProfileScreen(
                                     showDeleteAccountDialog = false
                                 },
                                 dialogTitle = "Delete Account!",
-                                dialogText ="Are you sure you want to delete your account?",
+                                dialogText = "Are you sure you want to delete your account?",
                                 onConfirmation = {
-                                        profileViewModel.deleteAccount()
+                                    profileViewModel.deleteAccount()
                                 })
                         }
                     }
@@ -296,12 +296,11 @@ fun EditProfileScreen(
         }
     )
 
-    // Observe update result
+    // Observe update result for Name
     updateProfileNameResult?.let { result ->
         isNameLoading = false
         when (result) {
             is Result.Success -> {
-                isNameSuccess = true
                 result.data?.let { updatedUser ->
                     // Update user in shared view model
                     sharedViewModel.setUser(updatedUser.user)
@@ -315,15 +314,13 @@ fun EditProfileScreen(
                 editedName = user.value!!.name
             }
         }
-        // isNameSuccess = false
     }
 
-    // Observe update result
+    // Observe update result for Username
     updateUsernameResult?.let { result ->
         isUsernameLoading = false
         when (result) {
             is Result.Success -> {
-                isUsernameSuccess = true
                 result.data?.let { updatedUser ->
                     // Update user in shared view model
                     sharedViewModel.setUser(updatedUser.user)
@@ -337,15 +334,13 @@ fun EditProfileScreen(
                 editedUsername = user.value!!.username
             }
         }
-        // isUsernameSuccess = false
     }
 
-    // Observe update result
+    // Observe update result for Bio
     updateProfileBioResult?.let { result ->
         isBioLoading = false
         when (result) {
             is Result.Success -> {
-                isBioSuccess = true
                 result.data?.let { updatedUser ->
                     // Update user in shared view model
                     sharedViewModel.setUser(updatedUser.user)
@@ -359,7 +354,6 @@ fun EditProfileScreen(
                 editedBio = user.value!!.bio
             }
         }
-        // isBioSuccess = false
     }
 
     // Observe delete result
