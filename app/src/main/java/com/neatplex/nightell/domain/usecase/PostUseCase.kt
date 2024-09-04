@@ -24,7 +24,7 @@ class PostUseCase @Inject constructor(private val postRepository: IPostRepositor
             val newFeed = result.data?.posts ?: emptyList()
             Result.Success(newFeed)
         } else {
-            Result.Failure("Error loading feed", null)
+            Result.Failure("Error loading user posts", null)
         }
     }
 
