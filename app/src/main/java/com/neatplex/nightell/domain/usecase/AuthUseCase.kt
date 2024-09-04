@@ -3,6 +3,8 @@ package com.neatplex.nightell.domain.usecase
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
+import com.neatplex.nightell.data.dto.OtpResponseTtl
+import com.neatplex.nightell.data.dto.OtpVerifyRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.domain.repository.IAuthRepository
 import com.neatplex.nightell.utils.ITokenManager
@@ -59,5 +61,18 @@ class AuthUseCase @Inject constructor(
         tokenManager.setToken(token)
         tokenManager.setId(id)
         tokenManager.setEmail(email)
+    }
+
+    suspend fun sendOtp(email: String) = authRepository.sendOtp(email)
+
+    suspend fun verifyOtp(email: String, otp: String) : Result<AuthResponse> {
+        val request = OtpVerifyRequest(email, otp)
+        val result = authRepository.verifyOtp(request)
+        if (result is Result.Success) {
+            result.data?.let {
+                saveUserInfo(it.token, it.user.id, it.user.email)
+            }
+        }
+        return result
     }
 }

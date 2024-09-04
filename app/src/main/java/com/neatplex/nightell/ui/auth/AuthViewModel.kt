@@ -5,10 +5,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.AuthResponse
+import com.neatplex.nightell.data.dto.OtpResponseTtl
 import com.neatplex.nightell.domain.usecase.AuthUseCase
 import com.neatplex.nightell.utils.IValidation
 import com.neatplex.nightell.utils.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,8 +23,17 @@ class AuthViewModel @Inject constructor(
     private val _authResult = MutableLiveData<Result<AuthResponse>>()
     val authResult: LiveData<Result<AuthResponse>> get() = _authResult
 
+    private val _getOtpResult = MutableLiveData<Result<OtpResponseTtl>>()
+    val getOtpResult: LiveData<Result<OtpResponseTtl>> get() = _getOtpResult
+
+    private val _timeLeft = MutableLiveData<Int>()
+    val timeLeft: LiveData<Int> get() = _timeLeft
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
+
+    private val _errorMessage = MutableLiveData<String?>()
+    val errorMessage: LiveData<String?> get() = _errorMessage
 
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
@@ -51,6 +62,45 @@ class AuthViewModel @Inject constructor(
             } finally {
                 _isLoading.value = false
             }
+        }
+    }
+
+    fun sendOtp(email: String) {
+        if (!isValidEmail(email)) {
+            _errorMessage.value = "Invalid email address."
+            return
+        }
+
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = authUseCase.sendOtp(email)
+            _getOtpResult.value = result
+            _isLoading.value = false
+
+            if (result is Result.Success) {
+                startTimer(result.data!!.ttl)
+            } else if (result is Result.Failure) {
+                _errorMessage.value = result.message
+            }
+        }
+    }
+
+    private fun startTimer(ttl: Int) {
+        _timeLeft.value = ttl
+        viewModelScope.launch {
+            for (i in ttl downTo 0) {
+                _timeLeft.value = i
+                delay(1000L)
+            }
+        }
+    }
+
+    fun verifyOtp(email: String, otp: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = authUseCase.verifyOtp(email, otp)
+            _authResult.value = result
+            _isLoading.value = false
         }
     }
 

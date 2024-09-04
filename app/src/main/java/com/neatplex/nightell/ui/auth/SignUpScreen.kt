@@ -27,11 +27,13 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -81,12 +83,11 @@ fun SignUpScreen(
             navController.navigate(MainDestinations.SignIn.route) {
                 popUpTo(0) { inclusive = true }
             }
-        }
-        ,
+        },
         iSignUpInProgress = isLoading
     )
     // Handle authentication result
-    authResultState?.let { AuthResult(it, navController,isLoading) }
+    authResultState?.let { AuthResult(it, navController, isLoading) }
 }
 
 @Composable
@@ -102,21 +103,19 @@ fun SignUpContent(
     onPasswordVisibilityChange: (Boolean) -> Unit,
     onSignUpClick: () -> Unit,
     onSignInClick: () -> Unit,
-    iSignUpInProgress : Boolean
+    iSignUpInProgress: Boolean
 ) {
-    Box(modifier = Modifier
-        .fillMaxSize()
-        .background(brush = myLinearGradiant())) {
-
-        if (iSignUpInProgress) {
-            CustomCircularProgressIndicator()
-        }
-
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(brush = myLinearGradiant())
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Header()
             Spacer(modifier = Modifier.height(32.dp))
@@ -124,10 +123,11 @@ fun SignUpContent(
             TextFieldWithValidation(
                 value = username,
                 onValueChange = onUsernameChange,
-                placeholder = "Username",
+                placeholder = stringResource(R.string.username),
                 errorText = getUserNameErrorMessage(username),
                 leadingIcon = Icons.Default.AccountBox,
-                isValid = username.isEmpty() || authViewModel.isValidUsername(username)
+                isValid = username.isEmpty() || authViewModel.isValidUsername(username),
+                readOnly = false
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -136,9 +136,12 @@ fun SignUpContent(
                 value = email,
                 onValueChange = onEmailChange,
                 placeholder = "Email",
-                errorText = if (email.isNotEmpty() && !authViewModel.isValidEmail(email)) "Invalid email format" else "",
+                errorText = if (email.isNotEmpty() && !authViewModel.isValidEmail(email)) stringResource(
+                    R.string.invalid_email_format
+                ) else "",
                 leadingIcon = Icons.Default.Email,
-                isValid = email.isEmpty() || authViewModel.isValidEmail(email)
+                isValid = email.isEmpty() || authViewModel.isValidEmail(email),
+                readOnly = false
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -146,7 +149,7 @@ fun SignUpContent(
             TextFieldWithValidation(
                 value = password,
                 onValueChange = onPasswordChange,
-                placeholder = "Password",
+                placeholder = stringResource(R.string.password),
                 errorText = if (password.isNotEmpty() && !authViewModel.isValidPassword(password)) "Password must be at least 8 characters long" else "",
                 leadingIcon = Icons.Default.Lock,
                 isValid = password.isEmpty() || authViewModel.isValidPassword(password),
@@ -158,20 +161,28 @@ fun SignUpContent(
                             contentDescription = "visible/invisible password"
                         )
                     }
-                }
+                },
+                readOnly = false
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            SignUpButton(onSignUpClick,"Sign Up")
+            AuthPinkButton(onSignUpClick, stringResource(R.string.sign_up))
+
             Spacer(modifier = Modifier.height(16.dp))
 
             CenteredTextWithClickablePart(
-                normalText = "Do you have an account? ",
-                clickableText = "Sign In!",
-                onClick = onSignInClick
+                normalText = stringResource(R.string.do_you_have_an_account),
+                clickableText = stringResource(R.string.sign_in),
+                onClick = onSignInClick,
+                vertAlignment = Alignment.Bottom
             )
+
             Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        if (iSignUpInProgress) {
+            CustomCircularProgressIndicator()
         }
     }
 }
@@ -183,7 +194,7 @@ fun Header() {
         horizontalArrangement = Arrangement.Center
     ) {
         Text(
-            text = "Nightell",
+            text = stringResource(R.string.nightell),
             fontFamily = feelFree,
             fontSize = 85.sp,
             color = Color.White
@@ -192,7 +203,7 @@ fun Header() {
 }
 
 @Composable
-fun SignUpButton(onClick: () -> Unit, text : String) {
+fun AuthPinkButton(onClick: () -> Unit, text: String) {
     Button(
         onClick = onClick,
         modifier = Modifier
@@ -230,11 +241,13 @@ fun getUserNameErrorMessage(username: String): String {
 }
 
 @Composable
-fun CenteredTextWithClickablePart(normalText: String, clickableText: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
+fun CenteredTextWithClickablePart(
+    normalText: String,
+    clickableText: String,
+    onClick: () -> Unit,
+    vertAlignment: Alignment.Vertical
+) {
+    Row() {
         Text(
             buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Color.White)) {

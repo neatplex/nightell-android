@@ -5,9 +5,12 @@ import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.data.dto.LoginEmailRequest
 import com.neatplex.nightell.data.dto.LoginUsernameRequest
+import com.neatplex.nightell.data.dto.OtpResponseTtl
+import com.neatplex.nightell.data.dto.OtpVerifyRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.data.network.ApiService
 import com.neatplex.nightell.utils.handleApiResponse
+import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
@@ -51,6 +54,25 @@ class AuthRepository @Inject constructor(private val apiService: ApiService) : I
             Result.Failure("HTTP error: ${e.code()} - ${e.message}", e)
         } catch (e: IOException) {
             Result.Failure("Network error: ${e.message}", e)
+        } catch (e: Exception) {
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
+        }
+    }
+
+    override suspend fun sendOtp(email: String): Result<OtpResponseTtl> {
+        return try {
+            val requestBody = mapOf("email" to email)
+            val response = apiService.sendOtp(requestBody)
+            handleApiResponse(response)
+        } catch (e: Exception) {
+            Result.Failure(e.localizedMessage ?: "An error occurred", e)
+        }
+    }
+
+    override suspend fun verifyOtp(request: OtpVerifyRequest): Result<AuthResponse> {
+        return try {
+            val response = apiService.verifyOtp(request)
+            handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.localizedMessage ?: "An error occurred", e)
         }

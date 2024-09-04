@@ -50,6 +50,7 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.media.PlayerBox
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.service.ServiceManager
+import com.neatplex.nightell.ui.auth.OtpVerificationScreen
 import com.neatplex.nightell.ui.upload.AddPostScreen
 import com.neatplex.nightell.ui.profile.EditProfileScreen
 import com.neatplex.nightell.ui.user.FollowerScreen
@@ -101,6 +102,7 @@ fun AppNavHost(
             }
             composable(MainDestinations.SignIn.route) { SignInScreen(navController) }
             composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
+            composable(MainDestinations.OtpVerificationScreen.route) { OtpVerificationScreen(navController) }
             composable(MainDestinations.Main.route) {
                 MainScreen(
                     mediaViewModel = mediaViewModel,
@@ -149,6 +151,7 @@ sealed class MainDestinations(val route: String) {
     object SignIn : MainDestinations("sign_in")
     object SignUp : MainDestinations("sign_up")
     object Main : MainDestinations("main")
+    object OtpVerificationScreen : MainDestinations("otp")
 }
 
 @Composable
@@ -338,6 +341,7 @@ fun MainScreen(
                             selectedTab.value = BottomNavScreens.Home.route
                         } else {
                             // No more tabs and we're on Home, close the app
+                            serviceManager.stopMediaService()
                             (context as? Activity)?.finish()
                         }
                     }
