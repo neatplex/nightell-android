@@ -1,3 +1,5 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=neatplex_nightell-android&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=neatplex_nightell-android)
+
 # Nightell Android App
 
 ## Tech stack & Open-source libraries
