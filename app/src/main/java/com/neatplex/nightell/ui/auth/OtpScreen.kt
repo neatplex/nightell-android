@@ -49,7 +49,7 @@ import com.neatplex.nightell.ui.theme.myLinearGradiant
 fun OtpVerificationScreen(navController: NavController, authViewModel: AuthViewModel = hiltViewModel()) {
 
     val otpResult by authViewModel.getOtpResult.observeAsState()
-    val timeLeft by authViewModel.timeLeft.observeAsState()
+    val timeLeft by authViewModel.timeLeft.observeAsState("")
     val authResultState by authViewModel.authResult.observeAsState()
     val errorMessage by authViewModel.errorMessage.observeAsState()
 
@@ -79,61 +79,6 @@ fun OtpVerificationScreen(navController: NavController, authViewModel: AuthViewM
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            TextFieldWithValidation(
-                value = email,
-                onValueChange = { email = it },
-                placeholder = "Email",
-                errorText = if (email.isNotEmpty() && !authViewModel.isValidEmail(email)) stringResource(
-                    R.string.invalid_email_format
-                ) else "",
-                leadingIcon = Icons.Default.Email,
-                isValid = email.isEmpty() || authViewModel.isValidEmail(email),
-                readOnly = isEmailReadOnly
-            )
-
-            if (otpResult is Result.Success) {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                timeLeft?.let {
-                    Text("$it seconds", color = Color.White, fontSize = 20.sp)
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Use the OtpTextField for OTP input
-                OtpTextField(
-                    otpText = otp,
-                    onOtpTextChange = { otpValue, isComplete ->
-                        otp = otpValue
-                        if (isComplete) {
-                            authViewModel.verifyOtp(email, otpValue)
-                        }
-                    },
-                    otpCount = 6
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            if (timeLeft == 0) {
-                Text(
-                    stringResource(R.string.time_s_up_request_a_new_code),
-                    color = colorResource(id = R.color.blue_light)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            AuthPinkButton(
-                onClick = {
-                    if (email.isNotEmpty() && authViewModel.isValidEmail(email)) {
-                        if (timeLeft == 0 || timeLeft == null) {
-                            authViewModel.sendOtp(email)
-                        }
-                    }
-                },
-                text = stringResource(R.string.send_code)
-            )
 
             if (showError && errorMessageState.isNotEmpty()) {
                 Text(
@@ -148,6 +93,56 @@ fun OtpVerificationScreen(navController: NavController, authViewModel: AuthViewM
                 errorMessageState = it
                 showError = true
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            TextFieldWithValidation(
+                value = email,
+                onValueChange = { email = it },
+                placeholder = "Email",
+                errorText = if (email.isNotEmpty() && !authViewModel.isValidEmail(email)) stringResource(
+                    R.string.invalid_email_format
+                ) else "",
+                leadingIcon = Icons.Default.Email,
+                isValid = email.isEmpty() || authViewModel.isValidEmail(email),
+                readOnly = isEmailReadOnly
+            )
+
+            if (otpResult is Result.Success) {
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Use the OtpTextField for OTP input
+                OtpTextField(
+                    otpText = otp,
+                    onOtpTextChange = { otpValue, isComplete ->
+                        otp = otpValue
+                        if (isComplete) {
+                            authViewModel.verifyOtp(email, otpValue)
+                        }
+                    },
+                    otpCount = 6
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+
+            if (timeLeft == 0) {
+                Text(
+                    stringResource(R.string.time_s_up_request_a_new_code),
+                    color = colorResource(id = R.color.purple_light)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            AuthPinkButton(
+                onClick = {
+                    if (email.isNotEmpty() && authViewModel.isValidEmail(email)) {
+                        if (timeLeft == 0 || timeLeft == "") {
+                            authViewModel.sendOtp(email)
+                        }
+                    }
+                },
+                text = if (timeLeft == "") stringResource(R.string.send_code) else stringResource(R.string.resend_code).plus( " in $timeLeft seconds"))
         }
     }
 
@@ -157,7 +152,7 @@ fun OtpVerificationScreen(navController: NavController, authViewModel: AuthViewM
             navController.navigate(MainDestinations.Main.route)
         } else if (authResultState is Result.Failure) {
             errorMessageState = when ((authResultState as Result.Failure).code) {
-                401 -> "Invalid Code"
+                401 -> "Invalid code! Please check the code and enter again"
                 else -> "Something went wrong, please try again"
             }
             showError = true

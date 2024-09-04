@@ -1,5 +1,6 @@
 package com.neatplex.nightell.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -30,11 +31,6 @@ fun OtpTextField(
     otpCount: Int = 6,
     onOtpTextChange: (String, Boolean) -> Unit
 ) {
-    LaunchedEffect(Unit) {
-        if (otpText.length > otpCount) {
-            throw IllegalArgumentException("Otp text value must not have more than otpCount: $otpCount characters")
-        }
-    }
 
     BasicTextField(
         modifier = modifier,
@@ -52,7 +48,9 @@ fun OtpTextField(
                         index = index,
                         text = otpText
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    if (index != otpCount - 1) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                    }
                 }
             }
         }
@@ -80,6 +78,7 @@ private fun CharView(
                 },
                 RoundedCornerShape(4.dp)  // Optional: slightly round the corners
             )
+            .background(Color.Black.copy(alpha = 0.1f))
             .padding(8.dp),
         text = char,
         style = MaterialTheme.typography.bodyLarge,

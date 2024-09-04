@@ -22,4 +22,6 @@
     <string name="time_s_up_request_a_new_code">Time\'s up! Request a new code.</string>
     <string name="enter_code">Enter Received Code:</string>
     <string name="the_verification_code_is_invalid_or_has_expired">The verification code is invalid or has expired.</string>
+    <string name="resend_code">Resend code</string>
+    <string name="my_profile">My Profile</string>
 </resources>
