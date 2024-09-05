@@ -181,19 +181,6 @@ fun Step2(
     val authResult by authViewModel.authResult.observeAsState()
     val errorMessage = remember { mutableStateOf<String?>(null) }
 
-    // Trigger shake animation and clear OTP on failure
-    LaunchedEffect(authResult) {
-        if (authResult is Result.Success) {
-            if ((authResult as Result.Success<AuthResponse>).data!!.user.username == email) {
-                onNext() // Move to step 3 if email matches
-            } else {
-                onComplete()
-            }
-        } else if (authResult is Result.Failure) {
-            errorMessage.value = (authResult as Result.Failure).message
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -241,6 +228,23 @@ fun Step2(
                 text = it,
                 color = colorResource(id = R.color.purple_light)
             )
+        }
+
+        authResult?.let {
+            when (it) {
+                is Result.Success -> {
+                    if(it.data!!.user.username == email) {
+                        onNext() // Move to step 3 if email matches
+                    } else {
+                        onComplete()
+                    }
+                }
+
+                is Result.Failure -> {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    errorMessage.value = stringResource(id = R.string.the_verification_code_is_invalid_or_has_expired)
+                }
+            }
         }
     }
 
