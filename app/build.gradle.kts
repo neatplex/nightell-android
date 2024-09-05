@@ -16,7 +16,7 @@ android {
         applicationId = "com.neatplex.nightell"
         minSdk = 29
         targetSdk = 34
-        versionCode = 18
+        versionCode = 19
         versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

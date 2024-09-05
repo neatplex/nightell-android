@@ -166,7 +166,8 @@ fun TextFieldWithValidation(
     leadingIcon: ImageVector,
     isValid: Boolean,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: (@Composable () -> Unit)? = null
+    trailingIcon: (@Composable () -> Unit)? = null,
+    readOnly: Boolean
 ) {
     val purpleErrorColor = colorResource(id = R.color.purple_light)
 
@@ -205,8 +206,10 @@ fun TextFieldWithValidation(
             errorCursorColor = purpleErrorColor, // Change border color when not focused
             backgroundColor = Color.Black.copy(alpha = 0.1f) // Set background color with 50% opacity
         ),
-        singleLine = true
+        singleLine = true,
+        readOnly = readOnly
     )
+
     if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
         Text(
             text = errorText,
@@ -297,7 +300,7 @@ fun EditProfileTextFieldWithValidation(
             }
         }
     )
-    if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
+    if (value.isNotEmpty() && !isValid) {
         androidx.compose.material3.Text(
             text = errorText,
             color = purpleErrorColor,

@@ -1,6 +1,5 @@
 package com.neatplex.nightell.data.network
 
-import android.util.Log
 import com.neatplex.nightell.utils.TokenManager
 import okhttp3.Interceptor
 import okhttp3.Request
@@ -26,8 +25,8 @@ class AuthInterceptor @Inject constructor(private val tokenManager: TokenManager
 
         val response = chain.proceed(newRequest)
 
-        if (response.code == 401 && !newRequest.url.encodedPath.contains("sign")) {
-            Log.d("AuthInterceptor", "Triggering logout dialog")
+        if (response.code == 401 && !newRequest.url.encodedPath.contains("auth")
+        ) {
             tokenManager.logoutForce()
         }
 

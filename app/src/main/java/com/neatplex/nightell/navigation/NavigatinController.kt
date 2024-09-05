@@ -1,5 +1,6 @@
 package com.neatplex.nightell.navigation
 
+import android.app.Activity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.foundation.Image
@@ -33,6 +34,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -48,6 +50,7 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.component.media.PlayerBox
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.service.ServiceManager
+import com.neatplex.nightell.ui.auth.OtpVerificationScreen
 import com.neatplex.nightell.ui.upload.AddPostScreen
 import com.neatplex.nightell.ui.profile.EditProfileScreen
 import com.neatplex.nightell.ui.user.FollowerScreen
@@ -67,7 +70,6 @@ import com.neatplex.nightell.utils.TokenManager
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.fromJson
 import kotlinx.coroutines.delay
-
 
 @Composable
 fun AppNavHost(
@@ -100,6 +102,7 @@ fun AppNavHost(
             }
             composable(MainDestinations.SignIn.route) { SignInScreen(navController) }
             composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
+            composable(MainDestinations.Otp.route) { OtpVerificationScreen(navController) }
             composable(MainDestinations.Main.route) {
                 MainScreen(
                     mediaViewModel = mediaViewModel,
@@ -148,6 +151,7 @@ sealed class MainDestinations(val route: String) {
     object SignIn : MainDestinations("sign_in")
     object SignUp : MainDestinations("sign_up")
     object Main : MainDestinations("main")
+    object Otp : MainDestinations("otp")
 }
 
 @Composable
@@ -308,6 +312,7 @@ fun MainScreen(
 
     // Handle back press
     val backPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    val context = LocalContext.current
 
     DisposableEffect(Unit) {
         val callback = object : OnBackPressedCallback(true) {
@@ -336,7 +341,8 @@ fun MainScreen(
                             selectedTab.value = BottomNavScreens.Home.route
                         } else {
                             // No more tabs and we're on Home, close the app
-                            backPressedDispatcher?.onBackPressed()
+                            serviceManager.stopMediaService()
+                            (context as? Activity)?.finish()
                         }
                     }
                 } else {
