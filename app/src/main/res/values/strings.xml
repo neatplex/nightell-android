@@ -9,7 +9,7 @@
     <string name="password">Password</string>
     <string name="sign_in">Sign In</string>
     <string name="sign_in_with_google">Sign in/up with Google</string>
-    <string name="continue_with_otp">Continue with OTP</string>
+    <string name="continue_with_otp">Try OTP</string>
     <string name="or">or</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="don_t_you_have_an_account">"Don't you have an account? "</string>
