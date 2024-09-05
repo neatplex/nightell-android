@@ -19,8 +19,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.neatplex.nightell.R
 import com.neatplex.nightell.navigation.MainDestinations
 import com.neatplex.nightell.ui.theme.feelFree
 import kotlinx.coroutines.delay
@@ -69,7 +71,7 @@ fun SplashScreenContent() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Nightell",
+            text = stringResource(id = R.string.nightell),
             fontFamily = feelFree,
             fontSize = 85.sp,
             color = Color.White

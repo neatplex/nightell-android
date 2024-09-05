@@ -73,8 +73,8 @@ private fun CharView(
             .width(50.dp)
             .border(
                 2.dp, when {
-                    isFocused -> colorResource(id = R.color.blue_light)
-                    else -> colorResource(id = R.color.purple_light)
+                    isFocused -> colorResource(id = R.color.purple_light)
+                    else -> Color.White
                 },
                 RoundedCornerShape(4.dp)  // Optional: slightly round the corners
             )

@@ -175,7 +175,6 @@ fun SignUpContent(
                 normalText = stringResource(R.string.do_you_have_an_account),
                 clickableText = stringResource(R.string.sign_in),
                 onClick = onSignInClick,
-                vertAlignment = Alignment.Bottom
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -245,9 +244,8 @@ fun CenteredTextWithClickablePart(
     normalText: String,
     clickableText: String,
     onClick: () -> Unit,
-    vertAlignment: Alignment.Vertical
 ) {
-    Row() {
+    Row {
         Text(
             buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Color.White)) {
@@ -255,9 +253,7 @@ fun CenteredTextWithClickablePart(
                 }
                 withStyle(
                     style = SpanStyle(
-                        color = colorResource(id = R.color.blue_light),
-                        textDecoration = TextDecoration.Underline
-                    )
+                        color = colorResource(id = R.color.blue_light))
                 ) {
                     append(clickableText)
                 }

@@ -32,9 +32,6 @@ class AuthViewModel @Inject constructor(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> get() = _errorMessage
-
     fun registerUser(username: String, email: String, password: String) {
         viewModelScope.launch {
             _isLoading.value = true
@@ -66,11 +63,6 @@ class AuthViewModel @Inject constructor(
     }
 
     fun sendOtp(email: String) {
-        if (!isValidEmail(email)) {
-            _errorMessage.value = "Invalid email address."
-            return
-        }
-
         viewModelScope.launch {
             _isLoading.value = true
             val result = authUseCase.sendOtp(email)
@@ -79,8 +71,6 @@ class AuthViewModel @Inject constructor(
 
             if (result is Result.Success) {
                 startTimer(result.data!!.ttl)
-            } else if (result is Result.Failure) {
-                _errorMessage.value = result.message
             }
         }
     }

@@ -102,7 +102,7 @@ fun AppNavHost(
             }
             composable(MainDestinations.SignIn.route) { SignInScreen(navController) }
             composable(MainDestinations.SignUp.route) { SignUpScreen(navController) }
-            composable(MainDestinations.OtpVerificationScreen.route) { OtpVerificationScreen(navController) }
+            composable(MainDestinations.Otp.route) { OtpVerificationScreen(navController) }
             composable(MainDestinations.Main.route) {
                 MainScreen(
                     mediaViewModel = mediaViewModel,
@@ -151,7 +151,7 @@ sealed class MainDestinations(val route: String) {
     object SignIn : MainDestinations("sign_in")
     object SignUp : MainDestinations("sign_up")
     object Main : MainDestinations("main")
-    object OtpVerificationScreen : MainDestinations("otp")
+    object Otp : MainDestinations("otp")
 }
 
 @Composable

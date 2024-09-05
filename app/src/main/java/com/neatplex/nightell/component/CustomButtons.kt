@@ -65,6 +65,7 @@ fun CustomBorderedCircleButton(
         modifier = Modifier
             .fillMaxWidth()
             .height(50.dp)
+            .background(Color.Black.copy(alpha = 0.1f), shape = CircleShape)
             .border(width = 1.dp, color = Color.White, shape = CircleShape)
             .clickable(onClick = onClick) // Make the whole Box clickable
     ) {

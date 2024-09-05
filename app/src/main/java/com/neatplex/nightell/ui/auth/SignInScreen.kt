@@ -10,11 +10,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -37,12 +39,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount
-import com.google.android.gms.tasks.Task
 import com.neatplex.nightell.component.CustomBorderedCircleButton
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.ErrorText
@@ -50,7 +52,6 @@ import com.neatplex.nightell.component.OutlinedTextFieldWithIcon
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result
-import com.google.android.gms.common.api.ApiException
 import com.neatplex.nightell.navigation.MainDestinations
 
 @Composable
@@ -193,32 +194,41 @@ fun SignInContent(
                 }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             AuthPinkButton(onSignInClick, stringResource(R.string.sign_in))
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Add a line with "or" in the middle
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Divider(modifier = Modifier.weight(1f), color = Color.White)
+                Text(
+                    text = stringResource(R.string.or),
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    color = Color.White,
+                    fontSize = 16.sp
+                )
+                Divider(modifier = Modifier.weight(1f), color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             CustomBorderedCircleButton(
                 onClick = onGoogleSignInClick,
                 text = stringResource(R.string.sign_in_with_google)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(stringResource(R.string.forgot_password),
-                color = androidx.compose.ui.graphics.Color.White,
-                modifier = Modifier.clickable(
-                    onClick = { navController.navigate(MainDestinations.OtpVerificationScreen.route) }
-                ))
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             CenteredTextWithClickablePart(
-                normalText = stringResource(R.string.don_t_you_have_an_account),
-                clickableText = stringResource(R.string.sign_up),
-                onClick = onSignUpClick,
-                vertAlignment = Alignment.Bottom)
+                normalText = stringResource(R.string.prefer_sign_in_up_without_password),
+                clickableText = stringResource(R.string.continue_with_otp),
+                onClick = { navController.navigate(MainDestinations.Otp.route) },
+            )
         }
 
         if (iSignInInProgress) {
@@ -228,11 +238,15 @@ fun SignInContent(
 }
 
 @Composable
-fun AuthResult(authResultState: Result<AuthResponse?>, navController: NavController, isLoading: Boolean) {
+fun AuthResult(
+    authResultState: Result<AuthResponse?>,
+    navController: NavController,
+    isLoading: Boolean
+) {
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    if(isLoading) {
+    if (isLoading) {
         showError = false
     }
 
