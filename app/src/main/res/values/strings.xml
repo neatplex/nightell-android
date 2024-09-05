@@ -28,6 +28,6 @@
     <string name="enter_code">Enter Received Code:</string>
     <string name="the_verification_code_is_invalid_or_has_expired">The verification code is invalid or has expired.</string>
     <string name="my_profile">My Profile</string>
-    <string name="enter_a_valid_email_to_get_verification_code">Enter a valid email to get verification code:</string>
+    <string name="enter_a_valid_email_to_get_verification_code">Enter a valid email to get verification code!</string>
     <string name="skip_for_now">Skip for now</string>
 </resources>

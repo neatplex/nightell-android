@@ -300,7 +300,7 @@ fun EditProfileTextFieldWithValidation(
             }
         }
     )
-    if (value.isNotEmpty() && !isValid) { // Only show error text when the field is not empty and not valid
+    if (value.isNotEmpty() && !isValid) {
         androidx.compose.material3.Text(
             text = errorText,
             color = purpleErrorColor,

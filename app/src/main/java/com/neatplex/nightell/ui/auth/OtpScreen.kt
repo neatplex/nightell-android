@@ -128,7 +128,7 @@ fun Step1(
             value = email,
             onValueChange = onEmailChange,
             placeholder = "Email",
-            errorText = if (email.isNotEmpty() && !isEmailValid) "Invalid Email" else "",
+            errorText = if (email.isNotEmpty() && !isEmailValid) stringResource(id = R.string.invalid_email_format) else "",
             leadingIcon = Icons.Default.Email,
             isValid = email.isEmpty() || isEmailValid,
             readOnly = false
@@ -152,9 +152,10 @@ fun Step1(
                 }
 
                 is Result.Failure -> {
+                    Spacer(modifier = Modifier.height(24.dp))
                     Text(
                         stringResource(id = R.string.something_went_wrong_please_try_again),
-                        color = Color.Red
+                        color = colorResource(id = R.color.purple_light)
                     )
                 }
             }
@@ -179,37 +180,16 @@ fun Step2(
     val timeLeft by authViewModel.timeLeft.observeAsState(0)
     val authResult by authViewModel.authResult.observeAsState()
     val errorMessage = remember { mutableStateOf<String?>(null) }
-    // Animation for shaking the OtpTextField
-    val shakeOffset = remember { Animatable(0f) }
 
     // Trigger shake animation and clear OTP on failure
     LaunchedEffect(authResult) {
-
         if (authResult is Result.Success) {
             if ((authResult as Result.Success<AuthResponse>).data!!.user.username == email) {
                 onNext() // Move to step 3 if email matches
             } else {
                 onComplete()
             }
-        }
-
-        else if (authResult is Result.Failure) {
-            // Shake effect
-            shakeOffset.animateTo(
-                targetValue = 20f,
-                animationSpec = tween(durationMillis = 100, easing = LinearEasing)
-            )
-            shakeOffset.animateTo(
-                targetValue = -20f,
-                animationSpec = tween(durationMillis = 100, easing = LinearEasing)
-            )
-            shakeOffset.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(durationMillis = 100, easing = LinearEasing)
-            )
-            // Clear OTP once after failure
-            onOtpChange("")  // Clear the OTP
-
+        } else if (authResult is Result.Failure) {
             errorMessage.value = (authResult as Result.Failure).message
         }
     }
@@ -221,7 +201,7 @@ fun Step2(
         verticalArrangement = Arrangement.Center
     ) {
         Text(
-            "Enter OTP sent to $email",
+            "Enter OTP sent to $email!",
             textAlign = TextAlign.Center,
             fontSize = 16.sp,
             color = Color.White
@@ -238,7 +218,7 @@ fun Step2(
                 }
             },
             otpCount = 6,
-            modifier = Modifier.offset(x = shakeOffset.value.dp)
+            modifier = Modifier
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -254,12 +234,12 @@ fun Step2(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         errorMessage.value?.let {
             Text(
                 text = it,
-                color = Color.Red
+                color = colorResource(id = R.color.purple_light)
             )
         }
     }
@@ -286,6 +266,14 @@ fun Step3(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        Text(
+            "You can update your username now or later!",
+            textAlign = TextAlign.Center,
+            fontSize = 16.sp,
+            color = Color.White
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+
         TextFieldWithValidation(
             value = username,
             onValueChange = { username = it },
@@ -321,8 +309,8 @@ fun Step3(
                 }
 
                 is Result.Failure -> {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text("Error: ${it.message}", color = Color.Red)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text("Error: ${it.message}", color = colorResource(id = R.color.purple_light))
                 }
 
                 else -> {}
