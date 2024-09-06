@@ -15,6 +15,8 @@ interface IUserRepository {
 
     suspend fun changeProfileBio(bio: String): Result<UserUpdated>
 
+    suspend fun changeProfileImage(id: Int): Result<UserUpdated>
+
     suspend fun changeProfileUsername(username: String): Result<UserUpdated>
 
     suspend fun deleteAccount(): Result<Unit>

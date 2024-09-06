@@ -5,7 +5,8 @@ data class User(
     val created_at: String,
     val email: String,
     val id: Int,
-    val is_banned: Boolean,
+    val image_id: Int?,
+    val image: CustomFile?,
     val name: String,
     val password: String,
     val username: String

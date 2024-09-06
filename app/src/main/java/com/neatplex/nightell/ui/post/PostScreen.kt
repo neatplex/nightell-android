@@ -65,6 +65,7 @@ import com.neatplex.nightell.component.media.AudioPlayer
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.PostEntity
 import com.neatplex.nightell.service.ServiceManager
+import com.neatplex.nightell.ui.profile.getUserImagePainter
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Constant
 import com.neatplex.nightell.utils.Result
@@ -456,9 +457,10 @@ fun PostDetails(
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val imgResource = rememberAsyncImagePainter(model = R.drawable.default_profile_image)
+        val imageResource = getUserImagePainter(post.user)
+
         Image(
-            painter = imgResource,
+            painter = imageResource,
             contentDescription = "Profile Image",
             modifier = Modifier
                 .size(40.dp)

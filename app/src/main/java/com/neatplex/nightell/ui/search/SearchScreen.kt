@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,10 +25,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSearchField
 import com.neatplex.nightell.component.UserCard
@@ -58,17 +62,28 @@ fun SearchScreen(
             selectedTabIndex = selectedTab,
             modifier = Modifier
                 .fillMaxWidth(),
-            containerColor = Color.White
+            containerColor = Color.White,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                    color = colorResource(id = R.color.night),  // Set underline color here
+                    height = 3.dp       // You can also set the height of the underline
+                )
+            }
         ) {
             Tab(
                 selected = selectedTab == 0,
                 onClick = { selectedTab = 0 },
-                text = { Text("Posts") }
+                text = { Text("Posts") },
+                selectedContentColor = colorResource(id = R.color.night), // Color for the selected tab
+                unselectedContentColor = Color.Gray
             )
             Tab(
                 selected = selectedTab == 1,
                 onClick = { selectedTab = 1 },
-                text = { Text("Users") }
+                text = { Text("Users") },
+                selectedContentColor = colorResource(id = R.color.night),  // Color for the selected tab
+                unselectedContentColor = Color.Gray
             )
         }
 

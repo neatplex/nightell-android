@@ -6,7 +6,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,8 +21,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -35,14 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
-import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
@@ -65,6 +63,7 @@ fun ProfileScreen(
     val isLoading by profileViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
     val isRefreshing by profileViewModel.isRefreshing.observeAsState(false)
+    val imageResource = getUserImagePainter(user)
 
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry
@@ -73,11 +72,21 @@ fun ProfileScreen(
 
     LaunchedEffect(postChanged?.value) {
         if (postChanged?.value == true) {
-            // Refresh the feed when a post is deleted
-            profileViewModel.refreshProfile(user!!.id)
+            navController.navigate("profile") {
+                popUpTo("profile") { inclusive = true }
+            }
             navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
         }
     }
+
+    val refreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            navController.navigate("profile") {
+                popUpTo("profile") { inclusive = true }
+            }
+        }
+    )
 
     AppTheme {
         Scaffold(
@@ -102,6 +111,7 @@ fun ProfileScreen(
                 Box(
                     modifier = Modifier
                         .padding(space)
+                        .pullRefresh(refreshState)
                 ) {
                     if (user == null) {
                         profileViewModel.fetchProfile()
@@ -123,7 +133,7 @@ fun ProfileScreen(
                                     val followers = result.data?.followers_count
                                     val followings = result.data?.followings_count
                                     if (responsedUser != null) {
-                                        ShowMyProfile(navController, responsedUser, followers!!, followings!!)
+                                        ShowMyProfile(navController, responsedUser, followers!!, followings!!, imageResource)
                                     }
                                 }
                                 is Result.Failure -> {
@@ -165,8 +175,9 @@ fun ProfileScreen(
     }
 }
 
+
 @Composable
-fun ShowMyProfile(navController: NavController, user: User, followers: Int, followings: Int) {
+fun ShowMyProfile(navController: NavController, user: User, followers: Int, followings: Int, imageResource: Painter) {
 
     Column {
         Row(
@@ -181,7 +192,6 @@ fun ShowMyProfile(navController: NavController, user: User, followers: Int, foll
                 modifier = Modifier
                     .weight(1f)
             ) {
-                val imageResource = rememberAsyncImagePainter(model = R.drawable.default_profile_image)
                 Image(
                     painter = imageResource,
                     contentDescription = "Profile Image",

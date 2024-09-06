@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.ui.profile.getUserImagePainter
 import com.neatplex.nightell.utils.Constant
 
 @Composable
@@ -45,8 +46,8 @@ fun RecentPostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit
                     .height(60.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val imageResource =
-                    rememberAsyncImagePainter(model = R.drawable.default_profile_image)
+                val imageResource = getUserImagePainter(post.user)
+
                 Image(
                     painter = imageResource,
                     contentDescription = "Author Image",

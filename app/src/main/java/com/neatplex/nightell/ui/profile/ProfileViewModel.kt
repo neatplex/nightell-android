@@ -40,6 +40,10 @@ class ProfileViewModel @Inject constructor(
     val userBioUpdatedData: LiveData<Result<UserUpdated>>
         get() = _userBioUpdatedData
 
+    private val _userImageUpdatedData = MutableLiveData<Result<UserUpdated>>()
+    val userImageUpdatedData: LiveData<Result<UserUpdated>>
+        get() = _userImageUpdatedData
+
     private val _posts = MutableLiveData<List<Post>?>()
     val posts: LiveData<List<Post>?> get() = _posts
 
@@ -48,6 +52,7 @@ class ProfileViewModel @Inject constructor(
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
+
     private val _isRefreshing = MutableLiveData<Boolean>()
     val isRefreshing: LiveData<Boolean> get() = _isRefreshing
 
@@ -78,6 +83,15 @@ class ProfileViewModel @Inject constructor(
             _isLoading.value = true
             val result = userUseCase.changeProfileBio(bio)
             _userBioUpdatedData.value = result
+            _isLoading.value = false
+        }
+    }
+
+    fun updateProfileImage(id: Int){
+        viewModelScope.launch {
+            _isLoading.value = true
+            val result = userUseCase.changeProfileImage(id)
+            _userImageUpdatedData.value = result
             _isLoading.value = false
         }
     }

@@ -212,8 +212,8 @@ fun AddPostScreen(
                             audioId = 0
                             imageId = null
                             errorMessage = ""
-                            navController.navigate("home") {
-                                popUpTo("home") { inclusive = true }
+                            navController.navigate("addPost") {
+                                popUpTo("addPost") { inclusive = true }
                             }
                         }
 

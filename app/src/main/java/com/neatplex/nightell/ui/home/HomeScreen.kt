@@ -7,6 +7,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,7 +58,9 @@ fun HomeScreen(
 
     LaunchedEffect(postChanged?.value) {
         if (postChanged?.value == true) {
-            // homeViewModel.refreshFeed()
+            navController.navigate("feed") {
+                popUpTo("feed") { inclusive = true }
+            }
             navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
         }
     }
@@ -142,6 +147,7 @@ fun HomeTopBar(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeContent(
     space: PaddingValues,
@@ -152,6 +158,16 @@ fun HomeContent(
     sharedViewModel: SharedViewModel,
     homeViewModel: HomeViewModel,
 ) {
+
+    val refreshState = rememberPullRefreshState(
+        refreshing = isRefreshing,
+        onRefresh = {
+            navController.navigate("feed") {
+                popUpTo("feed") { inclusive = true }
+            }
+        }
+    )
+
     val lazyRowState = rememberLazyListState()
     val lazyColumnState = rememberLazyListState()
     var lazyRowHeight by remember { mutableStateOf(280.dp) } // Initial height of LazyRow
@@ -169,11 +185,11 @@ fun HomeContent(
             // First item is fully visible
             lazyRowHeight = 280.dp
             firstItemSeenAfterLoad = true
-        } else if (currentIndex > 0 && lazyRowHeight != 0.dp) {
+        } else if (feed.size > 8 && currentIndex > 0 && lazyRowHeight != 0.dp) {
             // Scrolling down: hide the LazyRow
             lazyRowHeight = 0.dp
             firstItemSeenAfterLoad = false // Reset for next scroll-up
-        } else if (currentIndex == 0 && currentOffset > 0 && lazyRowHeight == 0.dp) {
+        } else if (feed.size > 8 && currentIndex == 0 && currentOffset > 0 && lazyRowHeight == 0.dp) {
             // If the first item is partially visible, keep the LazyRow hidden
             lazyRowHeight = 0.dp
         }
@@ -189,17 +205,12 @@ fun HomeContent(
         }
     }
 
-    fun scrollToBottom() {
-        coroutineScope.launch {
-            lazyColumnState.animateScrollToItem(lazyColumnState.layoutInfo.totalItemsCount - 1)
-        }
-    }
-
     Box(
         modifier = Modifier
             .padding(space)
+            .pullRefresh(refreshState)
     ) {
-        Column {
+        Column{
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

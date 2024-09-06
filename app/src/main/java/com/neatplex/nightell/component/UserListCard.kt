@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.ui.profile.getUserImagePainter
 
 @Composable
 fun UserCard(user: User, onUserClicked: (User) -> Unit) {
@@ -38,8 +39,7 @@ fun UserCard(user: User, onUserClicked: (User) -> Unit) {
                 .padding(all = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val imageResource =
-                rememberAsyncImagePainter(model = R.drawable.default_profile_image)
+            val imageResource = getUserImagePainter(user)
 
             Image(
                 painter = imageResource,

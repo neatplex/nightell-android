@@ -78,6 +78,9 @@ interface ApiService {
     @PATCH("profile/username")
     suspend fun changeProfileUsername(@Body requestBody: Map<String, String>) : Response<UserUpdated>
 
+    @PATCH("profile/image")
+    suspend fun changeProfileImage(@Body requestBody: Map<String, Int>) : Response<UserUpdated>
+
     @DELETE("profile")
     suspend fun deleteAccount() : Response<Unit>
 

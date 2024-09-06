@@ -2,8 +2,12 @@ package com.neatplex.nightell.ui.profile
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Create
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,10 +31,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -42,15 +49,22 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.AlertDialogCustom
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.EditProfileTextFieldWithValidation
+import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.auth.getUserNameErrorMessage
+import com.neatplex.nightell.ui.upload.UploadViewModel
+import com.neatplex.nightell.ui.upload.getFileNameAndUri
+import com.neatplex.nightell.ui.upload.getFileSize
+import com.neatplex.nightell.ui.upload.uriToFile
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.utils.Constant
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,11 +74,14 @@ fun EditProfileScreen(
     sharedViewModel: SharedViewModel
 ) {
     val profileViewModel: ProfileViewModel = hiltViewModel()
+    val uploadViewModel: UploadViewModel = hiltViewModel()
     val user = sharedViewModel.user
     val updateProfileNameResult by profileViewModel.profileNameUpdatedData.observeAsState()
     val updateUsernameResult by profileViewModel.usernameUpdatedData.observeAsState()
     val updateProfileBioResult by profileViewModel.userBioUpdatedData.observeAsState()
+    val updateProfileImageResult by profileViewModel.userImageUpdatedData.observeAsState()
     val deleteProfileResult by profileViewModel.accountDeleteResult.observeAsState()
+    val isLoading by profileViewModel.isLoading.observeAsState(false)
 
     var isNameLoading by remember { mutableStateOf(false) }
     var isNameSuccess by remember { mutableStateOf(false) }
@@ -84,8 +101,10 @@ fun EditProfileScreen(
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
-    var errorMessage by remember { mutableStateOf("") }
     var resultErrorMessage by remember { mutableStateOf("") }
+    var errorMessage by remember { mutableStateOf("") }
+
+    var selectedImage by remember { mutableStateOf<Uri?>(null) }
 
     // Track changes in fields
     var isNameChanged by remember { mutableStateOf(false) }
@@ -96,6 +115,33 @@ fun EditProfileScreen(
     var isTokenDeletionInProgress by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+
+    val uploadFileResults by uploadViewModel.uploadState.observeAsState()
+    var imageId by rememberSaveable { mutableStateOf(user.value!!.image_id) }
+
+    var imageResource = getUserImagePainter(user.value)
+
+    val chooseImageLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
+            result?.let { imageUri ->
+                val (fileName, mainUri) = getFileNameAndUri(context, imageUri)
+                selectedImage = mainUri
+                val fileExtension = fileName?.substringAfterLast('.', "")
+                val fileSize = getFileSize(context, selectedImage!!)
+                val file = uriToFile(context, selectedImage!!)
+                if (fileExtension.equals("jpg", ignoreCase = true) ||
+                    fileExtension.equals("jpeg", ignoreCase = true)
+                ) {
+                    if (fileSize <= 2 * 1024 * 1024) {
+                        uploadViewModel.uploadFile(file!!, "JPG")
+                    } else {
+                        resultErrorMessage = "Image file must be less than 2MB!"
+                    }
+                } else {
+                    resultErrorMessage = "Only .jpg type is allowed for post image!"
+                }
+            }
+        }
 
     Scaffold(
         topBar = {
@@ -129,6 +175,39 @@ fun EditProfileScreen(
             if (isTokenDeletionInProgress) {
                 CustomCircularProgressIndicator()
             } else {
+
+                // Observe audio and image upload results
+                when (val result = uploadFileResults) {
+                    is Result.Success -> {
+                        result.data?.let {
+                            if (it.file.extension.equals("JPG", ignoreCase = true)) {
+                                imageId = it.file.id
+                            }
+                        }
+                        profileViewModel.updateProfileImage(imageId!!)
+                    }
+
+                    is Result.Failure -> {
+                        resultErrorMessage = result.message
+                    }
+
+                    else -> {}
+                }
+
+                when (val result = updateProfileImageResult) {
+                    is Result.Success -> {
+                        result.data?.let {
+                            sharedViewModel.setUser(it.user)
+                            imageResource = getUserImagePainter(user = it.user)
+                        }
+                    }
+                    is Result.Failure -> {
+                        resultErrorMessage = result.message
+                    }
+
+                    else -> {}
+                }
+
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -139,21 +218,17 @@ fun EditProfileScreen(
                             .padding(vertical = 16.dp, horizontal = 16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val imageResource =
-                            rememberAsyncImagePainter(model = R.drawable.default_profile_image)
 
-                        Image(
-                            painter = imageResource,
-                            contentDescription = "Profile Image",
-                            modifier = Modifier
-                                .size(120.dp)
-                                .clip(CircleShape),
-                            contentScale = ContentScale.Crop
+                        ProfileImageWithUploadIcon(
+                            imageResource = imageResource, // Dummy resource
+                            chooseImageLauncher = {
+                                chooseImageLauncher.launch("image/*")
+                            }
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Text(resultErrorMessage)
+                        Text(resultErrorMessage, color = colorResource(id = R.color.purple_light), fontSize = 17.sp)
 
                         Spacer(modifier = Modifier.height(16.dp))
 
@@ -392,5 +467,56 @@ fun signOut(context: Context) {
 
     if (context is ComponentActivity) {
         context.finish()
+    }
+}
+
+
+@Composable
+fun ProfileImageWithUploadIcon(
+    imageResource: AsyncImagePainter,
+    chooseImageLauncher: () -> Unit
+) {
+    Box(
+        modifier = Modifier.size(120.dp).clickable {
+            chooseImageLauncher()
+        }
+    ) {
+        // Profile Image
+        Image(
+            painter = imageResource,
+            contentDescription = "Profile Image",
+            modifier = Modifier
+                .size(120.dp)
+                .clip(CircleShape),
+            contentScale = ContentScale.Crop
+        )
+
+        // Upload Icon in a Circle at the Bottom Right
+        Box(
+            modifier = Modifier
+                .size(32.dp)  // Size of the circular icon container
+                .clip(CircleShape)
+                .background(Color.White)
+                .align(Alignment.BottomEnd)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Create,
+                contentDescription = "Upload Icon",
+                tint = Color.Gray,  // Set the color of the upload icon
+                modifier = Modifier
+                    .size(20.dp) // Size of the upload icon itself
+                    .align(Alignment.Center)
+            )
+        }
+    }
+}
+
+
+@Composable
+fun getUserImagePainter(user: User?): AsyncImagePainter {
+    return if (user?.image == null) {
+        rememberAsyncImagePainter(model = R.drawable.default_profile_image)
+    } else {
+        rememberAsyncImagePainter(model = Constant.Files_URL + user.image?.path)
     }
 }

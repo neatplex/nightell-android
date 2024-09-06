@@ -42,10 +42,19 @@ class UserRepository @Inject constructor(private val apiService: ApiService) : I
     }
 
     override suspend fun changeProfileBio(bio: String): Result<UserUpdated> {
-
         return try {
             val requestBody = mapOf("bio" to bio)
             val response = apiService.changeProfileBio(requestBody)
+            handleApiResponse(response)
+        } catch (e: Exception) {
+            Result.Failure(e.message ?: "An error occurred")
+        }
+    }
+
+    override suspend fun changeProfileImage(id: Int): Result<UserUpdated> {
+        return try {
+            val requestBody = mapOf("image_id" to id)
+            val response = apiService.changeProfileImage(requestBody)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")

@@ -35,20 +35,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.component.CustomSimpleButton
 import com.neatplex.nightell.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.ui.profile.getUserImagePainter
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.utils.Constant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -108,6 +112,7 @@ fun UserScreen(
 
                         is Result.Success -> {
                             val user = result.data!!.user
+                            val imageResource = getUserImagePainter(user)
                             val followersCount = result.data.followers_count
                             val followingsCount = result.data.followings_count
                             isFollowedByMe = result.data.followed_by_me
@@ -124,7 +129,8 @@ fun UserScreen(
                                 followingsCount,
                                 userViewModel,
                                 isFollowedByMe,
-                                hasFollowedMe
+                                hasFollowedMe,
+                                imageResource
                             )
                         }
 
@@ -176,6 +182,7 @@ fun ShowProfile(
     userViewModel: UserViewModel,
     isFollowedByMe: Boolean,
     followsMe: Boolean,
+    imageResource: Painter
 ) {
 
     // Define a mutable state for the follower count
@@ -202,8 +209,7 @@ fun ShowProfile(
                 modifier = Modifier
                     .weight(1f)
             ) {
-                val imageResource =
-                    rememberAsyncImagePainter(model = R.drawable.default_profile_image)
+
                 Image(
                     painter = imageResource,
                     contentDescription = "Profile Image",

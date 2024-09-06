@@ -15,6 +15,8 @@ class UserUseCase @Inject constructor(private val userRepository: IUserRepositor
 
     suspend fun changeProfileBio(bio: String) = userRepository.changeProfileBio(bio)
 
+    suspend fun changeProfileImage(id: Int) = userRepository.changeProfileImage(id)
+
     suspend fun changeProfileUsername(username: String) = userRepository.changeProfileUsername(username)
 
     suspend fun deleteAccount() = userRepository.deleteAccount()
