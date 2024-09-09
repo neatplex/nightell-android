@@ -16,8 +16,8 @@ android {
         applicationId = "com.neatplex.nightell"
         minSdk = 29
         targetSdk = 34
-        versionCode = 19
-        versionName = "1.0.7"
+        versionCode = 20
+        versionName = "1.0.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -58,12 +58,9 @@ android {
         // or
         // pickFirst 'META-INF/gradle/incremental.annotation.processors'
     }
-
 }
 
-
 dependencies {
-
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     implementation("androidx.activity:activity-compose:1.9.0")
@@ -97,13 +94,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-
     // Shared Preferences
     implementation("androidx.preference:preference-ktx:1.2.1")
 
     // Coil loading images
     implementation("io.coil-kt:coil-compose:2.2.2")
-
 
     // Dependency Injection
     implementation("com.google.dagger:hilt-android:2.50")
