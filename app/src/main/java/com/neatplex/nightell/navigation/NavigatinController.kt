@@ -263,8 +263,20 @@ fun MainScreen(
                     val isCurrentPostScreen = activeRoute.contains("postScreen")
 
                     val navToPostScreen: () -> Unit = {
+                        // Check if the Home tab exists in the stack
+                        if (BottomNavScreens.Home.route in tabStack) {
+                            // Remove the Home tab from the stack if it exists
+                            tabStack.remove(BottomNavScreens.Home.route)
+                        }
+
+                        // Add Home tab back to the top of the stack (ensures navigation context remains intact)
+                        tabStack.add(BottomNavScreens.Home.route)
                         selectedTab.value = BottomNavScreens.Home.route
-                        homeNavController.navigate("postScreen/${mediaViewModel.currentPostId}")
+
+                        // Navigate to post screen with the current post ID
+                        homeNavController.navigate("postScreen/${mediaViewModel.currentPostId}") {
+                            popUpTo("feed") { inclusive = false } // Optionally pop up to the feed screen if needed
+                        }
                     }
 
                     if (isServiceRunning && !isCurrentPostScreen) {
