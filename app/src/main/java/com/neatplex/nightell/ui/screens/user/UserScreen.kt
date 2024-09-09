@@ -36,10 +36,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.CustomSimpleButton
 import com.neatplex.nightell.ui.component.post.ProfilePostCard
@@ -74,27 +76,7 @@ fun UserScreen(
     AppTheme {
         Scaffold(
             topBar = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(4.dp, clip = false) // Add shadow to the Box
-                        .background(Color.White)
-                ) {
-                    TopAppBar(
-                        title = { Text(text = user.username, fontSize = 20.sp) },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent, // Transparent to use the Box's background
-                        )
-                    )
-                }
+                AppBarWithTitle(navController = navController, title = user.username)
             },
             content = { space ->
                 Column(

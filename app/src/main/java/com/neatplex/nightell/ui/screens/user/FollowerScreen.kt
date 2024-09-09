@@ -22,26 +22,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.neatplex.nightell.R
+import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.UserCard
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
-fun FollowerScreen(navController: NavController, userId: Int, sharedViewModel: SharedViewModel) {
-
-    val userViewModel: UserViewModel = hiltViewModel()
+fun FollowerScreen(
+    navController: NavController,
+    userId: Int,
+    sharedViewModel: SharedViewModel,
+    userViewModel: UserViewModel = hiltViewModel() // Inject the ViewModel
+) {
     val users by userViewModel.usersList.observeAsState(emptyList())
-    val count = 20
     val isLoading by userViewModel.isLoading.observeAsState(false)
+    val count = 20
 
-
+    // Effect for fetching user followers when the screen is loaded
     LaunchedEffect(Unit) {
         userViewModel.fetchUserFollowers(userId, null, count)
     }
@@ -49,58 +54,23 @@ fun FollowerScreen(navController: NavController, userId: Int, sharedViewModel: S
     AppTheme {
         Scaffold(
             topBar = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(4.dp, clip = false) // Add shadow to the Box
-                        .background(Color.White)
-                ) {
-                    TopAppBar(
-                        title = { Text(text = "Followers") },
-                        navigationIcon = {
-                            IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
-                                    contentDescription = "Back"
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent, // Transparent to use the Box's background
-                        )
-                    )
-                }
+                AppBarWithTitle(navController = navController, title = stringResource(R.string.followers))
             },
-            content = { space ->
+            content = { padding ->
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(space),
+                        .padding(padding),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    LazyColumn(
-                        contentPadding = PaddingValues(bottom = 56.dp),
-                        modifier = Modifier.fillMaxSize(),
-                        content = {
-                            itemsIndexed(users) { index, user ->
-                                UserCard(user = user) { selectedUser ->
-                                    if (sharedViewModel.user.value?.id != selectedUser.id) {
-                                        val userJson = selectedUser.toJson()
-                                        navController.navigate("userScreen/${Uri.encode(userJson)}")
-                                    }
-                                    if (index == users.size - 1 && !isLoading && userViewModel.canLoadMoreFollowers) {
-                                        userViewModel.fetchUserFollowers(
-                                            userId,
-                                            selectedUser.id,
-                                            count
-                                        )
-                                    }
-                                }
-                            }
-                            if (isLoading) {
-                                item { CustomCircularProgressIndicator() }
-                            }
-                        }
+                    UsersList(
+                        users = users,
+                        isLoading = isLoading,
+                        sharedViewModel = sharedViewModel,
+                        navController = navController,
+                        userViewModel = userViewModel,
+                        userId = userId,
+                        count = count
                     )
                 }
             }
@@ -109,3 +79,61 @@ fun FollowerScreen(navController: NavController, userId: Int, sharedViewModel: S
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppBarWithTitle(navController: NavController, title: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(4.dp, clip = false)
+            .background(Color.White)
+    ) {
+        TopAppBar(
+            title = { Text(text = title) },
+            navigationIcon = {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(R.string.back)
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            )
+        )
+    }
+}
+
+@Composable
+fun UsersList(
+    users: List<User>,
+    isLoading: Boolean,
+    sharedViewModel: SharedViewModel,
+    navController: NavController,
+    userViewModel: UserViewModel,
+    userId: Int,
+    count: Int
+) {
+    LazyColumn(
+        contentPadding = PaddingValues(bottom = 56.dp),
+        modifier = Modifier.fillMaxSize(),
+        content = {
+            itemsIndexed(users) { index, user ->
+                UserCard(user = user) { selectedUser ->
+                    if (sharedViewModel.user.value?.id != selectedUser.id) {
+                        val userJson = selectedUser.toJson()
+                        navController.navigate("userScreen/${Uri.encode(userJson)}")
+                    }
+                    // Fetch more followers if at the end of the list
+                    if (index == users.size - 1 && !isLoading && userViewModel.canLoadMoreFollowers) {
+                        userViewModel.fetchUserFollowers(userId, selectedUser.id, count)
+                    }
+                }
+            }
+            if (isLoading) {
+                item { CustomCircularProgressIndicator() }
+            }
+        }
+    )
+}

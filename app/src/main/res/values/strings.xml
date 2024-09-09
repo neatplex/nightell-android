@@ -30,4 +30,7 @@
     <string name="my_profile">My Profile</string>
     <string name="enter_a_valid_email_to_get_verification_code">Enter a valid email to get verification code!</string>
     <string name="skip_for_now">Skip for now</string>
+    <string name="followers">Followers</string>
+    <string name="followings">Followings</string>
+    <string name="back">Back</string>
 </resources>
