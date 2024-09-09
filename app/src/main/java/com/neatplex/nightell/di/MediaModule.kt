@@ -7,8 +7,8 @@ import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
-import com.neatplex.nightell.service.MediaServiceHandler
-import com.neatplex.nightell.service.MediaNotificationManager
+import com.neatplex.nightell.service.media.MediaServiceHandler
+import com.neatplex.nightell.service.notification.MediaNotificationManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

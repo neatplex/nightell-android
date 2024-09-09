@@ -7,10 +7,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.saveable
 import androidx.media3.common.MediaMetadata
-import com.neatplex.nightell.service.PlayerEvent
-import com.neatplex.nightell.service.MediaServiceHandler
+import com.neatplex.nightell.service.media.PlayerEvent
+import com.neatplex.nightell.service.media.MediaServiceHandler
 import com.neatplex.nightell.service.ServiceManager
-import com.neatplex.nightell.service.SimpleMediaState
+import com.neatplex.nightell.service.media.SimpleMediaState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
