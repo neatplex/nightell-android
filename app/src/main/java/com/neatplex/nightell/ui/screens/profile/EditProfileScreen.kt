@@ -58,13 +58,14 @@ import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.EditProfileTextFieldWithValidation
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.screens.auth.getUserNameErrorMessage
+import com.neatplex.nightell.ui.screens.post.sanitizeDescription
 import com.neatplex.nightell.ui.screens.upload.UploadViewModel
-import com.neatplex.nightell.ui.screens.upload.getFileNameAndUri
-import com.neatplex.nightell.ui.screens.upload.getFileSize
-import com.neatplex.nightell.ui.screens.upload.uriToFile
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.Constant
+import com.neatplex.nightell.utils.getFileNameAndUri
+import com.neatplex.nightell.utils.getFileSize
+import com.neatplex.nightell.utils.uriToFile
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -300,7 +301,8 @@ fun EditProfileScreen(
                             onSaveClicked = {
                                 if (isBioChanged) {
                                     isBioLoading = true
-                                    profileViewModel.updateBioOfUser(editedBio)
+                                    val sanitizedBio = sanitizeDescription(editedBio)
+                                    profileViewModel.updateBioOfUser(sanitizedBio)
                                     isBioChanged = false
                                 }
                             },

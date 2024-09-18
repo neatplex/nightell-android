@@ -1,9 +1,10 @@
 package com.neatplex.nightell.ui.screens.post
 
-
 import android.media.MediaPlayer
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -50,14 +51,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.CustomSimpleButton
@@ -118,6 +119,9 @@ fun PostScreen(
     if (isFetchingPost) {
         LoadingScreen()
     } else {
+        if (isLoading) {
+            LoadingScreen()
+        }
         if (isPostExist && post != null) {
             PostContent(
                 navController = navController,
@@ -129,7 +133,8 @@ fun PostScreen(
                 serviceManager = serviceManager,
                 isServiceRunning = isServiceRunning,
                 isEditing = isEditing,
-                onEditingChange = { isEditing = it })
+                onEditingChange = { isEditing = it }
+            )
         } else {
             ErrorScreen(txtLoadFailure)
         }
@@ -192,6 +197,8 @@ fun PostContent(
     var icon by remember { mutableStateOf(Icons.Filled.FavoriteBorder) }
     var editedTitle by remember { mutableStateOf(post.title) }
     var editedDescription by remember { mutableStateOf(post.description ?: "") }
+    val focusRequester = remember { FocusRequester() }
+    var titleError by remember { mutableStateOf(false) }
 
     // Fetch likes and bookmark state
     LaunchedEffect(Unit) {
@@ -301,12 +308,34 @@ fun PostContent(
                             onTitleChange = { editedTitle = it },
                             onDescriptionChange = { editedDescription = it },
                             onSaveClick = {
-                                if (editedTitle != post.title || editedDescription != post.description) {
-                                    postViewModel.updatePost(post.id, editedTitle, editedDescription)
+                                if (editedTitle.isEmpty()) {
+                                    titleError = true
+                                    focusRequester.requestFocus() // Focus on title field if empty
                                 } else {
-                                    onEditingChange(false)
+                                    titleError = false
+                                    if (editedTitle != post.title || editedDescription != post.description) {
+                                        // Update the post only if there are changes
+                                        postViewModel.updatePost(post.id, editedTitle, editedDescription)
+                                    } else {
+                                        // Close editing mode if there are no changes
+                                        onEditingChange(false)
+                                    }
                                 }
-                            })
+                            },
+                            titleError = titleError,
+                            focusRequester = focusRequester
+                        )
+
+                        // Handle update result
+                        postUpdateResult?.let {
+                            if (it is Result.Success) {
+                                // Close editing mode if update is successful
+                                navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
+                                navController.popBackStack()
+                                navController.navigate("postScreen/${post.id}")
+                                onEditingChange(false)
+                            }
+                        }
                     }
                 }
             }
@@ -315,14 +344,8 @@ fun PostContent(
 
     postDeleteResult?.let {
         if (it is Result.Success) {
-            navController.popBackStack()
-        }
-    }
-
-    postUpdateResult?.let {
-        if (it is Result.Success) {
-            onEditingChange(false)
             navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
+            navController.popBackStack()
         }
     }
 }
@@ -361,7 +384,9 @@ fun PostTopBar(
         },
         actions = {
             if (userId == post.user.id) {
-                IconButton(onClick = { menuExpanded.value = true }, modifier = Modifier.size(32.dp).padding(end = 8.dp)) {
+                IconButton(onClick = { menuExpanded.value = true }, modifier = Modifier
+                    .size(32.dp)
+                    .padding(end = 8.dp)) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
                         contentDescription = "Menu",
@@ -559,6 +584,8 @@ fun PostDescription(
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
     onSaveClick: () -> Unit,
+    titleError: Boolean,
+    focusRequester: FocusRequester
 ) {
     Column(
         modifier = Modifier
@@ -566,30 +593,53 @@ fun PostDescription(
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
         if (isEditing) {
+            // Title input
             TextField(
                 value = editedTitle.take(30), // Limit to 30 characters
                 onValueChange = { newValue ->
                     if (newValue.length <= 30) onTitleChange(newValue)
                 },
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text("Title", color = Color.Black) },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester)
+                    .border(
+                        BorderStroke(
+                            2.dp,
+                            if (titleError) colorResource(id = R.color.purple_light) else Color.Transparent
+                        ) // Pink border if error
+                    ),
+                label = { Text("Title") },
+                colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.White.copy(0.5f),
                     textColor = Color.Black,
-                    focusedBorderColor = Color.White,
-                    cursorColor = colorResource(id = R.color.night)
+                    focusedIndicatorColor = if (titleError) colorResource(id = R.color.purple_light) else Color.Black, // Pink bottom border if error
+                    unfocusedIndicatorColor = Color.Gray,
+                    errorCursorColor = colorResource(id = R.color.purple_light),
+                    errorIndicatorColor = colorResource(id = R.color.purple_light) // Pink for error state
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Done
                 ),
-                maxLines = 1, // Ensure single line
+                isError = titleError
             )
+
+            if (titleError) {
+                Text(
+                    text = "Title can't be empty",
+                    color = colorResource(id = R.color.purple_light), // Pink error message
+                    fontSize = 12.sp
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
+
+            // Caption input (description)
             TextField(
-                value = editedDescription.take(150), // Limit to 150 characters
+                value = editedDescription, // No need to restrict characters in real-time
                 onValueChange = { newValue ->
-                    if (newValue.length <= 150) onDescriptionChange(newValue)
+                    // Update the value without restriction; we will sanitize on save
+                    onDescriptionChange(newValue)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Caption", color = Color.Black) },
@@ -599,19 +649,39 @@ fun PostDescription(
                     focusedBorderColor = Color.White,
                     cursorColor = colorResource(id = R.color.night)
                 ),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text)
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
+                maxLines = 10 // Allow multiple lines
             )
+
             Spacer(modifier = Modifier.height(16.dp))
-            CustomSimpleButton(onClick = onSaveClick, text = "Save Changes")
+
+            CustomSimpleButton(
+                onClick = {
+                    // Sanitize the description before saving
+                    val sanitizedDescription = sanitizeDescription(editedDescription)
+                    onDescriptionChange(sanitizedDescription) // Apply sanitized description
+                    onSaveClick()
+                },
+                text = "Save Changes"
+            )
         } else {
             Text(
                 text = editedTitle.take(30), // Display up to 30 characters
                 fontSize = 20.sp
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = editedDescription.take(150) // Display up to 150 characters
             )
         }
     }
+}
+
+// Function to sanitize the description
+fun sanitizeDescription(description: String): String {
+    // Replace more than 3 consecutive newlines with 3 newlines
+    val withoutExtraNewlines = description.replace(Regex("\n{4,}"), "\n\n\n")
+
+    // Trim any trailing newlines
+    return withoutExtraNewlines.trimEnd()
 }

@@ -1,9 +1,7 @@
 package com.neatplex.nightell.ui.screens.upload
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.net.Uri
-import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,6 +27,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +42,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,81 +52,58 @@ import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.CustomBorderedButton
 import com.neatplex.nightell.ui.component.CustomLinkButton
 import com.neatplex.nightell.ui.component.CustomSimpleButton
+import com.neatplex.nightell.ui.screens.post.sanitizeDescription
+import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.utils.FileHandler
 import com.neatplex.nightell.utils.Result
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import java.io.File
-import java.io.FileOutputStream
-import kotlinx.coroutines.launch
 
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AddPostScreen(
     navController: NavController,
+    sharedViewModel: SharedViewModel,
     uploadViewModel: UploadViewModel = hiltViewModel(),
 ) {
     var currentStep by rememberSaveable { mutableStateOf(1) }
+
+    // Observe audio and image file states from the SharedViewModel
+    val audioFileState by sharedViewModel.audioFileState.observeAsState()
+    val imageFileState by sharedViewModel.imageFileState.observeAsState()
 
     val uploadFileResults by uploadViewModel.uploadState.observeAsState()
     val uploadPostResult by uploadViewModel.storePostResult.observeAsState()
     val uploadPostIsLoading by uploadViewModel.isLoading.observeAsState(false)
     val uploadFileIsLoading by uploadViewModel.isLoading.observeAsState(false)
 
-    var selectedAudio by remember { mutableStateOf<Uri?>(null) }
-    var selectedAudioName by remember { mutableStateOf("") }
-    var selectedImage by remember { mutableStateOf<Uri?>(null) }
-    var selectedImageName by remember { mutableStateOf("") }
-
+    var selectedAudioName by rememberSaveable { mutableStateOf("") }
+    var selectedImageName by rememberSaveable { mutableStateOf("") }
     var title by rememberSaveable { mutableStateOf("") }
-    var errorMessage by rememberSaveable { mutableStateOf("") }
     var description by rememberSaveable { mutableStateOf("") }
     var audioId by rememberSaveable { mutableStateOf(0) }
     var imageId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var errorMessage by rememberSaveable { mutableStateOf("") }
 
     val context = LocalContext.current
+    val fileHandler = remember { FileHandler(context, uploadViewModel) }
 
     val chooseAudioLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
-            result?.let { audioUri ->
-                val (fileName, mainUri) = getFileNameAndUri(context, audioUri)
-                selectedAudio = mainUri
-                val fileExtension = fileName?.substringAfterLast('.', "")
-                val file = uriToFile(context, selectedAudio!!)
-                val fileSize = getFileSize(context, selectedAudio!!)
-                if (fileExtension.equals("mp3", ignoreCase = true)) {
-                    if (fileSize <= 5 * 1024 * 1024) {
-                        selectedAudioName = fileName!!
-                        uploadViewModel.uploadFile(file!!, "MP3")
-                    } else {
-                        errorMessage = "Audio file must be less than 5MB!"
-                    }
-                } else {
-                    errorMessage = "Only .mp3 type is allowed for post audio!"
-                }
+            result?.let { uri ->
+                fileHandler.handleAudioFile(uri,
+                    onSuccess = { fileName -> selectedAudioName = fileName },
+                    onError = { message -> errorMessage = message }
+                )
             }
         }
 
     val chooseImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
-            result?.let { imageUri ->
-                val (fileName, mainUri) = getFileNameAndUri(context, imageUri)
-                selectedImage = mainUri
-                val fileExtension = fileName?.substringAfterLast('.', "")
-                val fileSize = getFileSize(context, selectedImage!!)
-                val file = uriToFile(context, selectedImage!!)
-                if (fileExtension.equals("jpg", ignoreCase = true) ||
-                    fileExtension.equals("jpeg", ignoreCase = true)
-                ) {
-                    if (fileSize <= 2 * 1024 * 1024) {
-                        selectedImageName = fileName!!
-                        uploadViewModel.uploadFile(file!!, "JPG")
-                    } else {
-                        errorMessage = "Image file must be less than 2MB!"
-                    }
-                } else {
-                    errorMessage = "Only .jpg type is allowed for post image!"
-                }
+            result?.let { uri ->
+                fileHandler.handleImageFile(uri,
+                    onSuccess = { fileName -> selectedImageName = fileName },
+                    onError = { message -> errorMessage = message }
+                )
             }
         }
 
@@ -171,16 +148,17 @@ fun AddPostScreen(
                         onTitleChange = { title = it },
                         onDescriptionChange = { description = it },
                         onSubmit = {
-                            if (selectedAudio != null && title.isNotEmpty()) {
+                            if (title.isNotEmpty() && audioId != 0) {
+                                if(description != "") description = sanitizeDescription(description)
                                 uploadViewModel.uploadPost(title, description, audioId, imageId)
                             } else {
-                                errorMessage = "Title is required!"
+                                errorMessage = "Title and audio are required!"
                             }
                         }
                     )
                 }
 
-                // Observe audio and image upload results
+                // Handle upload results
                 when (val result = uploadFileResults) {
                     is Result.Success -> {
                         result.data?.let {
@@ -191,7 +169,6 @@ fun AddPostScreen(
                             }
                         }
                     }
-
                     is Result.Failure -> {
                         errorMessage = result.message
                     }
@@ -202,21 +179,8 @@ fun AddPostScreen(
                 uploadPostResult?.let { result ->
                     when (result) {
                         is Result.Success -> {
-                            // Clear the state variables
-                            selectedAudio = null
-                            selectedAudioName = ""
-                            selectedImage = null
-                            selectedImageName = ""
-                            title = ""
-                            description = ""
-                            audioId = 0
-                            imageId = null
-                            errorMessage = ""
-                            navController.navigate("addPost") {
-                                popUpTo("addPost") { inclusive = true }
-                            }
+                            resetState(navController)
                         }
-
                         is Result.Failure -> {
                             errorMessage = result.message
                         }
@@ -225,80 +189,35 @@ fun AddPostScreen(
             }
 
             Row {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                ) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    ShowLoadingIndicator(isLoading = uploadPostIsLoading || uploadFileIsLoading)
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 16.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (uploadPostIsLoading || uploadFileIsLoading) {
-                            LinearProgressIndicator(
-                                color = MaterialTheme.colors.onPrimary
-                            )
-                        }
-                    }
-
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(errorMessage, color = colorResource(id = R.color.purple_light))
-                        if (errorMessage.length > 5) {
-                            CoroutineScope(Dispatchers.Main).launch {
-                                delay(5000)
-                                errorMessage = ""
-                            }
-                        }
+                    ShowErrorMessage(errorMessage = errorMessage) {
+                        errorMessage = ""
                     }
 
                     if (audioId != 0) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .padding(end = 8.dp),
-                                tint = colorResource(id = R.color.night),
-                                painter = painterResource(id = R.drawable.baseline_audio_file_48),
-                                contentDescription = "Choose Audio File"
-                            )
-                            Text(text = selectedAudioName, fontSize = 17.sp)
-                        }
+                        UploadedFileRow(
+                            iconId = R.drawable.baseline_audio_file_48,
+                            fileName = selectedAudioName
+                        )
                     }
+
                     if (imageId != null) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Start,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .padding(end = 8.dp),
-                                tint = colorResource(id = R.color.night),
-                                painter = painterResource(id = R.drawable.baseline_image_48),
-                                contentDescription = "Choose Image File"
-                            )
-                            Text(text = selectedImageName, fontSize = 17.sp)
-                        }
+                        UploadedFileRow(
+                            iconId = R.drawable.baseline_image_48,
+                            fileName = selectedImageName
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+private fun resetState(navController: NavController) {
+    navController.navigate("addPost") {
+        popUpTo("addPost") { inclusive = true }
     }
 }
 
@@ -480,40 +399,43 @@ fun TitleAndCaptionStep(
     }
 }
 
-fun getFileNameAndUri(context: Context, uri: Uri): Pair<String?, Uri?> {
-    var fileName: String? = null
-    var mainUri: Uri? = null
-    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-        if (cursor.moveToFirst()) {
-            val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-            fileName = cursor.getString(nameIndex)
-            mainUri = uri
-        }
+@Composable
+fun ShowLoadingIndicator(isLoading: Boolean) {
+    if (isLoading) {
+        LinearProgressIndicator(
+            color = MaterialTheme.colors.onPrimary
+        )
     }
-    return Pair(fileName, mainUri)
 }
 
-fun uriToFile(context: Context, uri: Uri): File? {
-    val inputStream = context.contentResolver.openInputStream(uri)
-    val tempFile = File.createTempFile("temp_file", null, context.cacheDir)
-    tempFile.deleteOnExit()
-    inputStream?.use { input ->
-        FileOutputStream(tempFile).use { output ->
-            input.copyTo(output)
+@Composable
+fun ShowErrorMessage(errorMessage: String, onClearError: () -> Unit) {
+    if (errorMessage.isNotEmpty()) {
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(errorMessage, color = colorResource(id = R.color.purple_light), textAlign = TextAlign.Center)
+        LaunchedEffect(key1 = errorMessage) {
+            delay(5000)
+            onClearError()
         }
     }
-    return tempFile
 }
 
-fun getFileSize(context: Context, uri: Uri): Long {
-    var fileSize: Long = 0
-    context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-        if (cursor.moveToFirst()) {
-            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-            if (!cursor.isNull(sizeIndex)) {
-                fileSize = cursor.getLong(sizeIndex)
-            }
-        }
+@Composable
+fun UploadedFileRow(iconId: Int, fileName: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(32.dp)
+                .padding(end = 8.dp),
+            tint = colorResource(id = R.color.night),
+            painter = painterResource(id = iconId),
+            contentDescription = "Uploaded File"
+        )
+        Text(text = fileName, fontWeight = FontWeight.SemiBold)
     }
-    return fileSize
 }
