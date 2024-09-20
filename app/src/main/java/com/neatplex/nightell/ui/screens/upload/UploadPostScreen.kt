@@ -2,6 +2,7 @@ package com.neatplex.nightell.ui.screens.upload
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -65,23 +66,22 @@ fun AddPostScreen(
     sharedViewModel: SharedViewModel,
     uploadViewModel: UploadViewModel = hiltViewModel(),
 ) {
-    var currentStep by rememberSaveable { mutableStateOf(1) }
-
-    // Observe audio and image file states from the SharedViewModel
-    val audioFileState by sharedViewModel.audioFileState.observeAsState()
-    val imageFileState by sharedViewModel.imageFileState.observeAsState()
+    // Restore the current step from the SharedViewModel
+    var currentStep by rememberSaveable { mutableStateOf(sharedViewModel.currentUploadStep.value ?: 1) }
 
     val uploadFileResults by uploadViewModel.uploadState.observeAsState()
     val uploadPostResult by uploadViewModel.storePostResult.observeAsState()
     val uploadPostIsLoading by uploadViewModel.isLoading.observeAsState(false)
     val uploadFileIsLoading by uploadViewModel.isLoading.observeAsState(false)
 
-    var selectedAudioName by rememberSaveable { mutableStateOf("") }
-    var selectedImageName by rememberSaveable { mutableStateOf("") }
-    var title by rememberSaveable { mutableStateOf("") }
-    var description by rememberSaveable { mutableStateOf("") }
-    var audioId by rememberSaveable { mutableStateOf(0) }
-    var imageId by rememberSaveable { mutableStateOf<Int?>(null) }
+    // Use stored file names and IDs from SharedViewModel, or fallback to defaults
+    var selectedAudioName by remember { mutableStateOf(sharedViewModel.audioFileState.value?.fileName ?: "") }
+    var selectedImageName by remember { mutableStateOf(sharedViewModel.imageFileState.value?.fileName ?: "") }
+    var audioId by remember { mutableStateOf(sharedViewModel.audioFileState.value?.fileId ?: 0) }
+    var imageId by remember { mutableStateOf(sharedViewModel.imageFileState.value?.fileId) }
+
+    var title by rememberSaveable { mutableStateOf(sharedViewModel.postTitle.value ?: "") }
+    var description by rememberSaveable { mutableStateOf(sharedViewModel.postDescription.value ?: "") }
     var errorMessage by rememberSaveable { mutableStateOf("") }
 
     val context = LocalContext.current
@@ -91,7 +91,9 @@ fun AddPostScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
             result?.let { uri ->
                 fileHandler.handleAudioFile(uri,
-                    onSuccess = { fileName -> selectedAudioName = fileName },
+                    onSuccess = { fileName ->
+                        selectedAudioName = fileName
+                    },
                     onError = { message -> errorMessage = message }
                 )
             }
@@ -101,7 +103,9 @@ fun AddPostScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
             result?.let { uri ->
                 fileHandler.handleImageFile(uri,
-                    onSuccess = { fileName -> selectedImageName = fileName },
+                    onSuccess = { fileName ->
+                        selectedImageName = fileName
+                    },
                     onError = { message -> errorMessage = message }
                 )
             }
@@ -132,27 +136,41 @@ fun AddPostScreen(
                         selectedAudioName = selectedAudioName,
                         chooseAudioLauncher = chooseAudioLauncher,
                         audioId = audioId,
-                        onNext = { if (audioId != 0) currentStep++ }
+                        onNext = {
+                            if (audioId != 0) {
+                                currentStep = 2
+                                sharedViewModel.setCurrentStep(currentStep)
+                            }
+                        }
                     )
 
                     2 -> ImageUploadStep(
                         selectedImageName = selectedImageName,
                         chooseImageLauncher = chooseImageLauncher,
                         imageId = imageId,
-                        onNext = { currentStep++ }
+                        onNext = {
+                            currentStep = 3
+                            sharedViewModel.setCurrentStep(currentStep)
+                        }
                     )
 
                     3 -> TitleAndCaptionStep(
                         title = title,
                         description = description,
-                        onTitleChange = { title = it },
-                        onDescriptionChange = { description = it },
+                        onTitleChange = {
+                            title = it
+                            sharedViewModel.setPostTitle(it)  // Persist title
+                        },
+                        onDescriptionChange = {
+                            description = it
+                            sharedViewModel.setPostDescription(it)  // Persist description
+                        },
                         onSubmit = {
                             if (title.isNotEmpty() && audioId != 0) {
-                                if(description != "") description = sanitizeDescription(description)
+                                if (description != "") description = sanitizeDescription(description)
                                 uploadViewModel.uploadPost(title, description, audioId, imageId)
                             } else {
-                                errorMessage = "Title and audio are required!"
+                                errorMessage = R.string.title_is_required.toString()
                             }
                         }
                     )
@@ -164,8 +182,10 @@ fun AddPostScreen(
                         result.data?.let {
                             if (it.file.extension.equals("MP3", ignoreCase = true)) {
                                 audioId = it.file.id
+                                sharedViewModel.setAudioFileState(audioId, selectedAudioName)
                             } else if (it.file.extension.equals("JPG", ignoreCase = true)) {
                                 imageId = it.file.id
+                                sharedViewModel.setImageFileState(imageId, selectedImageName)
                             }
                         }
                     }
@@ -179,6 +199,9 @@ fun AddPostScreen(
                 uploadPostResult?.let { result ->
                     when (result) {
                         is Result.Success -> {
+                            currentStep = 1
+                            sharedViewModel.setCurrentStep(currentStep)
+                            sharedViewModel.resetPostData()
                             resetState(navController)
                         }
                         is Result.Failure -> {
@@ -196,6 +219,9 @@ fun AddPostScreen(
                         errorMessage = ""
                     }
 
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Log.d("AudioId", "Audio ID: $audioId")
                     if (audioId != 0) {
                         UploadedFileRow(
                             iconId = R.drawable.baseline_audio_file_48,
@@ -203,6 +229,9 @@ fun AddPostScreen(
                         )
                     }
 
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Log.d("AudioId", "Audio ID: $imageId")
                     if (imageId != null) {
                         UploadedFileRow(
                             iconId = R.drawable.baseline_image_48,
@@ -216,6 +245,7 @@ fun AddPostScreen(
 }
 
 private fun resetState(navController: NavController) {
+    navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
     navController.navigate("addPost") {
         popUpTo("addPost") { inclusive = true }
     }
@@ -353,7 +383,7 @@ fun TitleAndCaptionStep(
                     Text("Title", color = Color.Black) // Changing label color
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.White.copy(0.5f), // Changing background color
+                    backgroundColor = Color.LightGray.copy(0.3f), // Changing background color
                     textColor = Color.Black, // Changing text color
                     focusedBorderColor = colorResource(id = R.color.night),
                     cursorColor = Color.Black
@@ -379,7 +409,7 @@ fun TitleAndCaptionStep(
                     Text("Caption", color = Color.Black) // Changing label color
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.White.copy(0.5f), // Changing background color
+                    backgroundColor = Color.LightGray.copy(0.3f), // Changing background color
                     textColor = Color.Black, // Changing text color
                     focusedBorderColor = colorResource(id = R.color.night),
                     cursorColor = Color.Black
