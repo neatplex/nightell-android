@@ -594,26 +594,21 @@ fun PostDescription(
     ) {
         if (isEditing) {
             // Title input
-            TextField(
+            androidx.compose.material.OutlinedTextField(
                 value = editedTitle.take(30), // Limit to 30 characters
                 onValueChange = { newValue ->
                     if (newValue.length <= 30) onTitleChange(newValue)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(focusRequester)
-                    .border(
-                        BorderStroke(
-                            2.dp,
-                            if (titleError) colorResource(id = R.color.purple_light) else Color.Transparent
-                        ) // Pink border if error
-                    ),
+                    .focusRequester(focusRequester),
                 label = { Text("Title") },
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.LightGray.copy(0.3f),
+                    backgroundColor = Color.White.copy(0.3f),
                     textColor = Color.Black,
-                    focusedIndicatorColor = if (titleError) colorResource(id = R.color.purple_light) else Color.Black, // Pink bottom border if error
+                    focusedIndicatorColor = if (titleError) colorResource(id = R.color.purple_light) else colorResource(id = R.color.night), // Pink bottom border if error
                     unfocusedIndicatorColor = Color.Gray,
+                    cursorColor = colorResource(id = R.color.night),
                     errorCursorColor = colorResource(id = R.color.purple_light),
                     errorIndicatorColor = colorResource(id = R.color.purple_light) // Pink for error state
                 ),
@@ -635,7 +630,7 @@ fun PostDescription(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Caption input (description)
-            TextField(
+            androidx.compose.material.OutlinedTextField(
                 value = editedDescription, // No need to restrict characters in real-time
                 onValueChange = { newValue ->
                     // Update the value without restriction; we will sanitize on save
@@ -644,9 +639,9 @@ fun PostDescription(
                 modifier = Modifier.fillMaxWidth().height(150.dp),
                 label = { Text("Caption", color = Color.Black) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.LightGray.copy(0.3f),
+                    backgroundColor = Color.White.copy(0.3f),
+                    focusedBorderColor = colorResource(id = R.color.night), // Pink bottom border if error
                     textColor = Color.Black,
-                    focusedBorderColor = Color.White,
                     cursorColor = colorResource(id = R.color.night)
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),

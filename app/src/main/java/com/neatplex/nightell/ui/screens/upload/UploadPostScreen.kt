@@ -24,8 +24,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.LinearProgressIndicator
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -170,7 +170,7 @@ fun AddPostScreen(
                                 if (description != "") description = sanitizeDescription(description)
                                 uploadViewModel.uploadPost(title, description, audioId, imageId)
                             } else {
-                                errorMessage = R.string.title_is_required.toString()
+                                errorMessage = context.getString(R.string.title_is_required)
                             }
                         }
                     )
@@ -363,7 +363,7 @@ fun TitleAndCaptionStep(
     description: String,
     onTitleChange: (String) -> Unit,
     onDescriptionChange: (String) -> Unit,
-    onSubmit: () -> Unit
+    onSubmit: () -> Unit,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -373,7 +373,8 @@ fun TitleAndCaptionStep(
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            TextField(
+
+            OutlinedTextField(
                 value = title,
                 onValueChange = {
                     if (it.length <= 25) onTitleChange(it)
@@ -383,7 +384,7 @@ fun TitleAndCaptionStep(
                     Text("Title", color = Color.Black) // Changing label color
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.LightGray.copy(0.3f), // Changing background color
+                    backgroundColor = Color.White.copy(0.3f), // Changing background color
                     textColor = Color.Black, // Changing text color
                     focusedBorderColor = colorResource(id = R.color.night),
                     cursorColor = Color.Black
@@ -397,7 +398,7 @@ fun TitleAndCaptionStep(
         Spacer(modifier = Modifier.height(16.dp))
 
         Row(modifier = Modifier.align(alignment = Alignment.CenterHorizontally)) {
-            TextField(
+            OutlinedTextField(
                 value = description,
                 onValueChange = {
                     if (it.length <= 250) onDescriptionChange(it)
@@ -409,7 +410,7 @@ fun TitleAndCaptionStep(
                     Text("Caption", color = Color.Black) // Changing label color
                 },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.LightGray.copy(0.3f), // Changing background color
+                    backgroundColor = Color.White.copy(0.3f), // Changing background color
                     textColor = Color.Black, // Changing text color
                     focusedBorderColor = colorResource(id = R.color.night),
                     cursorColor = Color.Black
@@ -432,9 +433,16 @@ fun TitleAndCaptionStep(
 @Composable
 fun ShowLoadingIndicator(isLoading: Boolean) {
     if (isLoading) {
-        LinearProgressIndicator(
-            color = MaterialTheme.colors.onPrimary
-        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Box {
+            LinearProgressIndicator(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.Center)
+                    .height(1.dp),
+                color = MaterialTheme.colors.onPrimary,
+            )
+        }
     }
 }
 
