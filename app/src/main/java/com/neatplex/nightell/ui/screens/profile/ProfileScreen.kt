@@ -176,7 +176,11 @@ fun ProfileScreen(
 
 
 @Composable
-fun ShowMyProfile(navController: NavController, user: User, followers: Int, followings: Int, imageResource: Painter) {
+fun ShowMyProfile(navController: NavController,
+                  user: User, followers:
+                  Int,
+                  followings: Int,
+                  imageResource: Painter) {
 
     Column {
         Row(

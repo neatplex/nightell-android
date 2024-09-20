@@ -309,7 +309,8 @@ fun MainScreen(
                     onRouteChange = { route -> activeRoute = route }
                 )
 
-                BottomNavScreens.AddPost.route -> AddPostNavHost(addPostNavController)
+                BottomNavScreens.AddPost.route -> AddPostNavHost(addPostNavController,
+                    sharedViewModel)
                 BottomNavScreens.Profile.route -> ProfileNavHost(
                     profileNavController,
                     sharedViewModel,
@@ -387,10 +388,10 @@ private fun handleTabClick(
 }
 
 @Composable
-fun AddPostNavHost(navController: NavHostController) {
+fun AddPostNavHost(navController: NavHostController, sharedViewModel: SharedViewModel) {
     NavHost(navController = navController, startDestination = "addPost") {
         composable("addPost") {
-            AddPostScreen(navController = navController)
+            AddPostScreen(navController = navController, sharedViewModel = sharedViewModel)
         }
     }
 }

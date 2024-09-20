@@ -1,10 +1,8 @@
 package com.neatplex.nightell.ui.screens.user
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,8 +16,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,16 +28,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.CustomSimpleButton
 import com.neatplex.nightell.ui.component.post.ProfilePostCard
@@ -51,7 +44,6 @@ import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserScreen(
     navController: NavController,
@@ -62,21 +54,21 @@ fun UserScreen(
     //Fetch user profile info
     val profileResult by userViewModel.showUserInfoResult.observeAsState()
     val posts by userViewModel.postList.observeAsState(emptyList())
-    val user = data
 
     val isLoading by userViewModel.isLoading.observeAsState(false)
     var isFollowedByMe by remember { mutableStateOf(false) }
     var hasFollowedMe by remember { mutableStateOf(false) }
     var lastPostId by remember { mutableStateOf<Int?>(null) }
 
-    LaunchedEffect(Unit) {
-        userViewModel.getUserInfo(user.id)
+    // Initiate profile fetching in ViewModel directly
+    LaunchedEffect(data.id) {
+        userViewModel.getUserInfo(data.id)
     }
 
     AppTheme {
         Scaffold(
             topBar = {
-                AppBarWithTitle(navController = navController, title = user.username)
+                AppBarWithTitle(navController = navController, title = data.username)
             },
             content = { space ->
                 Column(
@@ -135,7 +127,7 @@ fun UserScreen(
                             }
                             if (index == posts.size - 1 && userViewModel.canLoadMore) {
                                 lastPostId = post.id
-                                userViewModel.loadPosts(user.id, lastPostId)
+                                userViewModel.loadPosts(data.id, lastPostId)
                             }
                         }
                         if (isLoading) {

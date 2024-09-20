@@ -24,7 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,7 +48,6 @@ fun HomeScreen(
 ) {
     val feed by homeViewModel.feed.observeAsState(emptyList())
     val isLoading by homeViewModel.isLoading.observeAsState(false)
-    val isRefreshing by homeViewModel.isRefreshing.observeAsState(false)
     val profileResult by homeViewModel.profileData.observeAsState()
 
     // Observe changes in the savedStateHandle
@@ -89,7 +88,6 @@ fun HomeScreen(
                         space,
                         feed,
                         isLoading,
-                        isRefreshing,
                         navController,
                         sharedViewModel,
                         homeViewModel
@@ -122,7 +120,7 @@ fun HomeTopBar(navController: NavController) {
         TopAppBar(
             title = {
                 Text(
-                    text = "Nightell",
+                    text = stringResource(id = R.string.nightell),
                     fontFamily = feelFree,
                     fontSize = 40.sp,
                     color = Color.Black,
@@ -153,55 +151,42 @@ fun HomeContent(
     space: PaddingValues,
     feed: List<Post>,
     isLoading: Boolean,
-    isRefreshing: Boolean,
     navController: NavController,
     sharedViewModel: SharedViewModel,
     homeViewModel: HomeViewModel,
 ) {
 
+    var isRefreshing by remember { mutableStateOf(false) }
+
     val refreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
         onRefresh = {
+            isRefreshing = true
             navController.navigate("feed") {
                 popUpTo("feed") { inclusive = true }
             }
+            isRefreshing = false
         }
     )
 
-    val lazyRowState = rememberLazyListState()
     val lazyColumnState = rememberLazyListState()
     var lazyRowHeight by remember { mutableStateOf(280.dp) } // Initial height of LazyRow
     val lazyRowHeightAnim by animateDpAsState(targetValue = lazyRowHeight)
 
-    // Track if the first item was seen after loading
-    var firstItemSeenAfterLoad by remember { mutableStateOf(false) }
-
-    // Monitor scroll state and LazyRow visibility
+    // Gradually change the height based on scroll
     LaunchedEffect(lazyColumnState.firstVisibleItemIndex, lazyColumnState.firstVisibleItemScrollOffset) {
-        val currentIndex = lazyColumnState.firstVisibleItemIndex
-        val currentOffset = lazyColumnState.firstVisibleItemScrollOffset
+        val firstItemVisible = lazyColumnState.firstVisibleItemIndex == 0
+        val scrollOffset = lazyColumnState.firstVisibleItemScrollOffset
 
-        if (currentIndex == 0 && currentOffset == 0 && !firstItemSeenAfterLoad) {
-            // First item is fully visible
-            lazyRowHeight = 280.dp
-            firstItemSeenAfterLoad = true
-        } else if (feed.size > 8 && currentIndex > 0 && lazyRowHeight != 0.dp) {
-            // Scrolling down: hide the LazyRow
+        if (firstItemVisible) {
+            // Adjust height based on the scroll offset of the first item
+            lazyRowHeight = 280.dp - (scrollOffset / 3).dp
+            if (lazyRowHeight < 0.dp) {
+                lazyRowHeight = 0.dp
+            }
+        } else if (lazyRowHeight != 0.dp) {
+            // Once scrolled beyond the first item, hide the LazyRow
             lazyRowHeight = 0.dp
-            firstItemSeenAfterLoad = false // Reset for next scroll-up
-        } else if (feed.size > 8 && currentIndex == 0 && currentOffset > 0 && lazyRowHeight == 0.dp) {
-            // If the first item is partially visible, keep the LazyRow hidden
-            lazyRowHeight = 0.dp
-        }
-    }
-
-    // Smooth Scroll Up/Down Logic
-    val coroutineScope = rememberCoroutineScope()
-
-    fun scrollToTop() {
-        coroutineScope.launch {
-            lazyColumnState.animateScrollToItem(0)
-            lazyRowState.animateScrollToItem(0)
         }
     }
 
@@ -210,18 +195,17 @@ fun HomeContent(
             .padding(space)
             .pullRefresh(refreshState)
     ) {
-        Column{
+        Column {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(lazyRowHeightAnim)
             ) {
                 LazyRow(
-                    state = lazyRowState,
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    itemsIndexed(feed.take(3)) { index, post ->
-                        RecentPostCard(post = post, isLoading) { selectedPost ->
+                    itemsIndexed(feed.take(3)) { _, post ->
+                        RecentPostCard(post = post, isLoading = isLoading) { selectedPost ->
                             sharedViewModel.setPost(selectedPost)
                             navController.navigate("postScreen/${post.id}")
                         }
@@ -250,10 +234,15 @@ fun HomeContent(
         }
     }
 
+    if (isRefreshing) {
+        CustomCircularProgressIndicator()
+    }
+
     // Call scrollToTop() or scrollToBottom() as needed
     LaunchedEffect(isRefreshing) {
         if (isRefreshing) {
-            scrollToTop()
+            lazyColumnState.scrollToItem(0)
         }
     }
 }
+

@@ -610,7 +610,7 @@ fun PostDescription(
                     ),
                 label = { Text("Title") },
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.White.copy(0.5f),
+                    backgroundColor = Color.LightGray.copy(0.3f),
                     textColor = Color.Black,
                     focusedIndicatorColor = if (titleError) colorResource(id = R.color.purple_light) else Color.Black, // Pink bottom border if error
                     unfocusedIndicatorColor = Color.Gray,
@@ -641,10 +641,10 @@ fun PostDescription(
                     // Update the value without restriction; we will sanitize on save
                     onDescriptionChange(newValue)
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().height(150.dp),
                 label = { Text("Caption", color = Color.Black) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.White.copy(0.5f),
+                    backgroundColor = Color.LightGray.copy(0.3f),
                     textColor = Color.Black,
                     focusedBorderColor = Color.White,
                     cursorColor = colorResource(id = R.color.night)
