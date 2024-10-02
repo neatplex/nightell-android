@@ -32,7 +32,7 @@ class PostUseCase @Inject constructor(private val postRepository: IPostRepositor
         return postRepository.uploadPost(title, description, audioId, imageId)
     }
 
-    suspend fun editPost(postId: Int, newTitle: String, newDescription: String)= postRepository.editPost(newTitle, newDescription, postId)
+    suspend fun editPost(postId: Int, newTitle: String, newDescription: String) = postRepository.editPost(newTitle, newDescription, postId)
 
     suspend fun deletePost(postId: Int) = postRepository.deletePost(postId)
 

@@ -4,9 +4,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neatplex.nightell.data.dto.Comments
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.dto.StoreLike
+import com.neatplex.nightell.domain.model.Comment
+import com.neatplex.nightell.domain.usecase.CommentUseCase
 import com.neatplex.nightell.domain.usecase.LikeUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.utils.Result
@@ -18,10 +21,20 @@ import javax.inject.Inject
 class PostViewModel @Inject constructor(
     private val postUseCase: PostUseCase,
     private val likeUseCase: LikeUseCase,
+    private val commentUseCase: CommentUseCase
 ) : ViewModel() {
 
     private val _postDeleteResult = MutableLiveData<Result<Unit>>()
     val postDeleteResult: LiveData<Result<Unit>> get() = _postDeleteResult
+
+    private val _deleteCommentResult = MutableLiveData<Result<Unit>>()
+    val deleteCommentResult: LiveData<Result<Unit>> get() = _deleteCommentResult
+
+    private val _getCommentsResult = MutableLiveData<Result<Comments>>()
+    val getCommentsResult: LiveData<Result<Comments>> get() = _getCommentsResult
+
+    private val _sendCommentResult = MutableLiveData<Result<Comment>>()
+    val sendCommentResult: LiveData<Result<Comment>> get() = _sendCommentResult
 
     private val _postDetailResult = MutableLiveData<Result<PostDetailResponse>>()
     val postDetailResult: LiveData<Result<PostDetailResponse>> get() = _postDetailResult
@@ -91,6 +104,30 @@ class PostViewModel @Inject constructor(
             _isLoading.value = true
             val result = likeUseCase.deleteLike(likeId)
             _unlikeResult.value = result
+            _isLoading.value = false
+        }
+    }
+
+    fun getComments(postId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _getCommentsResult.value = commentUseCase.getPostComments(postId)
+            _isLoading.value = false
+        }
+    }
+
+    fun deleteComment(commentId: Int) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _deleteCommentResult.value = commentUseCase.deleteComment(commentId)
+            _isLoading.value = false
+        }
+    }
+
+    fun sendComment(postId: Int, comment: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _sendCommentResult.value = commentUseCase.postComment(postId, comment)
             _isLoading.value = false
         }
     }

@@ -2,6 +2,7 @@ package com.neatplex.nightell.data.network
 
 
 import com.neatplex.nightell.data.dto.AuthResponse
+import com.neatplex.nightell.data.dto.Comments
 import com.neatplex.nightell.data.dto.FileUploadResponse
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.Profile
@@ -11,6 +12,7 @@ import com.neatplex.nightell.data.dto.OtpResponseTtl
 import com.neatplex.nightell.data.dto.OtpVerifyRequest
 import com.neatplex.nightell.data.dto.RegistrationRequest
 import com.neatplex.nightell.data.dto.PostCollection
+import com.neatplex.nightell.data.dto.PostCommentRequest
 import com.neatplex.nightell.data.dto.PostUpdateRequest
 import com.neatplex.nightell.data.dto.StoreLike
 import com.neatplex.nightell.data.dto.PostUploadRequest
@@ -18,6 +20,7 @@ import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.dto.UserResponse
 import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.data.dto.Users
+import com.neatplex.nightell.domain.model.Comment
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
@@ -25,6 +28,7 @@ import retrofit2.http.*
 
 interface ApiService {
 
+    // Authentication
     @POST("auth/sign-up")
     suspend fun register(@Body request: RegistrationRequest): Response<AuthResponse>
 
@@ -43,6 +47,7 @@ interface ApiService {
     @POST("auth/otp/email/verify")
     suspend fun verifyOtp(@Body requestBody: OtpVerifyRequest): Response<AuthResponse>
 
+    // Posts
     @GET("feed")
     suspend fun showFeed(@Query("lastId") lastId: Int?) : Response<PostCollection>
 
@@ -122,4 +127,16 @@ interface ApiService {
 
     @DELETE("users/{user_id}/followers")
     suspend fun unfollow(@Path("user_id") userId: Int) : Response<Unit>
+
+    @GET("posts/{postId}/comments")
+    suspend fun getPostComment(@Path("postId") postId: Int) : Response<Comments>
+
+    @GET("users/{userId}/comments")
+    suspend fun getUserComment(@Path("userId") userId: Int) : Response<Comments>
+
+    @POST("comments")
+    suspend fun postComment(@Body requestBody: PostCommentRequest) : Response<Comment>
+
+    @DELETE("comments/{commentId}")
+    suspend fun deleteComment(@Path("commentId") commentId: Int) : Response<Unit>
 }
