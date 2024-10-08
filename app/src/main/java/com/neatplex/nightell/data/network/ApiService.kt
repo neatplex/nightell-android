@@ -2,6 +2,7 @@ package com.neatplex.nightell.data.network
 
 
 import com.neatplex.nightell.data.dto.AuthResponse
+import com.neatplex.nightell.data.dto.CommentDetailResponse
 import com.neatplex.nightell.data.dto.Comments
 import com.neatplex.nightell.data.dto.FileUploadResponse
 import com.neatplex.nightell.data.dto.Likes
@@ -129,13 +130,15 @@ interface ApiService {
     suspend fun unfollow(@Path("user_id") userId: Int) : Response<Unit>
 
     @GET("posts/{postId}/comments")
-    suspend fun getPostComment(@Path("postId") postId: Int) : Response<Comments>
+    suspend fun getPostComment(@Path("postId") postId: Int,
+                               @Query("lastId") lastId: Int?) : Response<Comments>
 
     @GET("users/{userId}/comments")
-    suspend fun getUserComment(@Path("userId") userId: Int) : Response<Comments>
+    suspend fun getUserComment(@Path("userId") userId: Int,
+                               @Query("lastId") lastId: Int?) : Response<Comments>
 
     @POST("comments")
-    suspend fun postComment(@Body requestBody: PostCommentRequest) : Response<Comment>
+    suspend fun postComment(@Body requestBody: PostCommentRequest) : Response<CommentDetailResponse>
 
     @DELETE("comments/{commentId}")
     suspend fun deleteComment(@Path("commentId") commentId: Int) : Response<Unit>

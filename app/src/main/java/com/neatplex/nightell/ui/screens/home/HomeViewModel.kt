@@ -20,6 +20,7 @@ class HomeViewModel @Inject constructor(
 
     private val _feed = MutableLiveData<List<Post>>(emptyList()) // Initialize with an empty list
     val feed: LiveData<List<Post>> get() = _feed
+
     var canLoadMore = true // Default to true for initial load
     private var lastPostId: Int? = null
 

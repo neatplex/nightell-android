@@ -2,9 +2,7 @@ package com.neatplex.nightell.ui.screens.post
 
 import android.media.MediaPlayer
 import android.net.Uri
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -27,6 +25,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,8 +45,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.TextFieldDefaults
-import androidx.compose.material.TextField
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -60,6 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.neatplex.nightell.R
+import com.neatplex.nightell.domain.model.Comment
 import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.CustomSimpleButton
 import com.neatplex.nightell.ui.component.media.AudioPlayer
@@ -199,10 +199,13 @@ fun PostContent(
     var editedDescription by remember { mutableStateOf(post.description ?: "") }
     val focusRequester = remember { FocusRequester() }
     var titleError by remember { mutableStateOf(false) }
+    var commentText by remember { mutableStateOf("") }
+    var comments by remember { mutableStateOf(listOf<Comment>()) }
 
     // Fetch likes and bookmark state
     LaunchedEffect(Unit) {
         postViewModel.showLikes(postId)
+        postViewModel.getComments(postId)
     }
 
     val likesCountResult by postViewModel.showLikesResult.observeAsState()
@@ -210,6 +213,8 @@ fun PostContent(
     val unlikeResult by postViewModel.unlikeResult.observeAsState()
     val postDeleteResult by postViewModel.postDeleteResult.observeAsState()
     val postUpdateResult by postViewModel.postUpdateResult.observeAsState()
+    val getComments by postViewModel.getCommentsResult.observeAsState(emptyList())
+    val commentResult by postViewModel.sendCommentResult.observeAsState()
 
     LaunchedEffect(likesCountResult) {
         likesCountResult?.let { result ->
@@ -248,6 +253,18 @@ fun PostContent(
             } else {
                 // Handle error
                 isLiked = true
+            }
+        }
+    }
+
+    LaunchedEffect(getComments) {
+        comments = getComments
+    }
+
+    LaunchedEffect(commentResult) {
+        commentResult?.let {
+            if (it is Result.Success) {
+                comments = listOf(it.data!!.comment) + comments
             }
         }
     }
@@ -336,7 +353,37 @@ fun PostContent(
                                 onEditingChange(false)
                             }
                         }
+
+                        // Display comments
+                        comments.forEach { comment ->
+                            Text(
+                                text = comment.text,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
                     }
+                }
+            },
+            bottomBar = {
+                Row {
+                    OutlinedTextField(
+                        value = commentText,
+                        onValueChange = { commentText = it },
+                        label = { Text("Add a comment") },
+                        trailingIcon = {
+                            IconButton(onClick = {
+                                if (commentText.isNotEmpty()) {
+                                    postViewModel.sendComment(postId, commentText)
+                                    commentText = ""
+                                }
+                            }) {
+                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "send message")
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    )
                 }
             }
         )
@@ -542,7 +589,12 @@ fun PostDetails(
         Column(modifier = Modifier.padding(16.dp)) {
 
             if (isAudioLoading) {
-                Text("Loading audio...")
+                androidx.compose.material.LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp),
+                    color = colorResource(id = R.color.night),
+                )
             } else if (isAudioPrepared && !isAudioLoading) {
                 val isSame = postId.toString() == mediaViewModel.currentPostId
 

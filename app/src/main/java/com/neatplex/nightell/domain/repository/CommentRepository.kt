@@ -1,5 +1,6 @@
 package com.neatplex.nightell.domain.repository
 
+import com.neatplex.nightell.data.dto.CommentDetailResponse
 import com.neatplex.nightell.data.dto.Comments
 import com.neatplex.nightell.data.dto.PostCommentRequest
 import com.neatplex.nightell.data.network.ApiService
@@ -20,16 +21,16 @@ class CommentRepository @Inject constructor(private val apiService: ApiService) 
         }
     }
 
-    override suspend fun getPostComments(postId: Int): Result<Comments> {
+    override suspend fun getPostComments(postId: Int, lastId: Int?): Result<Comments> {
         return try {
-            val response = apiService.getPostComment(postId)
+            val response = apiService.getPostComment(postId, lastId)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")
         }
     }
 
-    override suspend fun postComment(postId: Int, comment: String): Result<Comment> {
+    override suspend fun postComment(postId: Int, comment: String): Result<CommentDetailResponse> {
         return try {
             val commentRequest = PostCommentRequest(postId, comment)
             val response = apiService.postComment(commentRequest)
@@ -39,9 +40,9 @@ class CommentRepository @Inject constructor(private val apiService: ApiService) 
         }
     }
 
-    override suspend fun getUserComments(userId: Int): Result<Comments> {
+    override suspend fun getUserComments(userId: Int, lastId: Int?): Result<Comments> {
         return try {
-            val response = apiService.getUserComment(userId)
+            val response = apiService.getUserComment(userId, lastId)
             handleApiResponse(response)
         } catch (e: Exception) {
             Result.Failure(e.message ?: "An error occurred")

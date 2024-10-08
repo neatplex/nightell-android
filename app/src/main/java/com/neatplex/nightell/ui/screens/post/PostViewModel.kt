@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.neatplex.nightell.data.dto.CommentDetailResponse
 import com.neatplex.nightell.data.dto.Comments
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.PostDetailResponse
@@ -30,11 +31,11 @@ class PostViewModel @Inject constructor(
     private val _deleteCommentResult = MutableLiveData<Result<Unit>>()
     val deleteCommentResult: LiveData<Result<Unit>> get() = _deleteCommentResult
 
-    private val _getCommentsResult = MutableLiveData<Result<Comments>>()
-    val getCommentsResult: LiveData<Result<Comments>> get() = _getCommentsResult
+    private val _getCommentsResult = MutableLiveData<List<Comment>>()
+    val getCommentsResult: LiveData<List<Comment>> get() = _getCommentsResult
 
-    private val _sendCommentResult = MutableLiveData<Result<Comment>>()
-    val sendCommentResult: LiveData<Result<Comment>> get() = _sendCommentResult
+    private val _sendCommentResult = MutableLiveData<Result<CommentDetailResponse>>()
+    val sendCommentResult: LiveData<Result<CommentDetailResponse>> get() = _sendCommentResult
 
     private val _postDetailResult = MutableLiveData<Result<PostDetailResponse>>()
     val postDetailResult: LiveData<Result<PostDetailResponse>> get() = _postDetailResult
@@ -56,6 +57,10 @@ class PostViewModel @Inject constructor(
 
     private val _isFetching = MutableLiveData<Boolean>()
     val isFetching: LiveData<Boolean> get() = _isFetching
+
+    private var lastCommentId: Int? = null
+    var canLoadMore = true
+
 
     fun updatePost(postId: Int, newTitle: String, newDescription: String) {
         viewModelScope.launch {
@@ -109,9 +114,27 @@ class PostViewModel @Inject constructor(
     }
 
     fun getComments(postId: Int) {
+        if (!canLoadMore) return
         viewModelScope.launch {
             _isLoading.value = true
-            _getCommentsResult.value = commentUseCase.getPostComments(postId)
+            val result = commentUseCase.getPostComments(postId, lastCommentId)
+            if (result is Result.Success) {
+                val comments = result.data ?: emptyList()
+                if (lastCommentId == null) {
+                    _getCommentsResult.value = comments
+                } else {
+                    _getCommentsResult.value = _getCommentsResult.value.orEmpty() + comments
+                }
+                // Update lastCommentId if there are comments
+                if (comments.isNotEmpty()) {
+                    lastCommentId = comments.last().id
+                }
+                if (comments.size < 10) {
+                    canLoadMore = false
+                }
+            } else {
+                _getCommentsResult.value = emptyList() // In case of error, clear the comments
+            }
             _isLoading.value = false
         }
     }

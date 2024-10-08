@@ -434,15 +434,12 @@ fun TitleAndCaptionStep(
 fun ShowLoadingIndicator(isLoading: Boolean) {
     if (isLoading) {
         Spacer(modifier = Modifier.height(16.dp))
-        Box {
-            LinearProgressIndicator(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.Center)
-                    .height(1.dp),
-                color = MaterialTheme.colors.onPrimary,
-            )
-        }
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp),
+            color = colorResource(id = R.color.night),
+        )
     }
 }
 

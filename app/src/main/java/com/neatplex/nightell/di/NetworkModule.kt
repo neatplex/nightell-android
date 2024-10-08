@@ -9,9 +9,11 @@ import com.neatplex.nightell.data.network.RateLimiterInterceptor
 import com.neatplex.nightell.data.network.RetryInterceptor
 import com.neatplex.nightell.domain.repository.IAuthRepository
 import com.neatplex.nightell.domain.repository.AuthRepository
+import com.neatplex.nightell.domain.repository.CommentRepository
 import com.neatplex.nightell.domain.repository.DatabaseRepository
 import com.neatplex.nightell.domain.repository.FileRepository
 import com.neatplex.nightell.domain.repository.FollowRepository
+import com.neatplex.nightell.domain.repository.ICommentRepository
 import com.neatplex.nightell.domain.repository.IDatabaseRepository
 import com.neatplex.nightell.domain.repository.IFileRepository
 import com.neatplex.nightell.domain.repository.IFollowRepository
@@ -47,6 +49,9 @@ abstract class NetworkModule {
 
     @Binds
     abstract fun bindAuthRepository(userAuthRepository: AuthRepository): IAuthRepository
+
+    @Binds
+    abstract fun bindCommentRepository(commentRepository: CommentRepository): ICommentRepository
 
     @Binds
     abstract fun bindLikeRepository(likeRepository: LikeRepository): ILikeRepository
