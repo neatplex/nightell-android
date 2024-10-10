@@ -23,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
@@ -50,9 +49,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.component.CustomBorderedButton
-import com.neatplex.nightell.ui.component.CustomLinkButton
-import com.neatplex.nightell.ui.component.CustomSimpleButton
+import com.neatplex.nightell.ui.component.widget.CustomBorderedButton
+import com.neatplex.nightell.ui.component.widget.CustomLinkButton
+import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
 import com.neatplex.nightell.ui.screens.post.sanitizeDescription
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.FileHandler

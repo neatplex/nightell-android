@@ -41,8 +41,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.CustomSimpleButton
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
 import com.neatplex.nightell.ui.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.utils.Result

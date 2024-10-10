@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.CustomSearchField
-import com.neatplex.nightell.ui.component.UserCard
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.widget.CustomSearchField
+import com.neatplex.nightell.ui.component.user.UserCard
 import com.neatplex.nightell.ui.component.post.HomePostCard
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User

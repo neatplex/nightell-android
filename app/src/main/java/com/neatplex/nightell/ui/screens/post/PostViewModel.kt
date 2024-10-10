@@ -28,8 +28,8 @@ class PostViewModel @Inject constructor(
     private val _postDeleteResult = MutableLiveData<Result<Unit>>()
     val postDeleteResult: LiveData<Result<Unit>> get() = _postDeleteResult
 
-    private val _deleteCommentResult = MutableLiveData<Result<Unit>>()
-    val deleteCommentResult: LiveData<Result<Unit>> get() = _deleteCommentResult
+    private val _deleteCommentResult = MutableLiveData<Result<Int>>()
+    val deleteCommentResult: LiveData<Result<Int>> get() = _deleteCommentResult
 
     private val _getCommentsResult = MutableLiveData<List<Comment>>()
     val getCommentsResult: LiveData<List<Comment>> get() = _getCommentsResult
@@ -55,12 +55,14 @@ class PostViewModel @Inject constructor(
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> get() = _isLoading
 
+    private val _isCommentLoading = MutableLiveData<Boolean>()
+    val isCommentLoading: LiveData<Boolean> get() = _isCommentLoading
+
     private val _isFetching = MutableLiveData<Boolean>()
     val isFetching: LiveData<Boolean> get() = _isFetching
 
     private var lastCommentId: Int? = null
     var canLoadMore = true
-
 
     fun updatePost(postId: Int, newTitle: String, newDescription: String) {
         viewModelScope.launch {
@@ -113,36 +115,33 @@ class PostViewModel @Inject constructor(
         }
     }
 
-    fun getComments(postId: Int) {
+    fun getComments(postId: Int, lastCommentId: Int? = null) {
         if (!canLoadMore) return
         viewModelScope.launch {
-            _isLoading.value = true
+            _isCommentLoading.value = true
             val result = commentUseCase.getPostComments(postId, lastCommentId)
             if (result is Result.Success) {
                 val comments = result.data ?: emptyList()
-                if (lastCommentId == null) {
-                    _getCommentsResult.value = comments
-                } else {
-                    _getCommentsResult.value = _getCommentsResult.value.orEmpty() + comments
-                }
-                // Update lastCommentId if there are comments
-                if (comments.isNotEmpty()) {
-                    lastCommentId = comments.last().id
-                }
+                _getCommentsResult.value = comments
                 if (comments.size < 10) {
                     canLoadMore = false
                 }
             } else {
                 _getCommentsResult.value = emptyList() // In case of error, clear the comments
             }
-            _isLoading.value = false
+            _isCommentLoading.value = false
         }
     }
 
     fun deleteComment(commentId: Int) {
         viewModelScope.launch {
             _isLoading.value = true
-            _deleteCommentResult.value = commentUseCase.deleteComment(commentId)
+            val result = commentUseCase.deleteComment(commentId)
+            if (result is Result.Success) {
+                _deleteCommentResult.value = Result.Success(commentId)
+            } else {
+                _deleteCommentResult.value = result as Result<Int>
+            }
             _isLoading.value = false
         }
     }

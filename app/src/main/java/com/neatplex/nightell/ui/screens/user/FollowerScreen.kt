@@ -28,8 +28,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.UserCard
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.user.UserCard
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.utils.toJson

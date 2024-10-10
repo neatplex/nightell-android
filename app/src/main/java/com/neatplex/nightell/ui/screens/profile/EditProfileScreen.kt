@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -54,9 +53,9 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.component.AlertDialogCustom
-import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.EditProfileTextFieldWithValidation
+import com.neatplex.nightell.ui.component.widget.AlertDialogCustom
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.widget.EditProfileTextFieldWithValidation
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.screens.auth.getUserNameErrorMessage
 import com.neatplex.nightell.ui.screens.post.sanitizeDescription

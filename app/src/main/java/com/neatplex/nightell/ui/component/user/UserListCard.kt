@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.component
+package com.neatplex.nightell.ui.component.user
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

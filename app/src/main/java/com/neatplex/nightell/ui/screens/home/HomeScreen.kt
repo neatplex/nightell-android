@@ -17,7 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,11 +33,10 @@ import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.SharedViewModel
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.post.HomePostCard
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.theme.feelFree
-import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(

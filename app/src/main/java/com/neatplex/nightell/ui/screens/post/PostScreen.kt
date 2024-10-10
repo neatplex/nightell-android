@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,18 +53,20 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Comment
-import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.CustomSimpleButton
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
 import com.neatplex.nightell.ui.component.media.AudioPlayer
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.PostEntity
 import com.neatplex.nightell.service.ServiceManager
+import com.neatplex.nightell.ui.component.comment.CommentCard
 import com.neatplex.nightell.ui.screens.profile.getUserImagePainter
 import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.utils.Constant
@@ -211,10 +212,12 @@ fun PostContent(
     val likesCountResult by postViewModel.showLikesResult.observeAsState()
     val likeResult by postViewModel.likeResult.observeAsState()
     val unlikeResult by postViewModel.unlikeResult.observeAsState()
+    val deleteCommentResult by postViewModel.deleteCommentResult.observeAsState()
     val postDeleteResult by postViewModel.postDeleteResult.observeAsState()
     val postUpdateResult by postViewModel.postUpdateResult.observeAsState()
     val getComments by postViewModel.getCommentsResult.observeAsState(emptyList())
     val commentResult by postViewModel.sendCommentResult.observeAsState()
+    val isCommentLoading by postViewModel.isCommentLoading.observeAsState()
 
     LaunchedEffect(likesCountResult) {
         likesCountResult?.let { result ->
@@ -258,7 +261,15 @@ fun PostContent(
     }
 
     LaunchedEffect(getComments) {
-        comments = getComments
+        comments = comments + getComments
+    }
+
+    LaunchedEffect(deleteCommentResult) {
+        deleteCommentResult?.let { result ->
+            if (result is Result.Success) {
+                comments = comments.filter { it.id != result.data }
+            }
+        }
     }
 
     LaunchedEffect(commentResult) {
@@ -315,8 +326,7 @@ fun PostContent(
                             },
                             mediaViewModel = mediaViewModel,
                             serviceManager = serviceManager,
-                            isServiceRunning = isServiceRunning,
-                            sharedViewModel = sharedViewModel)
+                            isServiceRunning = isServiceRunning)
 
                         PostDescription(
                             isEditing = isEditing,
@@ -356,9 +366,31 @@ fun PostContent(
 
                         // Display comments
                         comments.forEach { comment ->
+                            CommentCard(
+                                comment = comment,
+                                userId = userId,
+                                onDeleteClick = { commentId ->
+                                    postViewModel.deleteComment(commentId)
+                                }
+                            )
+                        }
+
+                        if (comments.size > 9 && postViewModel.canLoadMore) {
+                            val lastCommentId = comments.last().id
+                            if(isCommentLoading == true){
+                                CustomCircularProgressIndicator()
+                            }
                             Text(
-                                text = comment.text,
-                                modifier = Modifier.padding(16.dp)
+                                text = "Load more",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        postViewModel.getComments(postId, lastCommentId)
+                                    }
+                                    .padding(16.dp),
+                                color = Color.Gray,
+                                fontSize = 16.sp,
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -519,7 +551,6 @@ fun PostDetails(
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
     isServiceRunning: Boolean,
-    sharedViewModel: SharedViewModel
 ) {
     val audioPath = Constant.Files_URL + post.audio.path
 
@@ -688,7 +719,9 @@ fun PostDescription(
                     // Update the value without restriction; we will sanitize on save
                     onDescriptionChange(newValue)
                 },
-                modifier = Modifier.fillMaxWidth().height(150.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp),
                 label = { Text("Caption", color = Color.Black) },
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     backgroundColor = Color.White.copy(0.3f),

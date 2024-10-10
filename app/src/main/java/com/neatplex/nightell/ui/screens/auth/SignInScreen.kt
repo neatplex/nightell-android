@@ -44,10 +44,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
-import com.neatplex.nightell.ui.component.CustomBorderedCircleButton
-import com.neatplex.nightell.ui.component.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.ErrorText
-import com.neatplex.nightell.ui.component.OutlinedTextFieldWithIcon
+import com.neatplex.nightell.ui.component.widget.CustomBorderedCircleButton
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.widget.ErrorText
+import com.neatplex.nightell.ui.component.widget.OutlinedTextFieldWithIcon
 import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.utils.Result

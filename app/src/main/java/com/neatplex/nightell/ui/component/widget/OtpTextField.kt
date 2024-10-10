@@ -1,4 +1,4 @@
-package com.neatplex.nightell.ui.component
+package com.neatplex.nightell.ui.component.widget
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
