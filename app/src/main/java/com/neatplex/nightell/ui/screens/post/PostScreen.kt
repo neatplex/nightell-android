@@ -47,6 +47,7 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.focus.FocusRequester
@@ -601,19 +602,25 @@ fun PostDetails(
         var isAudioPrepared by remember { mutableStateOf(false) }
         var totalDuration by remember { mutableStateOf(0L) }
 
-        LaunchedEffect(audioPath) {
+        DisposableEffect(audioPath) {
             val mediaPlayer = MediaPlayer()
+            val listener = MediaPlayer.OnPreparedListener {
+                totalDuration = mediaPlayer.duration.toLong()
+                isAudioLoading = false
+                isAudioPrepared = true
+            }
+
+            mediaPlayer.setOnPreparedListener(listener)
             try {
                 mediaPlayer.setDataSource(audioPath)
                 mediaPlayer.prepareAsync()
-                mediaPlayer.setOnPreparedListener {
-                    totalDuration = mediaPlayer.duration.toLong()
-                    isAudioLoading = false
-                    isAudioPrepared = true
-                }
             } catch (e: IOException) {
                 e.printStackTrace()
                 isAudioLoading = false
+            }
+
+            onDispose {
+                mediaPlayer.release()
             }
         }
 
