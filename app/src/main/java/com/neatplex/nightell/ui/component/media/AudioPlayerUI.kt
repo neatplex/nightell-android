@@ -11,7 +11,6 @@ import com.neatplex.nightell.ui.viewmodel.UIEvent
 
 @Composable
 fun AudioPlayer(
-    modifier: Modifier = Modifier,
     durationString: String,
     playResourceProvider: () -> Int,
     progressProvider: () -> Pair<Float, String>,

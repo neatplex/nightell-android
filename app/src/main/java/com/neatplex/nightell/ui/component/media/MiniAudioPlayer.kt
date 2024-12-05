@@ -37,7 +37,7 @@ fun PlayerBox(
         modifier = modifier.padding(bottom = 0.dp), // Padding around the entire player box
         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
         playResourceProvider = {
-            if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
+            if (mediaViewModel.isPlaying) R.drawable.round_pause_24 else R.drawable.round_play_arrow_24
         },
         progressProvider = {
             Pair(mediaViewModel.progress, mediaViewModel.progressString)

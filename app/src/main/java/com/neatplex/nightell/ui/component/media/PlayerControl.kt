@@ -48,7 +48,7 @@ internal fun PlayerControl(
                     }
                 }
             ,
-            painter = painterResource(id = R.drawable.baseline_fast_rewind_24),
+            painter = painterResource(id = R.drawable.round_fast_rewind_24),
             contentDescription = "backward button"
         )
         
@@ -101,7 +101,7 @@ internal fun PlayerControl(
                         drawRect(linearGradientBrush, blendMode = BlendMode.SrcAtop)
                     }
                 },
-            painter = painterResource(id = R.drawable.baseline_fast_forward_24),
+            painter = painterResource(id = R.drawable.round_fast_forward_24),
             contentDescription = "forward button"
             )
     }

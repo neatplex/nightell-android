@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
@@ -41,19 +40,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.rounded.Send
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,7 +58,6 @@ import coil.compose.AsyncImage
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Comment
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
 import com.neatplex.nightell.ui.component.media.AudioPlayer
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.PostEntity
@@ -93,11 +88,10 @@ fun PostScreen(
     val postDetailResult by postViewModel.postDetailResult.observeAsState()
     val isServiceRunning by mediaViewModel.isServiceRunning.collectAsState()
 
-
     var post by remember { mutableStateOf<Post?>(null) }
     var isPostExist by remember { mutableStateOf(true) }
     var txtLoadFailure by remember { mutableStateOf("") }
-    var isEditing by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(Unit) {
         postViewModel.getPostDetail(postId)
@@ -114,6 +108,7 @@ fun PostScreen(
                     isPostExist = result.code != 404
                     txtLoadFailure = if (result.code == 404) "Post not found" else "Something went wrong"
                 }
+                else -> {}
             }
         }
     }
@@ -134,8 +129,6 @@ fun PostScreen(
                 mediaViewModel = mediaViewModel,
                 serviceManager = serviceManager,
                 isServiceRunning = isServiceRunning,
-                isEditing = isEditing,
-                onEditingChange = { isEditing = it }
             )
         } else {
             ErrorScreen(txtLoadFailure)
@@ -186,8 +179,6 @@ fun PostContent(
     mediaViewModel: MediaViewModel,
     serviceManager: ServiceManager,
     isServiceRunning: Boolean,
-    isEditing: Boolean,
-    onEditingChange: (Boolean) -> Unit,
 ) {
     val userId = sharedViewModel.user.value?.id ?: return
     val databaseViewModel: DatabaseViewModel = hiltViewModel()
@@ -197,10 +188,6 @@ fun PostContent(
     var likesCountNew by remember { mutableStateOf(0) }
     var likeId by remember { mutableStateOf<Int?>(null) }
     var icon by remember { mutableStateOf(Icons.Filled.FavoriteBorder) }
-    var editedTitle by remember { mutableStateOf(post.title) }
-    var editedDescription by remember { mutableStateOf(post.description ?: "") }
-    val focusRequester = remember { FocusRequester() }
-    var titleError by remember { mutableStateOf(false) }
     var commentText by remember { mutableStateOf("") }
     var comments by remember { mutableStateOf(listOf<Comment>()) }
 
@@ -215,7 +202,6 @@ fun PostContent(
     val unlikeResult by postViewModel.unlikeResult.observeAsState()
     val deleteCommentResult by postViewModel.deleteCommentResult.observeAsState()
     val postDeleteResult by postViewModel.postDeleteResult.observeAsState()
-    val postUpdateResult by postViewModel.postUpdateResult.observeAsState()
     val getComments by postViewModel.getCommentsResult.observeAsState(emptyList())
     val commentResult by postViewModel.sendCommentResult.observeAsState()
     val isCommentLoading by postViewModel.isCommentLoading.observeAsState()
@@ -290,7 +276,6 @@ fun PostContent(
                     userId = userId,
                     menuExpanded = menuExpanded,
                     databaseViewModel = databaseViewModel,
-                    onEditingChange = onEditingChange,
                     postViewModel = postViewModel
                 )
             },
@@ -327,43 +312,10 @@ fun PostContent(
                             },
                             mediaViewModel = mediaViewModel,
                             serviceManager = serviceManager,
-                            isServiceRunning = isServiceRunning)
-
-                        PostDescription(
-                            isEditing = isEditing,
-                            editedTitle = editedTitle,
-                            editedDescription = editedDescription,
-                            onTitleChange = { editedTitle = it },
-                            onDescriptionChange = { editedDescription = it },
-                            onSaveClick = {
-                                if (editedTitle.isEmpty()) {
-                                    titleError = true
-                                    focusRequester.requestFocus() // Focus on title field if empty
-                                } else {
-                                    titleError = false
-                                    if (editedTitle != post.title || editedDescription != post.description) {
-                                        // Update the post only if there are changes
-                                        postViewModel.updatePost(post.id, editedTitle, editedDescription)
-                                    } else {
-                                        // Close editing mode if there are no changes
-                                        onEditingChange(false)
-                                    }
-                                }
-                            },
-                            titleError = titleError,
-                            focusRequester = focusRequester
+                            isServiceRunning = isServiceRunning
                         )
 
-                        // Handle update result
-                        postUpdateResult?.let {
-                            if (it is Result.Success) {
-                                // Close editing mode if update is successful
-                                navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
-                                navController.popBackStack()
-                                navController.navigate("postScreen/${post.id}")
-                                onEditingChange(false)
-                            }
-                        }
+                        PostDescription( post.title, post.description ?: "")
 
                         // Display comments
                         comments.forEach { comment ->
@@ -410,8 +362,10 @@ fun PostContent(
                                     commentText = ""
                                 }
                             }) {
-                                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "send message")
-                            }
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Rounded.Send,
+                                    contentDescription = "send message"
+                                )                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -438,11 +392,11 @@ fun PostTopBar(
     userId: Int,
     menuExpanded: MutableState<Boolean>,
     databaseViewModel: DatabaseViewModel,
-    onEditingChange: (Boolean) -> Unit,
     postViewModel: PostViewModel
 ) {
     var isBookmarked by remember { mutableStateOf(false) }
     var bookmarkIcon by remember { mutableStateOf(R.drawable.bookmark_border) }
+    val showDialog = remember { mutableStateOf(false) }
 
     // Fetch the bookmark state from the database when the composable is first composed
     LaunchedEffect(post.id) {
@@ -457,7 +411,6 @@ fun PostTopBar(
         navigationIcon = {
             IconButton(onClick = {
                 navController.popBackStack()
-                onEditingChange(false)
             }) {
                 Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
@@ -477,19 +430,40 @@ fun PostTopBar(
                         onDismissRequest = { menuExpanded.value = false },
                     ) {
                         DropdownMenuItem(onClick = {
-                            onEditingChange(true)
-                            menuExpanded.value = false
-                        }) {
+
+                            navController.navigate("editPostScreen/${post.id}/${Uri.encode(post.title)}/${Uri.encode(post.description?.ifEmpty { " " })}")                        })
+                        {
                             Text(text = stringResource(id = R.string.edit))
                         }
                         DropdownMenuItem(onClick = {
-                            postViewModel.deletePost(post.id)
+                            showDialog.value = true
                             menuExpanded.value = false
-                            navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
-                            navController.popBackStack()
                         }) {
                             Text(text = stringResource(id = R.string.delete))
                         }
+                    }
+                    if (showDialog.value) {
+                        AlertDialog(
+                            onDismissRequest = { showDialog.value = false },
+                            title = { Text(text = "Delete Post") },
+                            text = { Text(text = "Are you sure you want to delete this post?") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    postViewModel.deletePost(post.id)
+                                    showDialog.value = false
+                                    navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
+                                    navController.popBackStack()
+                                }) {
+                                    Text("Delete")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showDialog.value = false }) {
+                                    Text("Cancel")
+                                }
+                            },
+                            containerColor = Color.White
+                        )
                     }
                 }
             } else {
@@ -640,7 +614,7 @@ fun PostDetails(
                     AudioPlayer(
                         durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
                         playResourceProvider = {
-                            if (mediaViewModel.isPlaying) R.drawable.baseline_pause_24 else R.drawable.baseline_play_arrow_24
+                            if (mediaViewModel.isPlaying) R.drawable.round_pause_24 else R.drawable.round_play_arrow_24
                         },
                         progressProvider = {
                             Pair(mediaViewModel.progress, mediaViewModel.progressString)
@@ -650,7 +624,7 @@ fun PostDetails(
                 } else {
                     AudioPlayer(
                         durationString = mediaViewModel.formatDuration(totalDuration),
-                        playResourceProvider = { R.drawable.baseline_play_arrow_24 },
+                        playResourceProvider = { R.drawable.round_play_arrow_24 },
                         progressProvider = { Pair(0f, "00:00") },
                         onUiEvent = {
                             if (!isServiceRunning) {
@@ -668,107 +642,21 @@ fun PostDetails(
 
 @Composable
 fun PostDescription(
-    isEditing: Boolean,
-    editedTitle: String,
-    editedDescription: String,
-    onTitleChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-    onSaveClick: () -> Unit,
-    titleError: Boolean,
-    focusRequester: FocusRequester
+    title: String,
+    description: String
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
-        if (isEditing) {
-            // Title input
-            androidx.compose.material.OutlinedTextField(
-                value = editedTitle.take(30), // Limit to 30 characters
-                onValueChange = { newValue ->
-                    if (newValue.length <= 30) onTitleChange(newValue)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                label = { Text("Title") },
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.White.copy(0.3f),
-                    textColor = Color.Black,
-                    focusedIndicatorColor = if (titleError) colorResource(id = R.color.purple_light) else colorResource(id = R.color.night), // Pink bottom border if error
-                    unfocusedIndicatorColor = Color.Gray,
-                    cursorColor = colorResource(id = R.color.night),
-                    errorCursorColor = colorResource(id = R.color.purple_light),
-                    errorIndicatorColor = colorResource(id = R.color.purple_light) // Pink for error state
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
-                ),
-                isError = titleError
-            )
-
-            if (titleError) {
-                Text(
-                    text = "Title can't be empty",
-                    color = colorResource(id = R.color.purple_light), // Pink error message
-                    fontSize = 12.sp
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Caption input (description)
-            androidx.compose.material.OutlinedTextField(
-                value = editedDescription, // No need to restrict characters in real-time
-                onValueChange = { newValue ->
-                    // Update the value without restriction; we will sanitize on save
-                    onDescriptionChange(newValue)
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                label = { Text("Caption", color = Color.Black) },
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    backgroundColor = Color.White.copy(0.3f),
-                    focusedBorderColor = colorResource(id = R.color.night), // Pink bottom border if error
-                    textColor = Color.Black,
-                    cursorColor = colorResource(id = R.color.night)
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Text),
-                maxLines = 10 // Allow multiple lines
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            CustomSimpleButton(
-                onClick = {
-                    // Sanitize the description before saving
-                    val sanitizedDescription = sanitizeDescription(editedDescription)
-                    onDescriptionChange(sanitizedDescription) // Apply sanitized description
-                    onSaveClick()
-                },
-                text = "Save Changes"
-            )
-        } else {
-            Text(
-                text = editedTitle.take(30), // Display up to 30 characters
-                fontSize = 20.sp
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Text(
-                text = editedDescription.take(150) // Display up to 150 characters
-            )
-        }
+        Text(
+            text = title.take(30), // Display up to 30 characters
+            fontSize = 20.sp
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = description.take(150) // Display up to 150 characters
+        )
     }
-}
-
-// Function to sanitize the description
-fun sanitizeDescription(description: String): String {
-    // Replace more than 3 consecutive newlines with 3 newlines
-    val withoutExtraNewlines = description.replace(Regex("\n{4,}"), "\n\n\n")
-
-    // Trim any trailing newlines
-    return withoutExtraNewlines.trimEnd()
 }

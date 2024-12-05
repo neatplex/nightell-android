@@ -220,7 +220,6 @@ fun AddPostScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Log.d("AudioId", "Audio ID: $audioId")
                     if (audioId != 0) {
                         UploadedFileRow(
                             iconId = R.drawable.baseline_audio_file_48,
@@ -230,7 +229,6 @@ fun AddPostScreen(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Log.d("AudioId", "Audio ID: $imageId")
                     if (imageId != null) {
                         UploadedFileRow(
                             iconId = R.drawable.baseline_image_48,

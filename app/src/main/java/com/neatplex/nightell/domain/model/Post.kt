@@ -5,7 +5,7 @@ data class Post(
     val audio_id: Int,
     val comments_count: Long,
     val created_at: String,
-    val description: String?,
+    var description: String?,
     val id: Int,
     val image: CustomFile?,
     val image_id: Int?,

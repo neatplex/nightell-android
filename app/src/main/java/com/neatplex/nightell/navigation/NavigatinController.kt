@@ -54,6 +54,7 @@ import com.neatplex.nightell.ui.screens.auth.SignInScreen
 import com.neatplex.nightell.ui.screens.auth.SignUpScreen
 import com.neatplex.nightell.ui.screens.bookmark.BookmarkedScreen
 import com.neatplex.nightell.ui.screens.home.HomeScreen
+import com.neatplex.nightell.ui.screens.post.EditPostScreen
 import com.neatplex.nightell.ui.screens.post.PostScreen
 import com.neatplex.nightell.ui.screens.profile.EditProfileScreen
 import com.neatplex.nightell.ui.screens.profile.ProfileScreen
@@ -446,6 +447,21 @@ fun HomeNavHost(
                 serviceManager = serviceManager
             )
         }
+
+        composable(
+            "editPostScreen/{postId}/{postTitle}/{postDescription}",
+            arguments = listOf(
+                navArgument("postId") { type = NavType.IntType },
+                navArgument("postTitle") { type = NavType.StringType },
+                navArgument("postDescription") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getInt("postId") ?: 0
+            val postTitle = backStackEntry.arguments?.getString("postTitle") ?: ""
+            val postDescription = backStackEntry.arguments?.getString("postDescription") ?: ""
+            EditPostScreen(navController, postId, postTitle, postDescription)
+        }
+
         composable(
             "followerScreen/{userId}",
             arguments = listOf(navArgument("userId") {
@@ -459,6 +475,7 @@ fun HomeNavHost(
                 sharedViewModel = sharedViewModel
             )
         }
+
         composable(
             "followingScreen/{userId}",
             arguments = listOf(navArgument("userId") {
@@ -472,6 +489,7 @@ fun HomeNavHost(
                 sharedViewModel = sharedViewModel
             )
         }
+
         composable("bookmark") {
             BookmarkedScreen(navController = navController)
         }
@@ -528,6 +546,20 @@ fun SearchNavHost(
         }
 
         composable(
+            "editPostScreen/{postId}/{postTitle}/{postDescription}",
+            arguments = listOf(
+                navArgument("postId") { type = NavType.IntType },
+                navArgument("postTitle") { type = NavType.StringType },
+                navArgument("postDescription") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getInt("postId") ?: 0
+            val postTitle = backStackEntry.arguments?.getString("postTitle") ?: ""
+            val postDescription = backStackEntry.arguments?.getString("postDescription") ?: ""
+            EditPostScreen(navController, postId, postTitle, postDescription)
+        }
+
+        composable(
             "followerScreen/{userId}",
             arguments = listOf(navArgument("userId") {
                 type = NavType.IntType
@@ -569,12 +601,15 @@ fun ProfileNavHost(
     LaunchedEffect(navBackStackEntry) {
         onRouteChange(navBackStackEntry?.destination?.route ?: "profile")
     }
+
     NavHost(navController = navController, startDestination = "profile") {
+
         composable("profile") {
             ProfileScreen(
                 navController = navController,
                 sharedViewModel = sharedViewModel)
         }
+
         composable(
             route = "postScreen/{postId}",
             arguments = listOf(navArgument("postId") {
@@ -588,6 +623,20 @@ fun ProfileNavHost(
                 postId = postId,
                 mediaViewModel = mediaViewModel,
                 serviceManager = serviceManager)
+        }
+
+        composable(
+            "editPostScreen/{postId}/{postTitle}/{postDescription}",
+            arguments = listOf(
+                navArgument("postId") { type = NavType.IntType },
+                navArgument("postTitle") { type = NavType.StringType },
+                navArgument("postDescription") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val postId = backStackEntry.arguments?.getInt("postId") ?: 0
+            val postTitle = backStackEntry.arguments?.getString("postTitle") ?: ""
+            val postDescription = backStackEntry.arguments?.getString("postDescription") ?: ""
+            EditPostScreen(navController, postId, postTitle, postDescription)
         }
 
         composable(

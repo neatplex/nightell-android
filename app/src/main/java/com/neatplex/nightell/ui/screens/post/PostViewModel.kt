@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.neatplex.nightell.data.dto.CommentDetailResponse
-import com.neatplex.nightell.data.dto.Comments
 import com.neatplex.nightell.data.dto.Likes
 import com.neatplex.nightell.data.dto.PostDetailResponse
 import com.neatplex.nightell.data.dto.StoreLike
