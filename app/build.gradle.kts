@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "com.neatplex.nightell"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.neatplex.nightell"
         minSdk = 29
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 22
         versionName = "1.1.0"
 
