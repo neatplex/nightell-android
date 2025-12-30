@@ -2,6 +2,7 @@ package com.neatplex.nightell.ui.component.widget
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,6 +34,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.colorResource
@@ -308,5 +311,50 @@ fun EditProfileTextFieldWithValidation(
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         )
+    }
+}
+
+@Composable
+fun TitleInputField(
+    title: String,
+    onTitleChange: (String) -> Unit,
+    titleError: Boolean,
+    focusRequester: FocusRequester
+) {
+    Column {
+        OutlinedTextField(
+            value = title.take(30), // Limit to 30 characters
+            onValueChange = { newValue ->
+                onTitleChange(newValue)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
+            label = { Text("Title") },
+            colors = TextFieldDefaults.outlinedTextFieldColors(
+                backgroundColor = Color.White.copy(0.3f),
+                textColor = Color.Black,
+                focusedBorderColor = if (titleError) colorResource(id = R.color.purple_light) else colorResource(
+                    id = R.color.night
+                ), // Pink bottom border if error
+                unfocusedBorderColor = Color.Gray,
+                cursorColor = colorResource(id = R.color.night),
+                errorCursorColor = Color.Red,
+                errorBorderColor = Color.Red,
+            ),
+            keyboardOptions = KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Done
+            ),
+            isError = titleError
+        )
+
+        if (titleError) {
+            Text(
+                text = "Title can't be empty",
+                color = Color.Red,
+                fontSize = 12.sp
+            )
+        }
     }
 }

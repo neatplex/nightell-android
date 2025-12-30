@@ -21,6 +21,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -55,6 +56,7 @@ fun EditPostScreen(
         androidx.compose.material.OutlinedTextField(
             value = editedTitle.take(30), // Limit to 30 characters
             onValueChange = { newValue ->
+                titleError = false
                 if (newValue.length <= 30) editedTitle = newValue
             },
             modifier = Modifier
@@ -69,8 +71,8 @@ fun EditPostScreen(
                 ), // Pink bottom border if error
                 unfocusedIndicatorColor = Color.Gray,
                 cursorColor = colorResource(id = R.color.night),
-                errorCursorColor = colorResource(id = R.color.purple_light),
-                errorIndicatorColor = colorResource(id = R.color.purple_light) // Pink for error state
+                errorCursorColor = Color.Red,
+                errorIndicatorColor = Color.Red
             ),
             keyboardOptions = KeyboardOptions.Default.copy(
                 keyboardType = KeyboardType.Text,
@@ -81,8 +83,8 @@ fun EditPostScreen(
 
         if (titleError) {
             Text(
-                text = "Title can't be empty",
-                color = colorResource(id = R.color.purple_light), // Pink error message
+                text = stringResource(R.string.title_can_t_be_empty),
+                color = Color.Red,
                 fontSize = 12.sp
             )
         }

@@ -16,6 +16,7 @@ import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -51,6 +52,10 @@ fun SearchScreen(
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     var lastPostId by remember { mutableStateOf<Int?>(null) }
     var lastUserId by remember { mutableStateOf<Int?>(null) }
+
+    LaunchedEffect(Unit) {
+        searchViewModel.searchPost(query, null, false)
+    }
 
     Column(
         modifier = Modifier.background(color = Color.White)
@@ -157,14 +162,23 @@ fun PostList(
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
-        itemsIndexed(posts) { index, post ->
-            HomePostCard(post = post, onPostClicked = onPostSelected, isLoading = isLoading)
-            if (index == posts.size - 1 && !isLoading) {
-                onLoadMore()
+        if (posts.isEmpty()) {
+            item {
+                Text(
+                    text = "No posts found",
+                    modifier = Modifier.padding(16.dp)
+                )
             }
-        }
-        if (isLoading) {
-            item { CustomCircularProgressIndicator() }
+        } else {
+            itemsIndexed(posts) { index, post ->
+                HomePostCard(post = post, onPostClicked = onPostSelected, isLoading = isLoading)
+                if (index == posts.size - 1 && !isLoading) {
+                    onLoadMore()
+                }
+            }
+            if (isLoading) {
+                item { CustomCircularProgressIndicator() }
+            }
         }
     }
 }

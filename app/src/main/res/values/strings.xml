@@ -34,4 +34,7 @@
     <string name="followings">Followings</string>
     <string name="back">Back</string>
     <string name="title_is_required">Title is required!</string>
+    <string name="title_can_t_be_empty">Title can\'t be empty</string>
+    <string name="choose_jpeg_image_file">Choose jpeg image file</string>
+    <string name="choose_image_file">Choose Image File</string>
 </resources>
