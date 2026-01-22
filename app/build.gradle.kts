@@ -11,12 +11,14 @@ plugins {
 android {
     namespace = "com.neatplex.nightell"
     compileSdk = 35
+    // Force a 16KB-page-aware NDK; required for Play 16K page-size compliance.
+    ndkVersion = "26.1.10909125"
 
     defaultConfig {
         applicationId = "com.neatplex.nightell"
         minSdk = 29
         targetSdk = 35
-        versionCode = 22
+        versionCode = 24
         versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
