@@ -23,7 +23,7 @@ class AuthRepositoryTest {
 
     private lateinit var apiService: ApiService
     private lateinit var authRepository: AuthRepository
-    private val user = User("","","email@example.com",1, false,"username", "password", "username")
+    private val user = User("", "", "email@example.com", 1, null, null, "username", "password", "username")
 
     @Before
     fun setUp() {
