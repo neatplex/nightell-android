@@ -11,6 +11,9 @@ import com.neatplex.nightell.domain.model.Profile
 import com.neatplex.nightell.domain.model.SavedPost
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.model.UserProfile
+import com.neatplex.nightell.domain.model.VersionPolicy
+import com.neatplex.nightell.domain.repository.AppInfo
+import com.neatplex.nightell.domain.repository.AppUpdateRepository
 import com.neatplex.nightell.domain.repository.AudioPlayer
 import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.domain.repository.CommentRepository
@@ -181,3 +184,10 @@ class FakeAudioPlayer : AudioPlayer {
     override fun seekTo(fraction: Float) { calls += "seek:$fraction" }
     override fun stop() { calls += "stop" }
 }
+
+class FakeAppUpdateRepository : AppUpdateRepository {
+    var result: Result<VersionPolicy> = Result.Success(VersionPolicy(null, null))
+    override suspend fun getVersionPolicy() = result
+}
+
+class FakeAppInfo(override val versionName: String) : AppInfo

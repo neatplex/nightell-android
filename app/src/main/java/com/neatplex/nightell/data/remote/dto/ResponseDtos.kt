@@ -7,6 +7,11 @@ data class AuthResponse(
     @SerializedName("user") val user: UserDto,
 )
 
+data class SettingsResponse(
+    @SerializedName("android_last_version") val androidLastVersion: String?,
+    @SerializedName("android_last_supported_version") val androidLastSupportedVersion: String?,
+)
+
 data class OtpResponse(
     @SerializedName("ttl") val ttl: Int,
 )

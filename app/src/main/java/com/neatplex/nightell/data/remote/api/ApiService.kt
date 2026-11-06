@@ -22,6 +22,7 @@ import com.neatplex.nightell.data.remote.dto.PostUpdateRequest
 import com.neatplex.nightell.data.remote.dto.PostUploadRequest
 import com.neatplex.nightell.data.remote.dto.ProfileResponse
 import com.neatplex.nightell.data.remote.dto.RegistrationRequest
+import com.neatplex.nightell.data.remote.dto.SettingsResponse
 import com.neatplex.nightell.data.remote.dto.UserListResponse
 import com.neatplex.nightell.data.remote.dto.UserProfileResponse
 import com.neatplex.nightell.data.remote.dto.UserResponse
@@ -41,6 +42,10 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
+
+    // App settings (public): the latest and the oldest supported app versions
+    @GET("settings")
+    suspend fun getSettings(): Response<SettingsResponse>
 
     // Auth
     @POST("auth/sign-up")

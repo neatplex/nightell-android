@@ -11,6 +11,7 @@ import com.neatplex.nightell.domain.model.Profile
 import com.neatplex.nightell.domain.model.SavedPost
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.model.UserProfile
+import com.neatplex.nightell.domain.model.VersionPolicy
 import com.neatplex.nightell.domain.util.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -104,4 +105,15 @@ interface SessionRepository {
 
 interface ConnectivityMonitor {
     val isOnline: StateFlow<Boolean>
+}
+
+interface AppUpdateRepository {
+    /** Asks the server which app versions are current and still supported. */
+    suspend fun getVersionPolicy(): Result<VersionPolicy>
+}
+
+/** Facts about the installed app. */
+interface AppInfo {
+    /** The installed version, e.g. "1.1.0". */
+    val versionName: String
 }

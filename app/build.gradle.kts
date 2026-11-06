@@ -92,6 +92,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
+    // Play In-App Updates, used to install a required or newer version
+    implementation("com.google.android.play:app-update:2.1.0")
+
     // Sign in with Google through Credential Manager (replaces the deprecated One Tap API)
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
