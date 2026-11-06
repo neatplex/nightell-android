@@ -1,7 +1,9 @@
 package com.neatplex.nightell.di
 
+import com.neatplex.nightell.data.app.AndroidAppInfo
 import com.neatplex.nightell.data.connectivity.NetworkConnectivityMonitor
 import com.neatplex.nightell.data.local.prefs.SessionRepositoryImpl
+import com.neatplex.nightell.data.repository.AppUpdateRepositoryImpl
 import com.neatplex.nightell.data.repository.AuthRepositoryImpl
 import com.neatplex.nightell.data.repository.CommentRepositoryImpl
 import com.neatplex.nightell.data.repository.FileRepositoryImpl
@@ -10,6 +12,8 @@ import com.neatplex.nightell.data.repository.LikeRepositoryImpl
 import com.neatplex.nightell.data.repository.PostRepositoryImpl
 import com.neatplex.nightell.data.repository.SavedPostRepositoryImpl
 import com.neatplex.nightell.data.repository.UserRepositoryImpl
+import com.neatplex.nightell.domain.repository.AppInfo
+import com.neatplex.nightell.domain.repository.AppUpdateRepository
 import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.domain.repository.CommentRepository
 import com.neatplex.nightell.domain.repository.ConnectivityMonitor
@@ -60,4 +64,10 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindConnectivityMonitor(impl: NetworkConnectivityMonitor): ConnectivityMonitor
+
+    @Binds @Singleton
+    abstract fun bindAppUpdateRepository(impl: AppUpdateRepositoryImpl): AppUpdateRepository
+
+    @Binds
+    abstract fun bindAppInfo(impl: AndroidAppInfo): AppInfo
 }
