@@ -7,6 +7,8 @@ import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
+import com.neatplex.nightell.domain.repository.AudioPlayer
+import com.neatplex.nightell.service.media.ExoAudioPlayer
 import com.neatplex.nightell.service.media.MediaServiceHandler
 import com.neatplex.nightell.service.notification.MediaNotificationManager
 import dagger.Module
@@ -61,5 +63,5 @@ class MediaModule {
 
     @Provides
     @Singleton
-    fun provideContext(@ApplicationContext context: Context): Context = context
+    fun provideAudioPlayer(impl: ExoAudioPlayer): AudioPlayer = impl
 }

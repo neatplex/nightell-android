@@ -1,14 +1,5 @@
 package com.neatplex.nightell.ui.screens.profile
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,15 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.material3.*
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -49,63 +32,44 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.widget.AlertDialogCustom
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.EditProfileTextFieldWithValidation
-import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.screens.auth.getUserNameErrorMessage
 import com.neatplex.nightell.ui.screens.post.sanitizeDescription
-import com.neatplex.nightell.ui.screens.upload.UploadViewModel
-import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.Constant
-import com.neatplex.nightell.utils.getFileNameAndUri
-import com.neatplex.nightell.utils.getFileSize
-import com.neatplex.nightell.utils.uriToFile
-import kotlinx.coroutines.delay
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.common.ObserveAsEvents
+import com.neatplex.nightell.ui.util.rememberFilePicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel
+    sessionViewModel: SessionViewModel,
+    profileViewModel: EditProfileViewModel = hiltViewModel(),
 ) {
-    val profileViewModel: ProfileViewModel = hiltViewModel()
-    val uploadViewModel: UploadViewModel = hiltViewModel()
-    val user = sharedViewModel.user
-    val updateProfileNameResult by profileViewModel.profileNameUpdatedData.observeAsState()
-    val updateUsernameResult by profileViewModel.usernameUpdatedData.observeAsState()
-    val updateProfileBioResult by profileViewModel.userBioUpdatedData.observeAsState()
-    val updateProfileImageResult by profileViewModel.userImageUpdatedData.observeAsState()
-    val deleteProfileResult by profileViewModel.accountDeleteResult.observeAsState()
-    val isLoading by profileViewModel.isLoading.observeAsState(false)
-
-    var isNameLoading by remember { mutableStateOf(false) }
-    var isNameSuccess by remember { mutableStateOf(false) }
-
-    var isUsernameLoading by remember { mutableStateOf(false) }
-    var isUsernameSuccess by remember { mutableStateOf(false) }
-
-    var isBioLoading by remember { mutableStateOf(false) }
-    var isBioSuccess by remember { mutableStateOf(false) }
+    val currentUser by sessionViewModel.currentUser.collectAsStateWithLifecycle()
+    val user = currentUser
+    if (user == null) {
+        // Not loaded yet, or just signed out (the app is restarting into sign-in).
+        CustomCircularProgressIndicator()
+        return
+    }
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    val resultErrorMessage = uiState.error.orEmpty()
 
     // State for edited fields
-    var editedName by remember { mutableStateOf(user.value!!.name) }
-    var editedBio by remember { mutableStateOf(user.value!!.bio) }
-    var editedUsername by remember { mutableStateOf(user.value!!.username) }
+    var editedName by remember { mutableStateOf(user.name) }
+    var editedBio by remember { mutableStateOf(user.bio) }
+    var editedUsername by remember { mutableStateOf(user.username) }
 
     // State for sign-out confirmation dialog
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
-    var resultErrorMessage by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
-
-    var selectedImage by remember { mutableStateOf<Uri?>(null) }
 
     // Track changes in fields
     var isNameChanged by remember { mutableStateOf(false) }
@@ -113,36 +77,28 @@ fun EditProfileScreen(
     var isUsernameChanged by remember { mutableStateOf(false) }
 
     // State to track the token deletion process
-    var isTokenDeletionInProgress by remember { mutableStateOf(false) }
+    var isSigningOut by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
-    val uploadFileResults by uploadViewModel.uploadState.observeAsState()
-    var imageId by rememberSaveable { mutableStateOf(user.value!!.image_id) }
+    val imageResource = getUserImagePainter(user)
 
-    var imageResource = getUserImagePainter(user.value)
+    val chooseImage = rememberFilePicker { picked ->
+        profileViewModel.onImageChosen(picked.name, picked.sizeBytes, picked::toLocalFile)
+    }
 
-    val chooseImageLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
-            result?.let { imageUri ->
-                val (fileName, mainUri) = getFileNameAndUri(context, imageUri)
-                selectedImage = mainUri
-                val fileExtension = fileName?.substringAfterLast('.', "")
-                val fileSize = getFileSize(context, selectedImage!!)
-                val file = uriToFile(context, selectedImage!!)
-                if (fileExtension.equals("jpg", ignoreCase = true) ||
-                    fileExtension.equals("jpeg", ignoreCase = true)
-                ) {
-                    if (fileSize <= 2 * 1024 * 1024) {
-                        uploadViewModel.uploadFile(file!!, "JPG")
-                    } else {
-                        resultErrorMessage = "Image file must be less than 2MB!"
-                    }
-                } else {
-                    resultErrorMessage = "Only .jpg type is allowed for post image!"
-                }
+    ObserveAsEvents(profileViewModel.events) { event ->
+        when (event) {
+            is EditProfileEvent.Saved -> sessionViewModel.setCurrentUser(event.user)
+            // Put back the value that is still saved on the server.
+            is EditProfileEvent.SaveFailed -> when (event.field) {
+                ProfileField.NAME -> editedName = user.name
+                ProfileField.BIO -> editedBio = user.bio
+                ProfileField.USERNAME -> editedUsername = user.username
+                ProfileField.IMAGE -> Unit
             }
         }
+    }
 
     Scaffold(
         topBar = {
@@ -173,41 +129,9 @@ fun EditProfileScreen(
             )
         },
         content = { space ->
-            if (isTokenDeletionInProgress) {
+            if (isSigningOut || uiState.isDeletingAccount) {
                 CustomCircularProgressIndicator()
             } else {
-
-                // Observe audio and image upload results
-                when (val result = uploadFileResults) {
-                    is Result.Success -> {
-                        result.data?.let {
-                            if (it.file.extension.equals("JPG", ignoreCase = true)) {
-                                imageId = it.file.id
-                            }
-                        }
-                        profileViewModel.updateProfileImage(imageId!!)
-                    }
-
-                    is Result.Failure -> {
-                        resultErrorMessage = result.message
-                    }
-
-                    else -> {}
-                }
-
-                when (val result = updateProfileImageResult) {
-                    is Result.Success -> {
-                        result.data?.let {
-                            sharedViewModel.setUser(it.user)
-                            imageResource = getUserImagePainter(user = it.user)
-                        }
-                    }
-                    is Result.Failure -> {
-                        resultErrorMessage = result.message
-                    }
-
-                    else -> {}
-                }
 
                 Box(
                     modifier = Modifier
@@ -223,7 +147,7 @@ fun EditProfileScreen(
                         ProfileImageWithUploadIcon(
                             imageResource = imageResource, // Dummy resource
                             chooseImageLauncher = {
-                                chooseImageLauncher.launch("image/*")
+                                chooseImage("image/*")
                             }
                         )
 
@@ -247,8 +171,7 @@ fun EditProfileScreen(
                             ),
                             onSaveClicked = {
                                 if (isUsernameChanged && editedUsername.length >= 5) {
-                                    isUsernameLoading = true
-                                    profileViewModel.updateUsernameOfUser(editedUsername)
+                                    profileViewModel.updateUsername(editedUsername)
                                     isUsernameChanged = false
                                 } else {
                                     errorMessage = "Username shouldn't be less than 5 characters."
@@ -258,8 +181,8 @@ fun EditProfileScreen(
                             singleLine = true,
                             imeAction = ImeAction.Next,
                             height = 65,
-                            isLoading = isUsernameLoading,
-                            isSuccess = isUsernameSuccess
+                            isLoading = ProfileField.USERNAME in uiState.saving,
+                            isSuccess = false
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -275,8 +198,7 @@ fun EditProfileScreen(
                             isChanged = isNameChanged,
                             onSaveClicked = {
                                 if (isNameChanged) {
-                                    isNameLoading = true
-                                    profileViewModel.updateProfileName(editedName)
+                                    profileViewModel.updateName(editedName)
                                     isNameChanged = false
                                 }
                             },
@@ -286,8 +208,8 @@ fun EditProfileScreen(
                             isValid = editedName.length <= 75,
                             imeAction = ImeAction.Next,
                             height = 65,
-                            isLoading = isNameLoading,
-                            isSuccess = isNameSuccess
+                            isLoading = ProfileField.NAME in uiState.saving,
+                            isSuccess = false
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         EditProfileTextFieldWithValidation(
@@ -300,9 +222,8 @@ fun EditProfileScreen(
                             isChanged = isBioChanged,
                             onSaveClicked = {
                                 if (isBioChanged) {
-                                    isBioLoading = true
                                     val sanitizedBio = sanitizeDescription(editedBio)
-                                    profileViewModel.updateBioOfUser(sanitizedBio)
+                                    profileViewModel.updateBio(sanitizedBio)
                                     isBioChanged = false
                                 }
                             },
@@ -312,8 +233,8 @@ fun EditProfileScreen(
                             isValid = editedBio.length <= 156,
                             imeAction = ImeAction.Default,
                             height = 200,
-                            isLoading = isBioLoading,
-                            isSuccess = isBioSuccess
+                            isLoading = ProfileField.BIO in uiState.saving,
+                            isSuccess = false
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -351,9 +272,10 @@ fun EditProfileScreen(
                                 dialogTitle = "Sign Out!",
                                 dialogText = "Are you sure you want to sign out?",
                                 onConfirmation = {
-                                    sharedViewModel.deleteToken()
-                                    isTokenDeletionInProgress = true
+                                    // MainActivity restarts into sign-in once the session is cleared.
+                                    isSigningOut = true
                                     showSignOutDialog = false
+                                    sessionViewModel.signOut()
                                 })
                         }
 
@@ -365,6 +287,7 @@ fun EditProfileScreen(
                                 dialogTitle = "Delete Account!",
                                 dialogText = "Are you sure you want to delete your account?",
                                 onConfirmation = {
+                                    showDeleteAccountDialog = false
                                     profileViewModel.deleteAccount()
                                 })
                         }
@@ -373,153 +296,4 @@ fun EditProfileScreen(
             }
         }
     )
-
-    // Observe update result for Name
-    updateProfileNameResult?.let { result ->
-        isNameLoading = false
-        when (result) {
-            is Result.Success -> {
-                result.data?.let { updatedUser ->
-                    // Update user in shared view model
-                    sharedViewModel.setUser(updatedUser.user)
-                    resultErrorMessage = ""
-                }
-            }
-
-            is Result.Failure -> {
-                // Reset to original values on error
-                resultErrorMessage = result.message
-                editedName = user.value!!.name
-            }
-        }
-    }
-
-    // Observe update result for Username
-    updateUsernameResult?.let { result ->
-        isUsernameLoading = false
-        when (result) {
-            is Result.Success -> {
-                result.data?.let { updatedUser ->
-                    // Update user in shared view model
-                    sharedViewModel.setUser(updatedUser.user)
-                    resultErrorMessage = ""
-                }
-            }
-
-            is Result.Failure -> {
-                // Reset to original values on error
-                resultErrorMessage = result.message
-                editedUsername = user.value!!.username
-            }
-        }
-    }
-
-    // Observe update result for Bio
-    updateProfileBioResult?.let { result ->
-        isBioLoading = false
-        when (result) {
-            is Result.Success -> {
-                result.data?.let { updatedUser ->
-                    // Update user in shared view model
-                    sharedViewModel.setUser(updatedUser.user)
-                    resultErrorMessage = ""
-                }
-            }
-
-            is Result.Failure -> {
-                // Reset to original values on error
-                resultErrorMessage = result.message
-                editedBio = user.value!!.bio
-            }
-        }
-    }
-
-    // Observe delete result
-    deleteProfileResult?.let { result ->
-        when (result) {
-            is Result.Success -> {
-                sharedViewModel.deleteToken()
-                isTokenDeletionInProgress = true
-                showSignOutDialog = false
-            }
-
-            is Result.Failure -> {
-                // Reset to original values on error
-                resultErrorMessage = result.message
-            }
-        }
-    }
-
-    // Observe token deletion state
-    val token by sharedViewModel.tokenState.collectAsState()
-    LaunchedEffect(isTokenDeletionInProgress, token) {
-        if (isTokenDeletionInProgress && token.isNullOrEmpty()) {
-            delay(2000)
-            signOut(context)
-        }
-    }
-}
-
-fun signOut(context: Context) {
-
-    // Restart the application
-    val intent = Intent(context, MainActivity::class.java)
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-    context.startActivity(intent)
-
-    if (context is ComponentActivity) {
-        context.finish()
-    }
-}
-
-
-@Composable
-fun ProfileImageWithUploadIcon(
-    imageResource: AsyncImagePainter,
-    chooseImageLauncher: () -> Unit
-) {
-    Box(
-        modifier = Modifier.size(120.dp).clickable {
-            chooseImageLauncher()
-        }
-    ) {
-        // Profile Image
-        Image(
-            painter = imageResource,
-            contentDescription = "Profile Image",
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-
-        // Upload Icon in a Circle at the Bottom Right
-        Box(
-            modifier = Modifier
-                .size(32.dp)  // Size of the circular icon container
-                .clip(CircleShape)
-                .background(Color.White)
-                .align(Alignment.BottomEnd)
-                .border(1.dp, Color.LightGray, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Create,
-                contentDescription = "Upload Icon",
-                tint = Color.Gray,  // Set the color of the upload icon
-                modifier = Modifier
-                    .size(20.dp) // Size of the upload icon itself
-                    .align(Alignment.Center)
-            )
-        }
-    }
-}
-
-
-@Composable
-fun getUserImagePainter(user: User?): AsyncImagePainter {
-    return if (user?.image == null) {
-        rememberAsyncImagePainter(model = R.drawable.default_profile_image)
-    } else {
-        rememberAsyncImagePainter(model = Constant.Files_URL + user.image?.path)
-    }
 }

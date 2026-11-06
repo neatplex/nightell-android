@@ -1,6 +1,7 @@
 package com.neatplex.nightell.service
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Intent
 import android.os.Build
 import com.neatplex.nightell.service.media.MediaService
@@ -9,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
-class ServiceManager @Inject constructor(private val context: Context,
+class ServiceManager @Inject constructor(@ApplicationContext private val context: Context,
                                          private val mediaNotificationManager: MediaNotificationManager
 ) {
 

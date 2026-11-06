@@ -18,12 +18,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,37 +33,28 @@ import androidx.navigation.NavController
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
 import com.neatplex.nightell.ui.component.post.ProfilePostCard
-import com.neatplex.nightell.domain.model.User
+import com.neatplex.nightell.domain.model.UserProfile
 import com.neatplex.nightell.ui.screens.profile.getUserImagePainter
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.navigation.Routes
 
 @Composable
 fun UserScreen(
     navController: NavController,
-    data: User,
-    userViewModel: UserViewModel = hiltViewModel(),
-    sharedViewModel: SharedViewModel) {
-
-    //Fetch user profile info
-    val profileResult by userViewModel.showUserInfoResult.observeAsState()
-    val posts by userViewModel.postList.observeAsState(emptyList())
-
-    val isLoading by userViewModel.isLoading.observeAsState(false)
-    var isFollowedByMe by remember { mutableStateOf(false) }
-    var hasFollowedMe by remember { mutableStateOf(false) }
-    var lastPostId by remember { mutableStateOf<Int?>(null) }
-
-    // Initiate profile fetching in ViewModel directly
-    LaunchedEffect(data.id) {
-        userViewModel.getUserInfo(data.id)
-    }
+    userViewModel: UserProfileViewModel = hiltViewModel(),
+) {
+    val uiState by userViewModel.uiState.collectAsStateWithLifecycle()
+    val postsState by userViewModel.posts.collectAsStateWithLifecycle()
+    val posts = postsState.items
 
     AppTheme {
         Scaffold(
             topBar = {
-                AppBarWithTitle(navController = navController, title = data.username)
+                AppBarWithTitle(
+                    navController = navController,
+                    title = uiState.profile?.user?.username.orEmpty(),
+                )
             },
             content = { space ->
                 Column(
@@ -77,60 +63,35 @@ fun UserScreen(
                         .padding(space),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    when (val result = profileResult) {
-
-                        is Result.Success -> {
-                            val user = result.data!!.user
-                            val imageResource = getUserImagePainter(user)
-                            val followersCount = result.data.followers_count
-                            val followingsCount = result.data.followings_count
-                            isFollowedByMe = result.data.followed_by_me
-                            hasFollowedMe = result.data.follows_me
-
-                            // Load posts
-                            userViewModel.loadPosts(user.id, lastPostId)
-
-                            // Display the profile
-                            ShowProfile(
-                                navController,
-                                user,
-                                followersCount,
-                                followingsCount,
-                                userViewModel,
-                                isFollowedByMe,
-                                hasFollowedMe,
-                                imageResource
-                            )
-                        }
-
-                        is Result.Failure -> {
-                            // Handle error state
-                            Text(
-                                text = "Error in loading profile: ${result.message}",
-                                color = Color.Red
-                            )
-                        }
-
-                        else -> {}
+                    val profile = uiState.profile
+                    if (profile != null) {
+                        ShowProfile(
+                            navController = navController,
+                            profile = profile,
+                            imageResource = getUserImagePainter(profile.user),
+                            onToggleFollow = userViewModel::toggleFollow,
+                        )
+                    }
+                    uiState.error?.let { message ->
+                        Text(
+                            text = "Error in loading profile: $message",
+                            color = Color.Red
+                        )
                     }
                     Spacer(modifier = Modifier.height(16.dp))
                     LazyVerticalGrid(
-                        columns = GridCells.Fixed(2), // Define the number of columns
+                        columns = GridCells.Fixed(2),
                         modifier = Modifier.fillMaxSize(),
                     ) {
                         itemsIndexed(posts) { index, post ->
-                            ProfilePostCard(post = post, isLoading = isLoading) { selectedPost ->
-                                sharedViewModel.setPost(selectedPost)
-                                navController.navigate(
-                                    "postScreen/${selectedPost.id}"
-                                )
+                            ProfilePostCard(post = post, isLoading = postsState.isLoading) { selectedPost ->
+                                navController.navigate(Routes.post(selectedPost.id))
                             }
-                            if (index == posts.size - 1 && userViewModel.canLoadMore) {
-                                lastPostId = post.id
-                                userViewModel.loadPosts(data.id, lastPostId)
+                            if (index == posts.size - 1 && postsState.canLoadMore) {
+                                userViewModel.loadMorePosts()
                             }
                         }
-                        if (isLoading) {
+                        if (postsState.isLoading) {
                             item {
                                 CustomCircularProgressIndicator()
                             }
@@ -145,25 +106,15 @@ fun UserScreen(
 @Composable
 fun ShowProfile(
     navController: NavController,
-    user: User,
-    followers: Int,
-    followings: Int,
-    userViewModel: UserViewModel,
-    isFollowedByMe: Boolean,
-    followsMe: Boolean,
-    imageResource: Painter
+    profile: UserProfile,
+    imageResource: Painter,
+    onToggleFollow: () -> Unit,
 ) {
-
-    // Define a mutable state for the follower count
-    var followers by remember { mutableIntStateOf(followers) }
-    var isFollowed by remember { mutableStateOf(isFollowedByMe) }
-    var hasFollowedMe by remember { mutableStateOf(followsMe) }
-    val userId = user.id
-
-    // Function to update follower count
-    val updateFollowerCount: (Int) -> Unit = { increment ->
-        followers += increment
-    }
+    val user = profile.user
+    val followers = profile.followersCount
+    val followings = profile.followingsCount
+    val isFollowed = profile.followedByMe
+    val hasFollowedMe = profile.followsMe
 
     Column {
         Row(
@@ -196,7 +147,7 @@ fun ShowProfile(
             ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
-                    navController.navigate("followerScreen/${user.id}")
+                    navController.navigate(Routes.followers(user.id))
                 }) {
                     Text(text = "Followers")
                 }
@@ -213,7 +164,7 @@ fun ShowProfile(
             ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
-                    navController.navigate("followingScreen/${user.id}")
+                    navController.navigate(Routes.followings(user.id))
                 }) {
                     Text(text = "Followings")
                 }
@@ -250,17 +201,7 @@ fun ShowProfile(
         ) {
 
             CustomSimpleButton(
-                onClick = {
-                    if (!isFollowed) {
-                        userViewModel.followUser(userId)
-                        isFollowed = true
-                        updateFollowerCount(1)
-                    } else {
-                        userViewModel.unfollowUser(userId)
-                        isFollowed = false
-                        updateFollowerCount(-1)
-                    }
-                },
+                onClick = onToggleFollow,
                 text = if (!isFollowed) {
                     if (hasFollowedMe) "Follow Back" else "Follow"
                 } else "Unfollow"

@@ -17,6 +17,8 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,15 +34,16 @@ fun PlayerBox(
     modifier: Modifier = Modifier,
     onMaximizeClick: () -> Unit
 ) {
+    val player by mediaViewModel.playerState.collectAsStateWithLifecycle()
 
     CompactAudioPlayer(
         modifier = modifier.padding(bottom = 0.dp), // Padding around the entire player box
-        durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
+        durationString = player.durationText,
         playResourceProvider = {
-            if (mediaViewModel.isPlaying) R.drawable.round_pause_24 else R.drawable.round_play_arrow_24
+            if (player.isPlaying) R.drawable.round_pause_24 else R.drawable.round_play_arrow_24
         },
         progressProvider = {
-            Pair(mediaViewModel.progress, mediaViewModel.progressString)
+            Pair(player.progress, player.positionText)
         },
         onUiEvent = mediaViewModel::onUIEvent,
         onMaximizeClick = {

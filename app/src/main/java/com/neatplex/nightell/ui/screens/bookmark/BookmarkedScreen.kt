@@ -19,11 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -32,9 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.ui.component.post.SavedPostCard
-import com.neatplex.nightell.domain.model.PostEntity
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.ui.viewmodel.DatabaseViewModel
+import com.neatplex.nightell.ui.viewmodel.BookmarkViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,8 +39,8 @@ fun BookmarkedScreen(
     navController: NavController
 ){
 
-    val databaseViewModel: DatabaseViewModel = hiltViewModel()
-    val savedPostList by databaseViewModel.savedPosts.collectAsState()
+    val bookmarkViewModel: BookmarkViewModel = hiltViewModel()
+    val savedPostList by bookmarkViewModel.savedPosts.collectAsStateWithLifecycle()
 
     AppTheme {
         Scaffold(
@@ -81,9 +78,9 @@ fun BookmarkedScreen(
                                 itemsIndexed(savedPostList) { index, post ->
                                     SavedPostCard(post = post, onPostClicked = {
                                         val postId = it.id
-                                        navController.navigate("postScreen/$postId")
+                                        navController.navigate(Routes.post(postId))
                                     }, onDeleteClicked = {
-                                        databaseViewModel.unsavePost(it)
+                                        bookmarkViewModel.remove(it.id)
                                     })
                                 }
                             }

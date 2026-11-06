@@ -1,7 +1,6 @@
 package com.neatplex.nightell.ui.screens.search
 
 import android.annotation.SuppressLint
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,9 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,26 +32,25 @@ import com.neatplex.nightell.ui.component.user.UserCard
 import com.neatplex.nightell.ui.component.post.HomePostCard
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.toJson
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.navigation.Routes
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun SearchScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel,
+    sessionViewModel: SessionViewModel,
     searchViewModel: SearchViewModel = hiltViewModel(),
 ) {
-    var query by remember { mutableStateOf("") }
-    var selectedTab by remember { mutableStateOf(0) }
-    val posts by searchViewModel.posts.observeAsState(emptyList())
-    val users by searchViewModel.users.observeAsState(emptyList())
-    val isLoading by searchViewModel.isLoading.observeAsState(false)
-    var lastPostId by remember { mutableStateOf<Int?>(null) }
-    var lastUserId by remember { mutableStateOf<Int?>(null) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
+    val postsState by searchViewModel.posts.collectAsStateWithLifecycle()
+    val usersState by searchViewModel.users.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
-        searchViewModel.searchPost(query, null, false)
+        if (postsState.items.isEmpty()) searchViewModel.searchPosts(query)
     }
 
     Column(
@@ -93,50 +89,34 @@ fun SearchScreen(
             query = query,
             onQueryChange = { newQuery ->
                 query = newQuery
-                lastPostId = null
-                lastUserId = null
                 if (selectedTab == 0) {
-                    searchViewModel.searchPost(newQuery, null, false)
+                    searchViewModel.searchPosts(newQuery)
                 } else {
-                    searchViewModel.searchUser(newQuery, null, false)
+                    searchViewModel.searchUsers(newQuery)
                 }
             }
         )
 
         if (selectedTab == 0) {
-            posts?.let {
-                PostList(
-                    posts = it,
-                    isLoading = isLoading,
-                    onPostSelected = { selectedPost ->
-                        sharedViewModel.setPost(selectedPost)
-                        navController.navigate("postScreen/${selectedPost.id}")
-                    },
-                    onLoadMore = {
-                        if (!isLoading) {
-                            lastPostId = posts!!.lastOrNull()?.id
-                            searchViewModel.searchPost(query, lastPostId, true)
-                        }
-                    })
-            }
+            PostList(
+                posts = postsState.items,
+                isLoading = postsState.isLoading,
+                onPostSelected = { selectedPost ->
+                    navController.navigate(Routes.post(selectedPost.id))
+                },
+                onLoadMore = searchViewModel::loadMorePosts,
+            )
         } else {
-            users?.let {
-                UserList(
-                    users = it,
-                    isLoading = isLoading,
-                    onUserSelected = { selectedUser ->
-                        if (sharedViewModel.user.value?.id != selectedUser.id) {
-                            val userJson = selectedUser.toJson()
-                            navController.navigate("userScreen/${Uri.encode(userJson)}")
-                        }
-                    },
-                    onLoadMore = {
-                        if (!isLoading) {
-                            lastUserId = users!!.lastOrNull()?.id
-                            searchViewModel.searchUser(query, lastUserId, true)
-                        }
-                    })
-            }
+            UserList(
+                users = usersState.items,
+                isLoading = usersState.isLoading,
+                onUserSelected = { selectedUser ->
+                    if (sessionViewModel.currentUser.value?.id != selectedUser.id) {
+                        navController.navigate(Routes.user(selectedUser.id))
+                    }
+                },
+                onLoadMore = searchViewModel::loadMoreUsers,
+            )
         }
     }
 }

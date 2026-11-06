@@ -14,12 +14,9 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.neatplex.nightell.utils.Result
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,9 +32,12 @@ import com.neatplex.nightell.ui.component.widget.CustomBorderedCircleButton
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.OtpTextField
 import com.neatplex.nightell.ui.component.widget.TextFieldWithValidation
-import com.neatplex.nightell.navigation.MainDestinations
-import com.neatplex.nightell.ui.screens.profile.ProfileViewModel
+import com.neatplex.nightell.ui.navigation.MainDestinations
 import com.neatplex.nightell.ui.theme.myLinearGradiant
+import com.neatplex.nightell.ui.screens.profile.EditProfileViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.screens.profile.EditProfileEvent
+import com.neatplex.nightell.ui.common.ObserveAsEvents
 
 @Composable
 fun OtpVerificationScreen(
@@ -67,16 +67,12 @@ fun OtpVerificationScreen(
                 otp = otp,
                 onOtpChange = { otp = it },
                 onNext = { currentStep = 3 },
-                onComplete = {
-                    navController.navigate(MainDestinations.Main.route)
-                }
+                onComplete = { navigateToMain(navController) }
             )
 
             3 -> Step3(
                 authViewModel = authViewModel,
-                onComplete = {
-                    navController.navigate(MainDestinations.Main.route)
-                }
+                onComplete = { navigateToMain(navController) }
             )
         }
     }
@@ -90,8 +86,12 @@ fun Step1(
     onNext: () -> Unit
 ) {
     val isEmailValid = authViewModel.isValidEmail(email)
-    val getOtpResult by authViewModel.getOtpResult.observeAsState()
-    val isLoading by authViewModel.isLoading.observeAsState(false)
+    val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
+
+    ObserveAsEvents(authViewModel.events) { event ->
+        if (event is AuthEvent.OtpSent) onNext()
+    }
 
     Column(
         modifier = Modifier
@@ -129,20 +129,12 @@ fun Step1(
             text = stringResource(R.string.send_code)
         )
 
-        getOtpResult?.let {
-            when (it) {
-                is Result.Success -> {
-                    onNext()
-                }
-
-                is Result.Failure -> {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text(
-                        stringResource(id = R.string.something_went_wrong_please_try_again),
-                        color = colorResource(id = R.color.purple_light)
-                    )
-                }
-            }
+        if (uiState.otpSendFailed) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                stringResource(id = R.string.something_went_wrong_please_try_again),
+                color = colorResource(id = R.color.purple_light)
+            )
         }
     }
 
@@ -160,10 +152,16 @@ fun Step2(
     onNext: () -> Unit,
     onComplete: () -> Unit
 ) {
-    val isLoading by authViewModel.isLoading.observeAsState(false)
-    val timeLeft by authViewModel.timeLeft.observeAsState(0)
-    val authResult by authViewModel.authResult.observeAsState()
-    val errorMessage = remember { mutableStateOf<String?>(null) }
+    val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
+    val timeLeft = uiState.otpSecondsLeft
+
+    ObserveAsEvents(authViewModel.events) { event ->
+        if (event is AuthEvent.SignedIn) {
+            // New accounts get their email as username; offer to change it.
+            if (event.session.user.username == email) onNext() else onComplete()
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -207,28 +205,12 @@ fun Step2(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        errorMessage.value?.let {
+        if (uiState.authError != null) {
+            Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = it,
+                text = stringResource(id = R.string.the_verification_code_is_invalid_or_has_expired),
                 color = colorResource(id = R.color.purple_light)
             )
-        }
-
-        authResult?.let {
-            when (it) {
-                is Result.Success -> {
-                    if(it.data!!.user.username == email) {
-                        onNext() // Move to step 3 if email matches
-                    } else {
-                        onComplete()
-                    }
-                }
-
-                is Result.Failure -> {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    errorMessage.value = stringResource(id = R.string.the_verification_code_is_invalid_or_has_expired)
-                }
-            }
         }
     }
 
@@ -240,12 +222,16 @@ fun Step2(
 @Composable
 fun Step3(
     authViewModel: AuthViewModel,
-    profileViewModel: ProfileViewModel = hiltViewModel(),
+    profileViewModel: EditProfileViewModel = hiltViewModel(),
     onComplete: () -> Unit
 ) {
     var username by rememberSaveable { mutableStateOf("") }
-    val usernameUpdatedData by profileViewModel.usernameUpdatedData.observeAsState()
-    val isLoading by profileViewModel.isLoading.observeAsState(false)
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    val isLoading = uiState.isBusy
+
+    ObserveAsEvents(profileViewModel.events) { event ->
+        if (event is EditProfileEvent.Saved) onComplete()
+    }
 
     Column(
         modifier = Modifier
@@ -277,7 +263,7 @@ fun Step3(
             onClick = {
                 if (username.isNotEmpty() && authViewModel.isValidUsername(username)) {
                     // Perform final action
-                    profileViewModel.updateUsernameOfUser(username)
+                    profileViewModel.updateUsername(username)
                 }
             },
             text = stringResource(R.string.save_and_login)
@@ -290,23 +276,19 @@ fun Step3(
             text = stringResource(R.string.skip_for_now)
         )
 
-        usernameUpdatedData.let {
-            when (it) {
-                is Result.Success -> {
-                    onComplete()
-                }
-
-                is Result.Failure -> {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Text("Error: ${it.message}", color = colorResource(id = R.color.purple_light))
-                }
-
-                else -> {}
-            }
+        uiState.error?.let { message ->
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Error: $message", color = colorResource(id = R.color.purple_light))
         }
     }
 
     if (isLoading) {
         CustomCircularProgressIndicator()
+    }
+}
+
+private fun navigateToMain(navController: NavController) {
+    navController.navigate(MainDestinations.Main.route) {
+        popUpTo(0) { inclusive = true }
     }
 }

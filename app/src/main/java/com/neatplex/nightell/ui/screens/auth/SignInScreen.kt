@@ -1,10 +1,5 @@
 package com.neatplex.nightell.ui.screens.auth
 
-import android.app.Activity
-import android.content.IntentSender
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.IntentSenderRequest
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,21 +33,19 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
-import com.google.android.gms.auth.api.identity.Identity
 import com.neatplex.nightell.ui.component.widget.CustomBorderedCircleButton
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.ErrorText
 import com.neatplex.nightell.ui.component.widget.OutlinedTextFieldWithIcon
-import com.neatplex.nightell.data.dto.AuthResponse
 import com.neatplex.nightell.ui.theme.myLinearGradiant
-import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.navigation.MainDestinations
+import com.neatplex.nightell.ui.navigation.MainDestinations
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.common.ObserveAsEvents
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
@@ -59,43 +53,11 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     var emailOrUsername by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    val authResultState by viewModel.authResult.observeAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val isLoading by viewModel.isLoading.observeAsState(false)
+    val isLoading = uiState.isLoading
 
-    val oneTapSignInClient = remember {
-        Identity.getSignInClient(context)
-    }
-
-    val signInRequest = remember {
-        BeginSignInRequest.builder()
-            .setGoogleIdTokenRequestOptions(
-                BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true)
-                    .setServerClientId(context.getString(R.string.web_client_id))
-                    .setFilterByAuthorizedAccounts(false)
-                    .build()
-            )
-            .build()
-    }
-
-    val googleSignInLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.let { intent ->
-                val credential = oneTapSignInClient.getSignInCredentialFromIntent(intent)
-                val idToken = credential.googleIdToken
-                if (idToken != null) {
-                    viewModel.signInWithGoogle(idToken)
-                } else {
-                    // Handle the case where ID token is null
-                }
-            }
-        } else {
-            // Handle the case where the user closed the Google Sign-In launcher without completing sign-in
-        }
-    }
+    val scope = rememberCoroutineScope()
 
     SignInContent(
         navController = navController,
@@ -111,20 +73,13 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
             }
         },
         onGoogleSignInClick = {
-            oneTapSignInClient.beginSignIn(signInRequest)
-                .addOnSuccessListener { result ->
-                    try {
-                        googleSignInLauncher.launch(
-                            IntentSenderRequest.Builder(result.pendingIntent.intentSender).build()
-                        )
-                    } catch (e: IntentSender.SendIntentException) {
-                        e.printStackTrace()
-                    }
+            scope.launch {
+                when (val result = requestGoogleIdToken(context)) {
+                    is GoogleSignInResult.Success -> viewModel.signInWithGoogle(result.idToken)
+                    is GoogleSignInResult.Failure -> viewModel.onGoogleSignInFailed(result.message)
+                    GoogleSignInResult.Cancelled -> Unit
                 }
-                .addOnFailureListener { e ->
-                    // Handle sign-in failure
-                    e.printStackTrace()
-                }
+            }
         },
         onSignUpClick = {
             navController.navigate(MainDestinations.SignUp.route)
@@ -133,7 +88,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     )
 
     // Handle authentication result
-    authResultState?.let { AuthResult(it, navController, isLoading) }
+    AuthResult(viewModel, uiState, navController)
 }
 
 @Composable
@@ -236,38 +191,32 @@ fun SignInContent(
     }
 }
 
+/** Navigates on successful sign-in and shows the error after a failed one. */
 @Composable
 fun AuthResult(
-    authResultState: Result<AuthResponse?>,
+    viewModel: AuthViewModel,
+    uiState: AuthUiState,
     navController: NavController,
-    isLoading: Boolean
 ) {
-    var showError by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-
-    if (isLoading) {
-        showError = false
-    }
-
-    when (authResultState) {
-        is Result.Failure -> {
-            showError = true
-            errorMessage = when (authResultState.code) {
-                401 -> stringResource(R.string.your_username_or_password_is_incorrect)
-                422 -> authResultState.message
-                else -> stringResource(R.string.something_went_wrong_please_try_again)
-            }
-        }
-
-        is Result.Success -> {
-            authResultState.data?.let {
-                navController.popBackStack()
-                navController.navigate(MainDestinations.Main.route)
+    ObserveAsEvents(viewModel.events) { event ->
+        if (event is AuthEvent.SignedIn) {
+            navController.navigate(MainDestinations.Main.route) {
+                popUpTo(0) { inclusive = true }
             }
         }
     }
 
-    if (showError) {
+    val error = uiState.authError
+    val errorMessage = when {
+        error == null -> null
+        error.isUserFacing -> error.message
+        error.code == 401 -> stringResource(R.string.your_username_or_password_is_incorrect)
+        error.code == 422 -> error.message
+        else -> stringResource(R.string.something_went_wrong_please_try_again)
+    }
+    val isLoading = uiState.isLoading
+
+    if (errorMessage != null && !isLoading) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

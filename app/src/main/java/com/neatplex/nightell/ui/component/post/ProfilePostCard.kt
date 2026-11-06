@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.utils.Constant
 
 @Composable
 fun ProfilePostCard(post: Post,isLoading: Boolean, onPostClicked: (Post) -> Unit) {
@@ -42,7 +41,7 @@ fun ProfilePostCard(post: Post,isLoading: Boolean, onPostClicked: (Post) -> Unit
                     .clip(RoundedCornerShape(8.dp))
             ) {
                 val imageResource = if (post.image != null) {
-                    rememberAsyncImagePainter(model = Constant.Files_URL + post.image.path)
+                    rememberAsyncImagePainter(model = post.image.url)
                 } else {
                     rememberAsyncImagePainter(model = R.drawable.slider)
                 }
