@@ -52,4 +52,25 @@ class AuthViewModelTest {
 
         assertThat(viewModel.events.first()).isEqualTo(AuthEvent.OtpSent)
     }
+
+    @Test
+    fun `a google sign-in problem on the device is shown as is`() {
+        viewModel.onGoogleSignInFailed("No Google account available on this device")
+
+        val error = viewModel.uiState.value.authError!!
+        assertThat(error.message).isEqualTo("No Google account available on this device")
+        assertThat(error.isUserFacing).isTrue()
+        assertThat(authRepository.calls).isEmpty()
+    }
+
+    @Test
+    fun `a google id token is sent to the backend and signs in`() = runTest {
+        val session = AuthSession("t", user())
+        authRepository.result = Result.Success(session)
+
+        viewModel.signInWithGoogle("google-id-token")
+
+        assertThat(authRepository.calls).containsExactly("google")
+        assertThat(viewModel.events.first()).isEqualTo(AuthEvent.SignedIn(session))
+    }
 }

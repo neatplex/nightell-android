@@ -92,9 +92,10 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
 
-    // Google auth
-    implementation ("androidx.credentials:credentials:1.2.2") // For Credential Manager
-    implementation ("com.google.android.gms:play-services-auth:21.2.0") // For Google AuthorizationClient
+    // Sign in with Google through Credential Manager (replaces the deprecated One Tap API)
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

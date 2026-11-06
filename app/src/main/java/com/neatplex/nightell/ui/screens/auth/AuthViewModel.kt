@@ -19,8 +19,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-/** Why signing in failed, so the screen can pick the right wording. */
-data class AuthError(val message: String, val code: Int?)
+/**
+ * Why signing in failed, so the screen can pick the right wording.
+ *
+ * @property isUserFacing true when [message] is already written for the user
+ * and should be shown as is (e.g. a Google sign-in problem on the device).
+ */
+data class AuthError(val message: String, val code: Int?, val isUserFacing: Boolean = false)
 
 data class AuthUiState(
     val isLoading: Boolean = false,
@@ -63,6 +68,11 @@ class AuthViewModel @Inject constructor(
     fun signInWithGoogle(idToken: String) = authenticate { authUseCase.signInWithGoogle(idToken) }
 
     fun verifyOtp(email: String, otp: String) = authenticate { authUseCase.verifyOtp(email, otp) }
+
+    /** Shows a problem that happened on the device before reaching our server. */
+    fun onGoogleSignInFailed(message: String) {
+        _uiState.update { it.copy(isLoading = false, authError = AuthError(message, code = null, isUserFacing = true)) }
+    }
 
     fun sendOtp(email: String) {
         viewModelScope.launch {
