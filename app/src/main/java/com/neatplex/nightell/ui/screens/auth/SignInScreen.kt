@@ -1,22 +1,16 @@
 package com.neatplex.nightell.ui.screens.auth
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Divider
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,15 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.sp
 import com.neatplex.nightell.ui.component.widget.CustomBorderedCircleButton
-import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.ErrorText
 import com.neatplex.nightell.ui.component.widget.OutlinedTextFieldWithIcon
-import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.ui.navigation.MainDestinations
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neatplex.nightell.ui.common.ObserveAsEvents
@@ -105,89 +95,58 @@ fun SignInContent(
     onSignUpClick: () -> Unit,
     iSignInInProgress: Boolean
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = myLinearGradiant())
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Header()
+    AuthBackground {
+        Header()
+        AuthGap(40)
 
-            Spacer(modifier = Modifier.height(32.dp))
+        OutlinedTextFieldWithIcon(
+            value = emailOrUsername,
+            onValueChange = onEmailOrUsernameChange,
+            placeholder = stringResource(R.string.email_or_username),
+            keyboardType = KeyboardType.Email,
+            leadingIcon = Icons.Rounded.Person
+        )
+        AuthGap(12)
+        OutlinedTextFieldWithIcon(
+            value = password,
+            onValueChange = onPasswordChange,
+            placeholder = stringResource(R.string.password),
+            keyboardType = KeyboardType.Password,
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            leadingIcon = Icons.Rounded.Lock,
+            trailingIcon = { PasswordToggle(isPasswordVisible, onPasswordVisibilityChange) }
+        )
+        AuthGap(24)
+        AuthPinkButton(onSignInClick, stringResource(R.string.sign_in), isLoading = iSignInInProgress)
+        AuthGap(24)
+        SkyDivider(stringResource(R.string.or))
+        AuthGap(24)
+        CustomBorderedCircleButton(
+            onClick = onGoogleSignInClick,
+            text = stringResource(R.string.sign_in_with_google),
+        )
+        AuthGap(12)
+        CustomBorderedCircleButton(
+            onClick = { navController.navigate(MainDestinations.Otp.route) },
+            text = stringResource(R.string.continue_with_otp),
+        )
+        AuthGap(24)
+        CenteredTextWithClickablePart(
+            normalText = "New to Nightell?",
+            clickableText = stringResource(R.string.sign_up),
+            onClick = onSignUpClick,
+        )
+    }
+}
 
-            OutlinedTextFieldWithIcon(
-                value = emailOrUsername,
-                onValueChange = onEmailOrUsernameChange,
-                placeholder = stringResource(R.string.email_or_username),
-                keyboardType = KeyboardType.Email,
-                leadingIcon = Icons.Default.Person
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextFieldWithIcon(
-                value = password,
-                onValueChange = onPasswordChange,
-                placeholder = stringResource(R.string.password),
-                keyboardType = KeyboardType.Password,
-                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                leadingIcon = Icons.Default.Lock,
-                trailingIcon = {
-                    IconButton(onClick = { onPasswordVisibilityChange(!isPasswordVisible) }) {
-                        Icon(
-                            painter = painterResource(id = if (isPasswordVisible) R.drawable.baseline_visibility_24 else R.drawable.baseline_visibility_off_24),
-                            contentDescription = "visible/invisible password"
-                        )
-                    }
-                }
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            AuthPinkButton(onSignInClick, stringResource(R.string.sign_in))
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Add a line with "or" in the middle
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Divider(modifier = Modifier.weight(1f), color = Color.White)
-                Text(
-                    text = stringResource(R.string.or),
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    color = Color.White,
-                    fontSize = 16.sp
-                )
-                Divider(modifier = Modifier.weight(1f), color = Color.White)
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            CustomBorderedCircleButton(
-                onClick = onGoogleSignInClick,
-                text = stringResource(R.string.sign_in_with_google)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            CenteredTextWithClickablePart(
-                normalText = stringResource(R.string.prefer_sign_in_up_without_password),
-                clickableText = stringResource(R.string.continue_with_otp),
-                onClick = { navController.navigate(MainDestinations.Otp.route) },
-            )
-        }
-
-        if (iSignInInProgress) {
-            CustomCircularProgressIndicator()
-        }
+/** Show/hide button for a password field. */
+@Composable
+fun PasswordToggle(isVisible: Boolean, onToggle: (Boolean) -> Unit) {
+    IconButton(onClick = { onToggle(!isVisible) }) {
+        Icon(
+            painter = painterResource(if (isVisible) R.drawable.baseline_visibility_24 else R.drawable.baseline_visibility_off_24),
+            contentDescription = if (isVisible) "Hide password" else "Show password",
+        )
     }
 }
 
@@ -220,7 +179,8 @@ fun AuthResult(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 32.dp),
+                .statusBarsPadding()
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             contentAlignment = Alignment.Center
         ) {
             ErrorText(

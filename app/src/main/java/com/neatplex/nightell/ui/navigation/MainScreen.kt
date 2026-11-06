@@ -1,16 +1,32 @@
 package com.neatplex.nightell.ui.navigation
 
 import android.app.Activity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.rounded.AddCircle
+import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.Scaffold
@@ -23,27 +39,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.media.PlayerBox
-import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 
 /** The four bottom-navigation tabs, in display order. */
-enum class BottomNavScreens(val route: String, val icon: Int) {
-    Home("home", R.drawable.home),
-    Search("search", R.drawable.search),
-    AddPost("addPost", R.drawable.add_post),
-    Profile("profile", R.drawable.profile),
+enum class BottomNavScreens(
+    val route: String,
+    val label: String,
+    val icon: ImageVector,
+    val selectedIcon: ImageVector,
+) {
+    Home("home", "Home", Icons.Outlined.Home, Icons.Rounded.Home),
+    Search("search", "Discover", Icons.Outlined.Search, Icons.Rounded.Search),
+    AddPost("addPost", "Create", Icons.Outlined.AddCircle, Icons.Rounded.AddCircle),
+    Profile("profile", "Profile", Icons.Outlined.Person, Icons.Rounded.Person),
 }
 
 /**
@@ -74,55 +89,55 @@ fun MainScreen(
 
     Scaffold(
         bottomBar = {
-            AppTheme {
-                Box {
-                    NavigationBar(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .height(60.dp)
-                            .border(width = 1.dp, color = Color.LightGray.copy(alpha = 0.5f))
-                            .background(Color.White),
-                        containerColor = Color.White
-                    ) {
-                        BottomNavScreens.entries.forEach { tab ->
-                            val isSelected = selectedTab == tab
-                            BottomNavigationItem(
-                                selected = isSelected,
-                                onClick = { selectTab(tab) },
-                                icon = {
-                                    Icon(
-                                        painter = painterResource(id = tab.icon),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(22.dp),
-                                        tint = if (isSelected) Color.Black else Color.Black.copy(alpha = 0.5f)
-                                    )
-                                }
-                            )
-                        }
-                    }
-
-                    val isOnPostScreen = activeRoute.contains("postScreen")
-                    val currentPostId = player.currentPostId
-                    if (player.isActive && !isOnPostScreen && currentPostId != null) {
-                        PlayerBox(
-                            mediaViewModel = mediaViewModel,
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = 60.dp),
-                            onMaximizeClick = {
-                                selectTab(BottomNavScreens.Home)
-                                homeNavController.navigate(Routes.post(currentPostId)) {
-                                    popUpTo(Routes.FEED) { inclusive = false }
-                                }
+            Column {
+                val isOnPostScreen = activeRoute.contains("postScreen")
+                val currentPostId = player.currentPostId
+                AnimatedVisibility(
+                    visible = player.isActive && !isOnPostScreen && currentPostId != null,
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut(),
+                ) {
+                    PlayerBox(
+                        mediaViewModel = mediaViewModel,
+                        onMaximizeClick = {
+                            if (currentPostId == null) return@PlayerBox
+                            selectTab(BottomNavScreens.Home)
+                            homeNavController.navigate(Routes.post(currentPostId)) {
+                                popUpTo(Routes.FEED) { inclusive = false }
                             }
+                        },
+                    )
+                }
+                NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+                    BottomNavScreens.entries.forEach { tab ->
+                        val isSelected = selectedTab == tab
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick = { selectTab(tab) },
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) tab.selectedIcon else tab.icon,
+                                    contentDescription = tab.label,
+                                )
+                            },
+                            label = { Text(tab.label) },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                         )
                     }
                 }
             }
         }
     ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
+        // Child screens have their own Scaffolds; consume the insets used here so they aren't added twice.
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
+        ) {
             val onRouteChange: (String) -> Unit = { activeRoute = it }
             when (selectedTab) {
                 BottomNavScreens.Home ->

@@ -1,43 +1,44 @@
 package com.neatplex.nightell.ui.screens.search
 
-import android.annotation.SuppressLint
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
-import com.neatplex.nightell.ui.component.widget.CustomSearchField
-import com.neatplex.nightell.ui.component.user.UserCard
-import com.neatplex.nightell.ui.component.post.HomePostCard
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.viewmodel.SessionViewModel
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.component.common.EmptyState
+import com.neatplex.nightell.ui.component.post.HomePostCard
+import com.neatplex.nightell.ui.component.user.UserCard
+import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
+import com.neatplex.nightell.ui.component.widget.CustomSearchField
 import com.neatplex.nightell.ui.navigation.Routes
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 
-@SuppressLint("UnusedMaterialScaffoldPaddingParameter")
+private val tabs = listOf("Stories", "People")
+
+/** Search stories and people. */
 @Composable
 fun SearchScreen(
     navController: NavController,
@@ -45,7 +46,7 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = hiltViewModel(),
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    var selectedTab by rememberSaveable { mutableStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val postsState by searchViewModel.posts.collectAsStateWithLifecycle()
     val usersState by searchViewModel.users.collectAsStateWithLifecycle()
 
@@ -53,57 +54,50 @@ fun SearchScreen(
         if (postsState.items.isEmpty()) searchViewModel.searchPosts(query)
     }
 
-    Column(
-        modifier = Modifier.background(color = Color.White)
-    ) {
+    fun search(text: String, tab: Int) {
+        if (tab == 0) searchViewModel.searchPosts(text) else searchViewModel.searchUsers(text)
+    }
+
+    Column(modifier = Modifier.statusBarsPadding()) {
+        Text(
+            "Discover",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 12.dp),
+        )
+        CustomSearchField(
+            value = query,
+            onValueChange = { newQuery ->
+                query = newQuery
+                search(newQuery, selectedTab)
+            },
+            onSearch = { search(query, selectedTab) },
+            modifier = Modifier.padding(horizontal = 20.dp),
+        )
         TabRow(
             selectedTabIndex = selectedTab,
-            modifier = Modifier
-                .fillMaxWidth(),
-            containerColor = Color.White,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                    color = colorResource(id = R.color.night),  // Set underline color here
-                    height = 3.dp       // You can also set the height of the underline
+            containerColor = MaterialTheme.colorScheme.background,
+            modifier = Modifier.padding(top = 12.dp),
+        ) {
+            tabs.forEachIndexed { index, label ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = {
+                        if (selectedTab != index) {
+                            selectedTab = index
+                            search(query, index)
+                        }
+                    },
+                    text = { Text(label) },
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-        ) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
-                text = { Text("Posts") },
-                selectedContentColor = colorResource(id = R.color.night), // Color for the selected tab
-                unselectedContentColor = Color.Gray
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
-                text = { Text("Users") },
-                selectedContentColor = colorResource(id = R.color.night),  // Color for the selected tab
-                unselectedContentColor = Color.Gray
-            )
         }
-
-        SearchBar(
-            query = query,
-            onQueryChange = { newQuery ->
-                query = newQuery
-                if (selectedTab == 0) {
-                    searchViewModel.searchPosts(newQuery)
-                } else {
-                    searchViewModel.searchUsers(newQuery)
-                }
-            }
-        )
 
         if (selectedTab == 0) {
             PostList(
                 posts = postsState.items,
                 isLoading = postsState.isLoading,
-                onPostSelected = { selectedPost ->
-                    navController.navigate(Routes.post(selectedPost.id))
-                },
+                onPostSelected = { navController.navigate(Routes.post(it.id)) },
                 onLoadMore = searchViewModel::loadMorePosts,
             )
         } else {
@@ -122,44 +116,23 @@ fun SearchScreen(
 }
 
 @Composable
-fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
-    Row(modifier = Modifier.padding(16.dp)) {
-        CustomSearchField(
-            value = query,
-            onValueChange = onQueryChange,
-            onSearch = { onQueryChange(query) }
-        )
-    }
-}
-
-@Composable
 fun PostList(
     posts: List<Post>,
     isLoading: Boolean,
     onPostSelected: (Post) -> Unit,
     onLoadMore: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        if (posts.isEmpty()) {
-            item {
-                Text(
-                    text = "No posts found",
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
-        } else {
-            itemsIndexed(posts) { index, post ->
-                HomePostCard(post = post, onPostClicked = onPostSelected, isLoading = isLoading)
-                if (index == posts.size - 1 && !isLoading) {
-                    onLoadMore()
-                }
-            }
-            if (isLoading) {
-                item { CustomCircularProgressIndicator() }
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
+        if (posts.isEmpty() && !isLoading) {
+            item { EmptyState(icon = Icons.Rounded.Search, title = "No stories found", message = "Try a different word.") }
+        }
+        itemsIndexed(posts, key = { _, post -> post.id }) { index, post ->
+            HomePostCard(post = post, isLoading = false, onPostClicked = onPostSelected)
+            if (index == posts.lastIndex && !isLoading) {
+                LaunchedEffect(post.id) { onLoadMore() }
             }
         }
+        if (isLoading) item { CustomCircularProgressIndicator() }
     }
 }
 
@@ -170,17 +143,16 @@ fun UserList(
     onUserSelected: (User) -> Unit,
     onLoadMore: () -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        itemsIndexed(users) { index, user ->
+    LazyColumn(modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(vertical = 8.dp)) {
+        if (users.isEmpty() && !isLoading) {
+            item { EmptyState(icon = Icons.Rounded.Person, title = "No people found", message = "Search by name or username.") }
+        }
+        itemsIndexed(users, key = { _, user -> user.id }) { index, user ->
             UserCard(user = user, onUserClicked = onUserSelected)
-            if (index == users.size - 1 && !isLoading) {
-                onLoadMore()
+            if (index == users.lastIndex && !isLoading) {
+                LaunchedEffect(user.id) { onLoadMore() }
             }
         }
-        if (isLoading) {
-            item { CustomCircularProgressIndicator() }
-        }
+        if (isLoading) item { CustomCircularProgressIndicator() }
     }
 }

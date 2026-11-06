@@ -1,24 +1,9 @@
 package com.neatplex.nightell.ui.screens.auth
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Email
+import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
@@ -26,28 +11,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.TextFieldWithValidation
 import com.neatplex.nightell.ui.navigation.MainDestinations
-import com.neatplex.nightell.ui.theme.feelFree
-import com.neatplex.nightell.ui.theme.myLinearGradiant
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
@@ -104,160 +75,48 @@ fun SignUpContent(
     onSignInClick: () -> Unit,
     iSignUpInProgress: Boolean
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = myLinearGradiant())
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Header()
-            Spacer(modifier = Modifier.height(32.dp))
+    AuthBackground {
+        Header(subtitle = "Create an account to share your stories")
+        AuthGap(40)
 
-            TextFieldWithValidation(
-                value = username,
-                onValueChange = onUsernameChange,
-                placeholder = stringResource(R.string.username),
-                errorText = getUserNameErrorMessage(username),
-                leadingIcon = Icons.Default.AccountBox,
-                isValid = username.isEmpty() || authViewModel.isValidUsername(username),
-                readOnly = false
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextFieldWithValidation(
-                value = email,
-                onValueChange = onEmailChange,
-                placeholder = "Email",
-                errorText = if (email.isNotEmpty() && !authViewModel.isValidEmail(email)) stringResource(
-                    R.string.invalid_email_format
-                ) else "",
-                leadingIcon = Icons.Default.Email,
-                isValid = email.isEmpty() || authViewModel.isValidEmail(email),
-                readOnly = false
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            TextFieldWithValidation(
-                value = password,
-                onValueChange = onPasswordChange,
-                placeholder = stringResource(R.string.password),
-                errorText = if (password.isNotEmpty() && !authViewModel.isValidPassword(password)) "Password must be at least 8 characters long" else "",
-                leadingIcon = Icons.Default.Lock,
-                isValid = password.isEmpty() || authViewModel.isValidPassword(password),
-                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                trailingIcon = {
-                    IconButton(onClick = { onPasswordVisibilityChange(!isPasswordVisible) }) {
-                        Icon(
-                            painter = painterResource(id = if (isPasswordVisible) R.drawable.baseline_visibility_24 else R.drawable.baseline_visibility_off_24),
-                            contentDescription = "visible/invisible password"
-                        )
-                    }
-                },
-                readOnly = false
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            AuthPinkButton(onSignUpClick, stringResource(R.string.sign_up))
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            CenteredTextWithClickablePart(
-                normalText = stringResource(R.string.do_you_have_an_account),
-                clickableText = stringResource(R.string.sign_in),
-                onClick = onSignInClick,
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        if (iSignUpInProgress) {
-            CustomCircularProgressIndicator()
-        }
-    }
-}
-
-@Composable
-fun Header() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Text(
-            text = stringResource(R.string.nightell),
-            fontFamily = feelFree,
-            fontSize = 85.sp,
-            color = Color.White
+        TextFieldWithValidation(
+            value = username,
+            onValueChange = onUsernameChange,
+            placeholder = stringResource(R.string.username),
+            errorText = getUserNameErrorMessage(username),
+            leadingIcon = Icons.Rounded.AccountCircle,
+            isValid = username.isEmpty() || authViewModel.isValidUsername(username),
+            readOnly = false
         )
-    }
-}
-
-@Composable
-fun AuthPinkButton(onClick: () -> Unit, text: String) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(CircleShape)
-            .height(50.dp),
-        colors = ButtonDefaults.buttonColors(
-            backgroundColor = colorResource(id = R.color.purple)
+        AuthGap(12)
+        TextFieldWithValidation(
+            value = email,
+            onValueChange = onEmailChange,
+            placeholder = "Email",
+            errorText = stringResource(R.string.invalid_email_format),
+            leadingIcon = Icons.Rounded.Email,
+            isValid = email.isEmpty() || authViewModel.isValidEmail(email),
+            readOnly = false
         )
-    ) {
-        Text(text = text, color = Color.White, fontSize = 16.sp)
-    }
-}
-
-fun isInputValid(
-    username: String,
-    email: String,
-    password: String,
-    authViewModel: AuthViewModel
-): Boolean {
-    return username.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() &&
-            authViewModel.isValidUsername(username) && authViewModel.isValidEmail(email) && authViewModel.isValidPassword(
-        password
-    )
-}
-
-fun getUserNameErrorMessage(username: String): String {
-    return when {
-        username.isEmpty() -> "Username cannot be empty"
-        !username.first().isLetter() -> "Username must start with a letter"
-        !Regex("^[a-z_][a-z0-9_]*$").matches(username) -> "Username can only contain lowercase letters, numbers, and underscores"
-        username.length < 5 -> "Username must be at least 5 characters long"
-        else -> ""
-    }
-}
-
-@Composable
-fun CenteredTextWithClickablePart(
-    normalText: String,
-    clickableText: String,
-    onClick: () -> Unit,
-) {
-    Row {
-        Text(
-            buildAnnotatedString {
-                withStyle(style = SpanStyle(color = Color.White)) {
-                    append(normalText)
-                }
-                withStyle(
-                    style = SpanStyle(
-                        color = colorResource(id = R.color.blue_light))
-                ) {
-                    append(clickableText)
-                }
-            },
-            modifier = Modifier.clickable(onClick = onClick)
+        AuthGap(12)
+        TextFieldWithValidation(
+            value = password,
+            onValueChange = onPasswordChange,
+            placeholder = stringResource(R.string.password),
+            errorText = "Password must be at least 8 characters long",
+            leadingIcon = Icons.Rounded.Lock,
+            isValid = password.isEmpty() || authViewModel.isValidPassword(password),
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = { PasswordToggle(isPasswordVisible, onPasswordVisibilityChange) },
+            readOnly = false
+        )
+        AuthGap(28)
+        AuthPinkButton(onSignUpClick, stringResource(R.string.sign_up), isLoading = iSignUpInProgress)
+        AuthGap(16)
+        CenteredTextWithClickablePart(
+            normalText = stringResource(R.string.do_you_have_an_account),
+            clickableText = stringResource(R.string.sign_in),
+            onClick = onSignInClick,
         )
     }
 }

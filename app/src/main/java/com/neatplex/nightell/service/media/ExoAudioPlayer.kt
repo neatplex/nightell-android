@@ -50,7 +50,14 @@ class ExoAudioPlayer @Inject constructor(
             .build()
         val item = MediaItem.Builder().setUri(post.audio.url).setMediaMetadata(metadata).build()
 
-        _state.update { PlaybackState(currentPostId = post.id, isActive = it.isActive) }
+        _state.update {
+            PlaybackState(
+                currentPostId = post.id,
+                title = post.title,
+                imageUrl = post.image?.url,
+                isActive = it.isActive,
+            )
+        }
         handler.addMediaItem(item)
         handler.onPlayerEvent(PlayerEvent.PlayPause)
     }

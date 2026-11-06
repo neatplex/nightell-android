@@ -5,49 +5,96 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
-private val DarkColorScheme = darkColorScheme(
-    primary = MyPrimaryColor,
-    onPrimary = Color.White,
-    primaryContainer = MyPrimaryDarkColor,
-    onPrimaryContainer = Color.White,
-    secondary = MySecondaryColor,
-    onSecondary = Color.Black,
-    background = MyBackgroundColor,
-    onBackground = Color.Black,
-    surface = Color.DarkGray,
-    onSurface = Color.White,
+private val MidnightDark = darkColorScheme(
+    primary = Lavender,
+    onPrimary = OnLavender,
+    primaryContainer = LavenderContainer,
+    onPrimaryContainer = OnLavenderContainer,
+    secondary = Amber,
+    onSecondary = OnAmber,
+    secondaryContainer = AmberContainer,
+    onSecondaryContainer = OnAmberContainer,
+    tertiary = Moonlight,
+    onTertiary = OnMoonlight,
+    tertiaryContainer = MoonlightContainer,
+    onTertiaryContainer = OnMoonlightContainer,
+    error = NightError,
+    onError = OnNightError,
+    errorContainer = NightErrorContainer,
+    onErrorContainer = OnNightErrorContainer,
+    background = NightBackground,
+    onBackground = NightOnSurface,
+    surface = NightSurface,
+    onSurface = NightOnSurface,
+    surfaceVariant = NightSurfaceContainerHigh,
+    onSurfaceVariant = NightOnSurfaceVariant,
+    surfaceTint = Lavender,
+    outline = NightOutline,
+    outlineVariant = NightOutlineVariant,
+    inverseSurface = NightOnSurface,
+    inverseOnSurface = NightBackground,
+    inversePrimary = Indigo,
+    surfaceBright = NightSurfaceContainerHighest,
+    surfaceDim = NightBackground,
+    surfaceContainerLowest = NightSurfaceContainerLowest,
+    surfaceContainerLow = NightSurfaceContainerLow,
+    surfaceContainer = NightSurfaceContainer,
+    surfaceContainerHigh = NightSurfaceContainerHigh,
+    surfaceContainerHighest = NightSurfaceContainerHighest,
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = MyPrimaryColor,
-    onPrimary = Color.White,
-    primaryContainer = MyPrimaryLightColor,
-    onPrimaryContainer = Color.Black,
-    secondary = MySecondaryColor,
-    onSecondary = Color.Black,
-    background = MyBackgroundColor,
-    onBackground = Color.Black,
-    surface = Color.LightGray,
-    onSurface = Color.Black,
+private val MidnightLight = lightColorScheme(
+    primary = Indigo,
+    onPrimary = OnIndigo,
+    primaryContainer = IndigoContainer,
+    onPrimaryContainer = OnIndigoContainer,
+    secondary = DeepAmber,
+    onSecondary = OnDeepAmber,
+    secondaryContainer = DeepAmberContainer,
+    onSecondaryContainer = OnDeepAmberContainer,
+    tertiary = DayTeal,
+    onTertiary = OnDayTeal,
+    tertiaryContainer = DayTealContainer,
+    onTertiaryContainer = OnDayTealContainer,
+    error = DayError,
+    onError = OnDayError,
+    errorContainer = DayErrorContainer,
+    onErrorContainer = OnDayErrorContainer,
+    background = DayBackground,
+    onBackground = DayOnSurface,
+    surface = DaySurface,
+    onSurface = DayOnSurface,
+    surfaceVariant = DaySurfaceContainerHigh,
+    onSurfaceVariant = DayOnSurfaceVariant,
+    surfaceTint = Indigo,
+    outline = DayOutline,
+    outlineVariant = DayOutlineVariant,
+    inverseSurface = NightSurface,
+    inverseOnSurface = NightOnSurface,
+    inversePrimary = Lavender,
+    surfaceBright = DaySurfaceContainerLowest,
+    surfaceDim = DaySurfaceContainerHighest,
+    surfaceContainerLowest = DaySurfaceContainerLowest,
+    surfaceContainerLow = DaySurfaceContainerLow,
+    surfaceContainer = DaySurfaceContainer,
+    surfaceContainerHigh = DaySurfaceContainerHigh,
+    surfaceContainerHighest = DaySurfaceContainerHighest,
 )
 
+/**
+ * The app's Material 3 theme. Applied once at the root; screens read colours,
+ * type and shapes from [MaterialTheme] instead of hard-coding them.
+ */
 @Composable
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
-    val colorScheme = if (darkTheme) {
-        DarkColorScheme
-    } else {
-        LightColorScheme
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = Shapes,
-        content = content
+        colorScheme = if (darkTheme) MidnightDark else MidnightLight,
+        typography = AppTypography,
+        shapes = AppShapes,
+        content = content,
     )
 }

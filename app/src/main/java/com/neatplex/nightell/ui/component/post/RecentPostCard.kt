@@ -1,108 +1,82 @@
 package com.neatplex.nightell.ui.component.post
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
-import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.ui.screens.profile.getUserImagePainter
+import com.neatplex.nightell.ui.component.common.StoryArtwork
+import com.neatplex.nightell.ui.component.common.UserAvatar
 
+/**
+ * A featured story: large artwork with the title and author over a dark fade,
+ * and a play button. Fills the width it is given.
+ */
 @Composable
 fun RecentPostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit) {
-
-    Card(
+    Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = !isLoading) {
-                onPostClicked(post)
-            },
-        elevation = 0.dp
+            .fillMaxSize()
+            .clip(MaterialTheme.shapes.large)
+            .clickable(enabled = !isLoading) { onPostClicked(post) },
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val imageResource = getUserImagePainter(post.user)
-
-                Image(
-                    painter = imageResource,
-                    contentDescription = "Author Image",
-                    modifier = Modifier
-                        .width(48.dp)
-                        .height(48.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
+        StoryArtwork(imageUrl = post.image?.url, modifier = Modifier.fillMaxSize())
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(Brush.verticalGradient(0.35f to Color.Transparent, 1f to Color(0xE6080C1E))),
+        )
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = post.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
-
-                // Check if post.title is not null or empty
-                val title = post.user.username
-                val desc = post.title
-
-                Column(
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 6.dp)) {
+                    UserAvatar(post.user, size = 22.dp)
+                    Spacer(Modifier.width(8.dp))
                     Text(
-                        text = title,
-                        fontSize = 14.sp,
+                        text = "@${post.user.username}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White.copy(alpha = 0.85f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = desc,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
-
-            Row {
-                val imageResource = if (post.image != null) {
-                    rememberAsyncImagePainter(model = post.image.url)
-                } else {
-                    rememberAsyncImagePainter(model = R.drawable.slider)
-                }
-                Box(
-                    modifier = Modifier
-                        .width(280.dp)
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                ) {
-                    Image(
-                        painter = imageResource,
-                        contentDescription = "Story Image",
-                        modifier = Modifier
-                            .fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+            Spacer(Modifier.width(12.dp))
+            FilledIconButton(onClick = { onPostClicked(post) }, enabled = !isLoading) {
+                Icon(Icons.Rounded.PlayArrow, contentDescription = "Open ${post.title}")
             }
         }
     }
 }
-
-

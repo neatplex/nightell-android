@@ -17,6 +17,8 @@ import javax.inject.Inject
 /** What the player UI shows. */
 data class PlayerUiState(
     val currentPostId: Int? = null,
+    val title: String = "",
+    val imageUrl: String? = null,
     val durationMs: Long = 0L,
     val positionMs: Long = 0L,
     val isPlaying: Boolean = false,
@@ -67,6 +69,8 @@ class MediaViewModel @Inject constructor(
 
     private fun toUiState(state: PlaybackState) = PlayerUiState(
         currentPostId = state.currentPostId,
+        title = state.title.orEmpty(),
+        imageUrl = state.imageUrl,
         durationMs = state.durationMs,
         positionMs = state.positionMs,
         isPlaying = state.isPlaying,

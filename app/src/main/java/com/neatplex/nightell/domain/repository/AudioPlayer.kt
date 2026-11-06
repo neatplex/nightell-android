@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.StateFlow
 data class PlaybackState(
     /** The post whose audio is loaded, or null if nothing has been played. */
     val currentPostId: Int? = null,
+    /** Title and cover of the loaded post, for the player UI. */
+    val title: String? = null,
+    val imageUrl: String? = null,
     val durationMs: Long = 0L,
     val positionMs: Long = 0L,
     val isPlaying: Boolean = false,
