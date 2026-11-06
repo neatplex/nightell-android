@@ -23,7 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import com.neatplex.nightell.navigation.MainDestinations
+import com.neatplex.nightell.ui.navigation.MainDestinations
 import com.neatplex.nightell.ui.theme.feelFree
 import kotlinx.coroutines.delay
 

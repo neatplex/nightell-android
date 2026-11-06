@@ -1,7 +1,6 @@
 package com.neatplex.nightell.ui.screens.user
 
 import android.annotation.SuppressLint
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,7 +16,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -31,24 +29,22 @@ import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.user.UserCard
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.toJson
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.navigation.Routes
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun FollowerScreen(
     navController: NavController,
     userId: Int,
-    sharedViewModel: SharedViewModel,
-    userViewModel: UserViewModel = hiltViewModel() // Inject the ViewModel
+    sessionViewModel: SessionViewModel,
+    followListViewModel: FollowListViewModel = hiltViewModel(),
 ) {
-    val users by userViewModel.usersList.observeAsState(emptyList())
-    val isLoading by userViewModel.isLoading.observeAsState(false)
-    val count = 20
+    val usersState by followListViewModel.users.collectAsStateWithLifecycle()
 
-    // Effect for fetching user followers when the screen is loaded
-    LaunchedEffect(Unit) {
-        userViewModel.fetchUserFollowers(userId, null, count)
+    LaunchedEffect(userId) {
+        followListViewModel.start(userId, FollowListType.FOLLOWERS)
     }
 
     AppTheme {
@@ -64,13 +60,12 @@ fun FollowerScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     UsersList(
-                        users = users,
-                        isLoading = isLoading,
-                        sharedViewModel = sharedViewModel,
+                        users = usersState.items,
+                        isLoading = usersState.isLoading,
+                        canLoadMore = usersState.canLoadMore,
+                        currentUserId = sessionViewModel.currentUser.value?.id,
                         navController = navController,
-                        userViewModel = userViewModel,
-                        userId = userId,
-                        count = count
+                        onLoadMore = followListViewModel::loadMore,
                     )
                 }
             }
@@ -109,11 +104,10 @@ fun AppBarWithTitle(navController: NavController, title: String) {
 fun UsersList(
     users: List<User>,
     isLoading: Boolean,
-    sharedViewModel: SharedViewModel,
+    canLoadMore: Boolean,
+    currentUserId: Int?,
     navController: NavController,
-    userViewModel: UserViewModel,
-    userId: Int,
-    count: Int
+    onLoadMore: () -> Unit,
 ) {
     LazyColumn(
         contentPadding = PaddingValues(bottom = 56.dp),
@@ -121,14 +115,12 @@ fun UsersList(
         content = {
             itemsIndexed(users) { index, user ->
                 UserCard(user = user) { selectedUser ->
-                    if (sharedViewModel.user.value?.id != selectedUser.id) {
-                        val userJson = selectedUser.toJson()
-                        navController.navigate("userScreen/${Uri.encode(userJson)}")
+                    if (currentUserId != selectedUser.id) {
+                        navController.navigate(Routes.user(selectedUser.id))
                     }
-                    // Fetch more followers if at the end of the list
-                    if (index == users.size - 1 && !isLoading && userViewModel.canLoadMoreFollowers) {
-                        userViewModel.fetchUserFollowers(userId, selectedUser.id, count)
-                    }
+                }
+                if (index == users.size - 1 && !isLoading && canLoadMore) {
+                    onLoadMore()
                 }
             }
             if (isLoading) {

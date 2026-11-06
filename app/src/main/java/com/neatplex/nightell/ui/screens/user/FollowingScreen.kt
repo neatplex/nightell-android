@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -16,21 +15,20 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @SuppressLint("UnusedMaterialScaffoldPaddingParameter")
 @Composable
 fun FollowingScreen(navController: NavController,
                     userId: Int,
-                    sharedViewModel : SharedViewModel) {
+                    sessionViewModel: SessionViewModel,
+                    followListViewModel: FollowListViewModel = hiltViewModel()) {
 
-    val userViewModel : UserViewModel = hiltViewModel()
-    val users by userViewModel.usersList.observeAsState(emptyList())
-    val count = 20
-    val isLoading by userViewModel.isLoading.observeAsState(false)
+    val usersState by followListViewModel.users.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        userViewModel.fetchUserFollowings(userId, null , count)
+    LaunchedEffect(userId) {
+        followListViewModel.start(userId, FollowListType.FOLLOWINGS)
     }
 
     AppTheme {
@@ -46,13 +44,12 @@ fun FollowingScreen(navController: NavController,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     UsersList(
-                        users = users,
-                        isLoading = isLoading,
-                        sharedViewModel = sharedViewModel,
+                        users = usersState.items,
+                        isLoading = usersState.isLoading,
+                        canLoadMore = usersState.canLoadMore,
+                        currentUserId = sessionViewModel.currentUser.value?.id,
                         navController = navController,
-                        userViewModel = userViewModel,
-                        userId = userId,
-                        count = count
+                        onLoadMore = followListViewModel::loadMore,
                     )
                 }
             }

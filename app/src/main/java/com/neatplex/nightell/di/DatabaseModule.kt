@@ -2,8 +2,8 @@ package com.neatplex.nightell.di
 
 import android.content.Context
 import androidx.room.Room
-import com.neatplex.nightell.db.AppDatabase
-import com.neatplex.nightell.db.SavedPostDao
+import com.neatplex.nightell.data.local.db.AppDatabase
+import com.neatplex.nightell.data.local.db.SavedPostDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,14 +17,11 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, "app_database")
+    fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
+        Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.NAME)
             .fallbackToDestructiveMigration()
             .build()
-    }
 
     @Provides
-    fun providePostDao(database: AppDatabase): SavedPostDao {
-        return database.postDao()
-    }
+    fun provideSavedPostDao(database: AppDatabase): SavedPostDao = database.savedPostDao()
 }

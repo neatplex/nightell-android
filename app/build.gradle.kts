@@ -120,10 +120,6 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
-    // Rate Limiting
-    implementation("io.reactivex.rxjava3:rxjava:3.1.3")
-    implementation("io.reactivex.rxjava3:rxandroid:3.0.0")
-
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
@@ -145,21 +141,12 @@ dependencies {
     //Pull To Refresh
     implementation("com.google.accompanist:accompanist-swiperefresh:0.35.1-alpha")
 
-    // Local Unit Tests
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:1.5.30")
-    testImplementation("org.mockito:mockito-core:4.3.1")
-    testImplementation("org.mockito.kotlin:mockito-kotlin:3.2.0")
-    testImplementation("org.mockito:mockito-inline:4.3.1")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4")
-    testImplementation("org.powermock:powermock-module-junit4:2.0.9")
-    testImplementation("org.powermock:powermock-api-mockito2:2.0.9")
+    // Local Unit Tests (hand-written fakes instead of mocking libraries)
     testImplementation("junit:junit:4.13.2")
-    testImplementation("androidx.test:core:1.6.1")
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("com.google.truth:truth:1.1.3")
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.9.1")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.10.0")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.6.8")
-    testImplementation("io.mockk:mockk:1.10.5")
 
     // Instrumentation Tests
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.37")

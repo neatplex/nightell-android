@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -48,10 +47,12 @@ import com.neatplex.nightell.ui.component.widget.CustomBorderedCircleButton
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.ErrorText
 import com.neatplex.nightell.ui.component.widget.OutlinedTextFieldWithIcon
-import com.neatplex.nightell.data.dto.AuthResponse
+import com.neatplex.nightell.domain.model.AuthSession
 import com.neatplex.nightell.ui.theme.myLinearGradiant
-import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.navigation.MainDestinations
+import com.neatplex.nightell.domain.util.Result
+import com.neatplex.nightell.ui.navigation.MainDestinations
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
@@ -59,9 +60,9 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     var emailOrUsername by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    val authResultState by viewModel.authResult.observeAsState()
+    val authResultState by viewModel.authResult.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val isLoading by viewModel.isLoading.observeAsState(false)
+    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
 
     val oneTapSignInClient = remember {
         Identity.getSignInClient(context)
@@ -238,36 +239,29 @@ fun SignInContent(
 
 @Composable
 fun AuthResult(
-    authResultState: Result<AuthResponse?>,
+    authResultState: Result<AuthSession>,
     navController: NavController,
     isLoading: Boolean
 ) {
-    var showError by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-
-    if (isLoading) {
-        showError = false
-    }
-
-    when (authResultState) {
-        is Result.Failure -> {
-            showError = true
-            errorMessage = when (authResultState.code) {
-                401 -> stringResource(R.string.your_username_or_password_is_incorrect)
-                422 -> authResultState.message
-                else -> stringResource(R.string.something_went_wrong_please_try_again)
-            }
-        }
-
-        is Result.Success -> {
-            authResultState.data?.let {
-                navController.popBackStack()
-                navController.navigate(MainDestinations.Main.route)
+    // Navigate once per successful result, not on every recomposition.
+    LaunchedEffect(authResultState) {
+        if (authResultState is Result.Success) {
+            navController.navigate(MainDestinations.Main.route) {
+                popUpTo(0) { inclusive = true }
             }
         }
     }
 
-    if (showError) {
+    val errorMessage = when (authResultState) {
+        is Result.Failure -> when (authResultState.code) {
+            401 -> stringResource(R.string.your_username_or_password_is_incorrect)
+            422 -> authResultState.message
+            else -> stringResource(R.string.something_went_wrong_please_try_again)
+        }
+        is Result.Success -> null
+    }
+
+    if (errorMessage != null && !isLoading) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

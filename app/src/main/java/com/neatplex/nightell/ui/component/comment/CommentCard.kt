@@ -27,7 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.sp
-import com.neatplex.nightell.utils.getTimeAgo
+import com.neatplex.nightell.ui.util.getTimeAgo
 
 @Composable
 fun CommentCard(
@@ -76,7 +76,7 @@ fun CommentCard(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = getTimeAgo(comment.created_at),
+                        text = getTimeAgo(comment.createdAt),
                         color = Color.Gray,
                         fontSize = 12.sp
                     )

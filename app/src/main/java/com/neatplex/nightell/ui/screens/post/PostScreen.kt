@@ -1,7 +1,6 @@
 package com.neatplex.nightell.ui.screens.post
 
 import android.media.MediaPlayer
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +27,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,8 +46,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -60,79 +56,59 @@ import com.neatplex.nightell.domain.model.Comment
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.media.AudioPlayer
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.domain.model.PostEntity
-import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.component.comment.CommentCard
 import com.neatplex.nightell.ui.screens.profile.getUserImagePainter
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.utils.Constant
-import com.neatplex.nightell.utils.Result
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
-import com.neatplex.nightell.ui.viewmodel.DatabaseViewModel
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.ui.viewmodel.UIEvent
-import com.neatplex.nightell.utils.toJson
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 import java.io.IOException
+import com.neatplex.nightell.ui.common.PagedState
+import com.neatplex.nightell.ui.viewmodel.formatDuration
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.navigation.Routes
 
 @Composable
 fun PostScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel,
-    postId: Int,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager,
+    postViewModel: PostViewModel = hiltViewModel(),
 ) {
-    val postViewModel: PostViewModel = hiltViewModel()
-    val isLoading by postViewModel.isLoading.observeAsState(true)
-    val isFetchingPost by postViewModel.isFetching.observeAsState(true)
-    val postDetailResult by postViewModel.postDetailResult.observeAsState()
-    val isServiceRunning by mediaViewModel.isServiceRunning.collectAsState()
+    val uiState by postViewModel.uiState.collectAsStateWithLifecycle()
+    val commentsState by postViewModel.comments.collectAsStateWithLifecycle()
 
-    var post by remember { mutableStateOf<Post?>(null) }
-    var isPostExist by remember { mutableStateOf(true) }
-    var txtLoadFailure by remember { mutableStateOf("") }
-
-
-    LaunchedEffect(Unit) {
-        postViewModel.getPostDetail(postId)
-    }
-
-    LaunchedEffect(postDetailResult) {
-        postDetailResult?.let { result ->
-            when (result) {
-                is Result.Success -> {
-                    post = result.data!!.post
-                    isPostExist = true
-                }
-                is Result.Failure -> {
-                    isPostExist = result.code != 404
-                    txtLoadFailure = if (result.code == 404) "Post not found" else "Something went wrong"
-                }
-                else -> {}
-            }
+    // Reload after the post was edited, and let the previous screen know too.
+    val postChanged = navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow("postChanged", false)
+        ?.collectAsStateWithLifecycle()
+    LaunchedEffect(postChanged?.value) {
+        if (postChanged?.value == true) {
+            postViewModel.loadPost()
+            navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
+            navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
         }
     }
 
-    if (isFetchingPost) {
-        LoadingScreen()
-    } else {
-        if (isLoading) {
-            LoadingScreen()
+    // Close the screen once the post is deleted.
+    LaunchedEffect(uiState.isDeleted) {
+        if (uiState.isDeleted) {
+            navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
+            navController.popBackStack()
         }
-        if (isPostExist && post != null) {
-            PostContent(
-                navController = navController,
-                sharedViewModel = sharedViewModel,
-                post = post!!,
-                postViewModel = postViewModel,
-                postId = postId,
-                mediaViewModel = mediaViewModel,
-                serviceManager = serviceManager,
-                isServiceRunning = isServiceRunning,
-            )
-        } else {
-            ErrorScreen(txtLoadFailure)
-        }
+    }
+
+    val post = uiState.post
+    when {
+        uiState.isLoading && post == null -> LoadingScreen()
+        post != null -> PostContent(
+            navController = navController,
+            post = post,
+            uiState = uiState,
+            comments = commentsState,
+            postViewModel = postViewModel,
+            mediaViewModel = mediaViewModel,
+        )
+        else -> ErrorScreen(uiState.loadError.orEmpty())
     }
 }
 
@@ -172,100 +148,14 @@ fun ErrorScreen(message: String) {
 @Composable
 fun PostContent(
     navController: NavController,
-    sharedViewModel: SharedViewModel,
     post: Post,
+    uiState: PostUiState,
+    comments: PagedState<Comment>,
     postViewModel: PostViewModel,
-    postId: Int,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager,
-    isServiceRunning: Boolean,
 ) {
-    val userId = sharedViewModel.user.value?.id ?: return
-    val databaseViewModel: DatabaseViewModel = hiltViewModel()
     val menuExpanded = remember { mutableStateOf(false) }
-    var isLiked by remember { mutableStateOf(false) }
-    var likesCount by remember { mutableStateOf(0) }
-    var likesCountNew by remember { mutableStateOf(0) }
-    var likeId by remember { mutableStateOf<Int?>(null) }
-    var icon by remember { mutableStateOf(Icons.Filled.FavoriteBorder) }
     var commentText by remember { mutableStateOf("") }
-    var comments by remember { mutableStateOf(listOf<Comment>()) }
-
-    // Fetch likes and bookmark state
-    LaunchedEffect(Unit) {
-        postViewModel.showLikes(postId)
-        postViewModel.getComments(postId)
-    }
-
-    val likesCountResult by postViewModel.showLikesResult.observeAsState()
-    val likeResult by postViewModel.likeResult.observeAsState()
-    val unlikeResult by postViewModel.unlikeResult.observeAsState()
-    val deleteCommentResult by postViewModel.deleteCommentResult.observeAsState()
-    val postDeleteResult by postViewModel.postDeleteResult.observeAsState()
-    val getComments by postViewModel.getCommentsResult.observeAsState(emptyList())
-    val commentResult by postViewModel.sendCommentResult.observeAsState()
-    val isCommentLoading by postViewModel.isCommentLoading.observeAsState()
-
-    LaunchedEffect(likesCountResult) {
-        likesCountResult?.let { result ->
-            if (result is Result.Success) {
-                val likes = result.data?.likes.orEmpty()
-                likesCount = likes.size
-                isLiked = likes.any { it.user_id == userId }
-                icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
-                likeId = likes.find { it.user_id == userId }?.id
-                likesCountNew = likesCount
-            }
-        }
-    }
-
-    LaunchedEffect(likeResult) {
-        likeResult?.let {
-            if (it is Result.Success) {
-                isLiked = true
-                likeId = it.data!!.like.id
-                // Ensure UI is updated
-                icon = Icons.Filled.Favorite
-            } else {
-                // Handle error
-                isLiked = false
-            }
-        }
-    }
-
-    LaunchedEffect(unlikeResult) {
-        unlikeResult?.let {
-            if (it is Result.Success) {
-                isLiked = false
-                likeId = null
-                // Ensure UI is updated
-                icon = Icons.Filled.FavoriteBorder
-            } else {
-                // Handle error
-                isLiked = true
-            }
-        }
-    }
-
-    LaunchedEffect(getComments) {
-        comments = comments + getComments
-    }
-
-    LaunchedEffect(deleteCommentResult) {
-        deleteCommentResult?.let { result ->
-            if (result is Result.Success) {
-                comments = comments.filter { it.id != result.data }
-            }
-        }
-    }
-
-    LaunchedEffect(commentResult) {
-        commentResult?.let {
-            if (it is Result.Success) {
-                comments = listOf(it.data!!.comment) + comments
-            }
-        }
-    }
 
     AppTheme {
         Scaffold(
@@ -273,10 +163,11 @@ fun PostContent(
                 PostTopBar(
                     navController = navController,
                     post = post,
-                    userId = userId,
+                    isOwnPost = uiState.isOwnPost,
+                    isSaved = uiState.isSaved,
                     menuExpanded = menuExpanded,
-                    databaseViewModel = databaseViewModel,
-                    postViewModel = postViewModel
+                    onToggleSaved = postViewModel::toggleSaved,
+                    onDelete = postViewModel::deletePost,
                 )
             },
             content = { space ->
@@ -288,58 +179,31 @@ fun PostContent(
                         PostDetails(
                             navController = navController,
                             post = post,
-                            postId = postId,
-                            userId = userId,
-                            likesCountNew = likesCountNew,
-                            isLiked = isLiked,
-                            icon = icon,
-                            onLikeClick = {
-                                if (isLiked) {
-                                    // Unlike the post
-                                    likeId?.let {
-                                        postViewModel.deleteLike(it)
-                                        isLiked = false
-                                        icon = Icons.Filled.FavoriteBorder
-                                        likesCountNew -= 1
-                                    }
-                                } else {
-                                    // Like the post
-                                    postViewModel.like(post.id)
-                                    isLiked = true
-                                    icon = Icons.Filled.Favorite
-                                    likesCountNew += 1
-                                }
-                            },
+                            currentUserId = uiState.currentUserId,
+                            likesCount = uiState.likesCount,
+                            isLiked = uiState.isLiked,
+                            onLikeClick = postViewModel::toggleLike,
                             mediaViewModel = mediaViewModel,
-                            serviceManager = serviceManager,
-                            isServiceRunning = isServiceRunning
                         )
 
-                        PostDescription( post.title, post.description ?: "")
+                        PostDescription(post.title, post.description ?: "")
 
-                        // Display comments
-                        comments.forEach { comment ->
+                        comments.items.forEach { comment ->
                             CommentCard(
                                 comment = comment,
-                                userId = userId,
-                                onDeleteClick = { commentId ->
-                                    postViewModel.deleteComment(commentId)
-                                }
+                                userId = uiState.currentUserId ?: -1,
+                                onDeleteClick = postViewModel::deleteComment,
                             )
                         }
 
-                        if (comments.size > 9 && postViewModel.canLoadMore) {
-                            val lastCommentId = comments.last().id
-                            if(isCommentLoading == true){
-                                CustomCircularProgressIndicator()
-                            }
+                        if (comments.isLoading) {
+                            CustomCircularProgressIndicator()
+                        } else if (comments.canLoadMore && comments.items.isNotEmpty()) {
                             Text(
                                 text = "Load more",
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clickable {
-                                        postViewModel.getComments(postId, lastCommentId)
-                                    }
+                                    .clickable { postViewModel.loadMoreComments() }
                                     .padding(16.dp),
                                 color = Color.Gray,
                                 fontSize = 16.sp,
@@ -356,16 +220,20 @@ fun PostContent(
                         onValueChange = { commentText = it },
                         label = { Text("Add a comment") },
                         trailingIcon = {
-                            IconButton(onClick = {
-                                if (commentText.isNotEmpty()) {
-                                    postViewModel.sendComment(postId, commentText)
-                                    commentText = ""
-                                }
-                            }) {
+                            IconButton(
+                                enabled = !uiState.isSendingComment,
+                                onClick = {
+                                    if (commentText.isNotBlank()) {
+                                        postViewModel.sendComment(commentText)
+                                        commentText = ""
+                                    }
+                                },
+                            ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Rounded.Send,
                                     contentDescription = "send message"
-                                )                            }
+                                )
+                            }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -375,13 +243,6 @@ fun PostContent(
             }
         )
     }
-
-    postDeleteResult?.let {
-        if (it is Result.Success) {
-            navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
-            navController.popBackStack()
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -389,22 +250,14 @@ fun PostContent(
 fun PostTopBar(
     navController: NavController,
     post: Post,
-    userId: Int,
+    isOwnPost: Boolean,
+    isSaved: Boolean,
     menuExpanded: MutableState<Boolean>,
-    databaseViewModel: DatabaseViewModel,
-    postViewModel: PostViewModel
+    onToggleSaved: () -> Unit,
+    onDelete: () -> Unit,
 ) {
-    var isBookmarked by remember { mutableStateOf(false) }
-    var bookmarkIcon by remember { mutableStateOf(R.drawable.bookmark_border) }
     val showDialog = remember { mutableStateOf(false) }
-
-    // Fetch the bookmark state from the database when the composable is first composed
-    LaunchedEffect(post.id) {
-        databaseViewModel.getPostById(post.id) { postEntity ->
-            isBookmarked = postEntity != null
-            bookmarkIcon = if (isBookmarked) R.drawable.bookmark else R.drawable.bookmark_border
-        }
-    }
+    val bookmarkIcon = if (isSaved) R.drawable.bookmark else R.drawable.bookmark_border
 
     TopAppBar(
         title = { Text(text = "", fontSize = 18.sp) },
@@ -416,7 +269,7 @@ fun PostTopBar(
             }
         },
         actions = {
-            if (userId == post.user.id) {
+            if (isOwnPost) {
                 IconButton(onClick = { menuExpanded.value = true }, modifier = Modifier
                     .size(32.dp)
                     .padding(end = 8.dp)) {
@@ -431,7 +284,7 @@ fun PostTopBar(
                     ) {
                         DropdownMenuItem(onClick = {
 
-                            navController.navigate("editPostScreen/${post.id}/${Uri.encode(post.title)}/${Uri.encode(post.description?.ifEmpty { " " })}")                        })
+                            navController.navigate(Routes.editPost(post.id, post.title, post.description))                        })
                         {
                             Text(text = stringResource(id = R.string.edit))
                         }
@@ -449,10 +302,9 @@ fun PostTopBar(
                             text = { Text(text = "Are you sure you want to delete this post?") },
                             confirmButton = {
                                 TextButton(onClick = {
-                                    postViewModel.deletePost(post.id)
+                                    // The screen closes once the delete succeeds.
+                                    onDelete()
                                     showDialog.value = false
-                                    navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
-                                    navController.popBackStack()
                                 }) {
                                     Text("Delete")
                                 }
@@ -467,23 +319,7 @@ fun PostTopBar(
                     }
                 }
             } else {
-                IconButton(onClick = {
-                    val entity = PostEntity(
-                        post.id,
-                        post.title,
-                        post.user.username,
-                        post.image?.path
-                    )
-                    if (!isBookmarked) {
-                        databaseViewModel.savePost(entity)
-                        isBookmarked = true
-                        bookmarkIcon = R.drawable.bookmark
-                    } else {
-                        databaseViewModel.unsavePost(entity)
-                        isBookmarked = false
-                        bookmarkIcon = R.drawable.bookmark_border
-                    }
-                }) {
+                IconButton(onClick = onToggleSaved) {
                     Icon(
                         painter = painterResource(bookmarkIcon),
                         contentDescription = "save audio",
@@ -500,9 +336,8 @@ fun PostTopBar(
 
 @Composable
 fun PostImage(post: Post) {
-    val imagePath = Constant.Files_URL + (post.image?.path ?: "")
     AsyncImage(
-        model = imagePath,
+        model = post.image?.url,
         contentDescription = "Story Image",
         placeholder = painterResource(R.drawable.slider),
         error = painterResource(R.drawable.slider),
@@ -517,17 +352,15 @@ fun PostImage(post: Post) {
 fun PostDetails(
     navController: NavController,
     post: Post,
-    postId: Int,
-    userId: Int,
-    likesCountNew: Int,
+    currentUserId: Int?,
+    likesCount: Int,
     isLiked: Boolean,
-    icon: ImageVector,
     onLikeClick: () -> Unit,
     mediaViewModel: MediaViewModel,
-    serviceManager: ServiceManager,
-    isServiceRunning: Boolean,
 ) {
-    val audioPath = Constant.Files_URL + post.audio.path
+    val audioPath = post.audio.url
+    val icon = if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+    val player by mediaViewModel.playerState.collectAsStateWithLifecycle()
 
     Row(
         modifier = Modifier
@@ -550,16 +383,15 @@ fun PostDetails(
             modifier = Modifier
                 .padding(start = 8.dp)
                 .clickable {
-                    if (userId != post.user.id) {
-                        val userJson = post.user.toJson()
-                        navController.navigate("userScreen/${Uri.encode(userJson)}")
+                    if (currentUserId != post.user.id) {
+                        navController.navigate(Routes.user(post.user.id))
                     }
                 }
         )
 
         Spacer(Modifier.weight(1f))
 
-        Text(text = likesCountNew.toString())
+        Text(text = likesCount.toString())
 
         IconButton(onClick = onLikeClick) {
             Icon(
@@ -608,31 +440,21 @@ fun PostDetails(
                     color = colorResource(id = R.color.night),
                 )
             } else if (isAudioPrepared && !isAudioLoading) {
-                val isSame = postId.toString() == mediaViewModel.currentPostId
-
-                if (isSame) {
+                if (player.currentPostId == post.id) {
                     AudioPlayer(
-                        durationString = mediaViewModel.formatDuration(mediaViewModel.duration),
+                        durationString = player.durationText,
                         playResourceProvider = {
-                            if (mediaViewModel.isPlaying) R.drawable.round_pause_24 else R.drawable.round_play_arrow_24
+                            if (player.isPlaying) R.drawable.round_pause_24 else R.drawable.round_play_arrow_24
                         },
-                        progressProvider = {
-                            Pair(mediaViewModel.progress, mediaViewModel.progressString)
-                        },
+                        progressProvider = { Pair(player.progress, player.positionText) },
                         onUiEvent = mediaViewModel::onUIEvent,
                     )
                 } else {
                     AudioPlayer(
-                        durationString = mediaViewModel.formatDuration(totalDuration),
+                        durationString = formatDuration(totalDuration),
                         playResourceProvider = { R.drawable.round_play_arrow_24 },
                         progressProvider = { Pair(0f, "00:00") },
-                        onUiEvent = {
-                            if (!isServiceRunning) {
-                                serviceManager.startMediaService()
-                            }
-                            mediaViewModel.loadData(audioPath, post.image?.path ?: "", post.title, postId.toString())
-                            mediaViewModel.onUIEvent(UIEvent.PlayPause)
-                        }
+                        onUiEvent = { mediaViewModel.play(post) }
                     )
                 }
             }

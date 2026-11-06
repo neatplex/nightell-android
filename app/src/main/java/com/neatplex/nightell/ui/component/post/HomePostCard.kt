@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Post
-import com.neatplex.nightell.utils.Constant
 
 @Composable
 fun HomePostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit) {
@@ -55,7 +54,7 @@ fun HomePostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit) 
             ) {
 
                 val imageResource = if (post.image != null) {
-                    rememberAsyncImagePainter(model = Constant.Files_URL + post.image.path)
+                    rememberAsyncImagePainter(model = post.image.url)
                 } else {
                     rememberAsyncImagePainter(model = R.drawable.slider)
                 }
@@ -105,7 +104,7 @@ fun HomePostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit) 
                         }
                         Column(modifier = Modifier.padding(start = 3.dp).width(50.dp)) {
                             Text(
-                                post.likes_count.toString(),
+                                post.likesCount.toString(),
                                 fontSize = 14.sp
                             )
                         }

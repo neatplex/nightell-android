@@ -35,11 +35,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
-import com.neatplex.nightell.domain.model.PostEntity
-import com.neatplex.nightell.utils.Constant
+import com.neatplex.nightell.domain.model.SavedPost
 
 @Composable
-fun SavedPostCard(post: PostEntity, onPostClicked: (PostEntity) -> Unit, onDeleteClicked: (PostEntity) -> Unit) {
+fun SavedPostCard(post: SavedPost, onPostClicked: (SavedPost) -> Unit, onDeleteClicked: (SavedPost) -> Unit) {
 
     val menuExpanded = remember { mutableStateOf(false) }
 
@@ -62,8 +61,8 @@ fun SavedPostCard(post: PostEntity, onPostClicked: (PostEntity) -> Unit, onDelet
                     .weight(1f)
                     .clip(RoundedCornerShape(topStart = 8.dp, bottomStart = 8.dp))
             ) {
-                val imageResource = if (post.postImagePath != null) {
-                    rememberAsyncImagePainter(model = Constant.Files_URL + post.postImagePath)
+                val imageResource = if (post.imageUrl != null) {
+                    rememberAsyncImagePainter(model = post.imageUrl)
                 } else {
                     rememberAsyncImagePainter(model = R.drawable.slider)
                 }
@@ -81,7 +80,7 @@ fun SavedPostCard(post: PostEntity, onPostClicked: (PostEntity) -> Unit, onDelet
                     .weight(2f)
             ) {
                 Text(
-                    text = post.postTitle,
+                    text = post.title,
                     fontSize = 16.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -90,7 +89,7 @@ fun SavedPostCard(post: PostEntity, onPostClicked: (PostEntity) -> Unit, onDelet
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
-                    text = post.postOwner,
+                    text = post.ownerName,
                     fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis

@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,21 +45,22 @@ import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.TextFieldWithValidation
-import com.neatplex.nightell.navigation.MainDestinations
+import com.neatplex.nightell.ui.navigation.MainDestinations
 import com.neatplex.nightell.ui.theme.feelFree
 import com.neatplex.nightell.ui.theme.myLinearGradiant
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun SignUpScreen(
     navController: NavController,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val authResultState by authViewModel.authResult.observeAsState()
+    val authResultState by authViewModel.authResult.collectAsStateWithLifecycle()
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    val isLoading by authViewModel.isLoading.observeAsState(false)
+    val isLoading by authViewModel.isLoading.collectAsStateWithLifecycle()
 
 
     SignUpContent(

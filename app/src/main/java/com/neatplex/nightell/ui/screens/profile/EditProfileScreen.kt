@@ -30,9 +30,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,29 +57,29 @@ import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.screens.auth.getUserNameErrorMessage
 import com.neatplex.nightell.ui.screens.post.sanitizeDescription
 import com.neatplex.nightell.ui.screens.upload.UploadViewModel
-import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.Constant
-import com.neatplex.nightell.utils.getFileNameAndUri
-import com.neatplex.nightell.utils.getFileSize
-import com.neatplex.nightell.utils.uriToFile
+import com.neatplex.nightell.domain.util.Result
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
+import com.neatplex.nightell.ui.util.getFileNameAndUri
+import com.neatplex.nightell.ui.util.getFileSize
+import com.neatplex.nightell.ui.util.uriToFile
 import kotlinx.coroutines.delay
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditProfileScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel
+    sessionViewModel: SessionViewModel,
+    profileViewModel: EditProfileViewModel = hiltViewModel(),
 ) {
-    val profileViewModel: ProfileViewModel = hiltViewModel()
-    val uploadViewModel: UploadViewModel = hiltViewModel()
-    val user = sharedViewModel.user
-    val updateProfileNameResult by profileViewModel.profileNameUpdatedData.observeAsState()
-    val updateUsernameResult by profileViewModel.usernameUpdatedData.observeAsState()
-    val updateProfileBioResult by profileViewModel.userBioUpdatedData.observeAsState()
-    val updateProfileImageResult by profileViewModel.userImageUpdatedData.observeAsState()
-    val deleteProfileResult by profileViewModel.accountDeleteResult.observeAsState()
-    val isLoading by profileViewModel.isLoading.observeAsState(false)
+    val currentUser by sessionViewModel.currentUser.collectAsStateWithLifecycle()
+    val user = currentUser ?: return
+    val updateProfileNameResult by profileViewModel.nameResult.collectAsStateWithLifecycle()
+    val updateUsernameResult by profileViewModel.usernameResult.collectAsStateWithLifecycle()
+    val updateProfileBioResult by profileViewModel.bioResult.collectAsStateWithLifecycle()
+    val updateProfileImageResult by profileViewModel.imageResult.collectAsStateWithLifecycle()
+    val uploadFileResults by profileViewModel.imageUploadResult.collectAsStateWithLifecycle()
+    val deleteProfileResult by profileViewModel.deleteAccountResult.collectAsStateWithLifecycle()
 
     var isNameLoading by remember { mutableStateOf(false) }
     var isNameSuccess by remember { mutableStateOf(false) }
@@ -94,9 +91,9 @@ fun EditProfileScreen(
     var isBioSuccess by remember { mutableStateOf(false) }
 
     // State for edited fields
-    var editedName by remember { mutableStateOf(user.value!!.name) }
-    var editedBio by remember { mutableStateOf(user.value!!.bio) }
-    var editedUsername by remember { mutableStateOf(user.value!!.username) }
+    var editedName by remember { mutableStateOf(user.name) }
+    var editedBio by remember { mutableStateOf(user.bio) }
+    var editedUsername by remember { mutableStateOf(user.username) }
 
     // State for sign-out confirmation dialog
     var showSignOutDialog by remember { mutableStateOf(false) }
@@ -117,29 +114,21 @@ fun EditProfileScreen(
 
     val context = LocalContext.current
 
-    val uploadFileResults by uploadViewModel.uploadState.observeAsState()
-    var imageId by rememberSaveable { mutableStateOf(user.value!!.image_id) }
-
-    var imageResource = getUserImagePainter(user.value)
+    val imageResource = getUserImagePainter(user)
 
     val chooseImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
             result?.let { imageUri ->
                 val (fileName, mainUri) = getFileNameAndUri(context, imageUri)
                 selectedImage = mainUri
-                val fileExtension = fileName?.substringAfterLast('.', "")
-                val fileSize = getFileSize(context, selectedImage!!)
-                val file = uriToFile(context, selectedImage!!)
-                if (fileExtension.equals("jpg", ignoreCase = true) ||
-                    fileExtension.equals("jpeg", ignoreCase = true)
-                ) {
-                    if (fileSize <= 2 * 1024 * 1024) {
-                        uploadViewModel.uploadFile(file!!, "JPG")
-                    } else {
-                        resultErrorMessage = "Image file must be less than 2MB!"
-                    }
+                val fileSize = getFileSize(context, imageUri)
+                val error = profileViewModel.validateImage(fileName.orEmpty(), fileSize)
+                val file = if (error == null) uriToFile(context, imageUri) else null
+                if (file != null) {
+                    resultErrorMessage = ""
+                    profileViewModel.uploadProfileImage(file)
                 } else {
-                    resultErrorMessage = "Only .jpg type is allowed for post image!"
+                    resultErrorMessage = error ?: "Could not read the selected image"
                 }
             }
         }
@@ -176,38 +165,6 @@ fun EditProfileScreen(
             if (isTokenDeletionInProgress) {
                 CustomCircularProgressIndicator()
             } else {
-
-                // Observe audio and image upload results
-                when (val result = uploadFileResults) {
-                    is Result.Success -> {
-                        result.data?.let {
-                            if (it.file.extension.equals("JPG", ignoreCase = true)) {
-                                imageId = it.file.id
-                            }
-                        }
-                        profileViewModel.updateProfileImage(imageId!!)
-                    }
-
-                    is Result.Failure -> {
-                        resultErrorMessage = result.message
-                    }
-
-                    else -> {}
-                }
-
-                when (val result = updateProfileImageResult) {
-                    is Result.Success -> {
-                        result.data?.let {
-                            sharedViewModel.setUser(it.user)
-                            imageResource = getUserImagePainter(user = it.user)
-                        }
-                    }
-                    is Result.Failure -> {
-                        resultErrorMessage = result.message
-                    }
-
-                    else -> {}
-                }
 
                 Box(
                     modifier = Modifier
@@ -248,7 +205,7 @@ fun EditProfileScreen(
                             onSaveClicked = {
                                 if (isUsernameChanged && editedUsername.length >= 5) {
                                     isUsernameLoading = true
-                                    profileViewModel.updateUsernameOfUser(editedUsername)
+                                    profileViewModel.updateUsername(editedUsername)
                                     isUsernameChanged = false
                                 } else {
                                     errorMessage = "Username shouldn't be less than 5 characters."
@@ -276,7 +233,7 @@ fun EditProfileScreen(
                             onSaveClicked = {
                                 if (isNameChanged) {
                                     isNameLoading = true
-                                    profileViewModel.updateProfileName(editedName)
+                                    profileViewModel.updateName(editedName)
                                     isNameChanged = false
                                 }
                             },
@@ -302,7 +259,7 @@ fun EditProfileScreen(
                                 if (isBioChanged) {
                                     isBioLoading = true
                                     val sanitizedBio = sanitizeDescription(editedBio)
-                                    profileViewModel.updateBioOfUser(sanitizedBio)
+                                    profileViewModel.updateBio(sanitizedBio)
                                     isBioChanged = false
                                 }
                             },
@@ -351,7 +308,7 @@ fun EditProfileScreen(
                                 dialogTitle = "Sign Out!",
                                 dialogText = "Are you sure you want to sign out?",
                                 onConfirmation = {
-                                    sharedViewModel.deleteToken()
+                                    sessionViewModel.signOut()
                                     isTokenDeletionInProgress = true
                                     showSignOutDialog = false
                                 })
@@ -374,84 +331,79 @@ fun EditProfileScreen(
         }
     )
 
-    // Observe update result for Name
-    updateProfileNameResult?.let { result ->
+    // React to each action's result once, when it changes.
+    LaunchedEffect(uploadFileResults) {
+        (uploadFileResults as? Result.Failure)?.let { resultErrorMessage = it.message }
+    }
+
+    LaunchedEffect(updateProfileImageResult) {
+        when (val result = updateProfileImageResult) {
+            is Result.Success -> sessionViewModel.setCurrentUser(result.data)
+            is Result.Failure -> resultErrorMessage = result.message
+            null -> Unit
+        }
+    }
+
+    LaunchedEffect(updateProfileNameResult) {
+        val result = updateProfileNameResult ?: return@LaunchedEffect
         isNameLoading = false
         when (result) {
             is Result.Success -> {
-                result.data?.let { updatedUser ->
-                    // Update user in shared view model
-                    sharedViewModel.setUser(updatedUser.user)
-                    resultErrorMessage = ""
-                }
+                sessionViewModel.setCurrentUser(result.data)
+                resultErrorMessage = ""
             }
-
             is Result.Failure -> {
-                // Reset to original values on error
                 resultErrorMessage = result.message
-                editedName = user.value!!.name
+                editedName = user.name
             }
         }
     }
 
-    // Observe update result for Username
-    updateUsernameResult?.let { result ->
+    LaunchedEffect(updateUsernameResult) {
+        val result = updateUsernameResult ?: return@LaunchedEffect
         isUsernameLoading = false
         when (result) {
             is Result.Success -> {
-                result.data?.let { updatedUser ->
-                    // Update user in shared view model
-                    sharedViewModel.setUser(updatedUser.user)
-                    resultErrorMessage = ""
-                }
+                sessionViewModel.setCurrentUser(result.data)
+                resultErrorMessage = ""
             }
-
             is Result.Failure -> {
-                // Reset to original values on error
                 resultErrorMessage = result.message
-                editedUsername = user.value!!.username
+                editedUsername = user.username
             }
         }
     }
 
-    // Observe update result for Bio
-    updateProfileBioResult?.let { result ->
+    LaunchedEffect(updateProfileBioResult) {
+        val result = updateProfileBioResult ?: return@LaunchedEffect
         isBioLoading = false
         when (result) {
             is Result.Success -> {
-                result.data?.let { updatedUser ->
-                    // Update user in shared view model
-                    sharedViewModel.setUser(updatedUser.user)
-                    resultErrorMessage = ""
-                }
+                sessionViewModel.setCurrentUser(result.data)
+                resultErrorMessage = ""
             }
-
             is Result.Failure -> {
-                // Reset to original values on error
                 resultErrorMessage = result.message
-                editedBio = user.value!!.bio
+                editedBio = user.bio
             }
         }
     }
 
-    // Observe delete result
-    deleteProfileResult?.let { result ->
-        when (result) {
+    LaunchedEffect(deleteProfileResult) {
+        when (val result = deleteProfileResult) {
+            // The use case has already cleared the session.
             is Result.Success -> {
-                sharedViewModel.deleteToken()
+                sessionViewModel.signOut()
                 isTokenDeletionInProgress = true
                 showSignOutDialog = false
             }
-
-            is Result.Failure -> {
-                // Reset to original values on error
-                resultErrorMessage = result.message
-            }
+            is Result.Failure -> resultErrorMessage = result.message
+            null -> Unit
         }
     }
 
-    // Observe token deletion state
-    val token by sharedViewModel.tokenState.collectAsState()
+    // Restart the app once the token is gone.
+    val token by sessionViewModel.token.collectAsStateWithLifecycle()
     LaunchedEffect(isTokenDeletionInProgress, token) {
         if (isTokenDeletionInProgress && token.isNullOrEmpty()) {
             delay(2000)
@@ -520,6 +472,6 @@ fun getUserImagePainter(user: User?): AsyncImagePainter {
     return if (user?.image == null) {
         rememberAsyncImagePainter(model = R.drawable.default_profile_image)
     } else {
-        rememberAsyncImagePainter(model = Constant.Files_URL + user.image?.path)
+        rememberAsyncImagePainter(model = user.image?.url)
     }
 }

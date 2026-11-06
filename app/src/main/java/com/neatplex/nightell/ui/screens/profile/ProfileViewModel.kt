@@ -1,138 +1,65 @@
 package com.neatplex.nightell.ui.screens.profile
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neatplex.nightell.data.dto.Profile
-import com.neatplex.nightell.data.dto.UserUpdated
 import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.domain.model.Profile
 import com.neatplex.nightell.domain.usecase.PostUseCase
 import com.neatplex.nightell.domain.usecase.UserUseCase
-import com.neatplex.nightell.utils.IValidation
-import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.domain.util.Result
+import com.neatplex.nightell.ui.common.PagedListLoader
+import com.neatplex.nightell.ui.common.PagedState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class ProfileUiState(
+    val profile: Profile? = null,
+    val isLoading: Boolean = true,
+    val isRefreshing: Boolean = false,
+    val error: String? = null,
+)
+
+/** The signed-in user's own profile page. */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userUseCase: UserUseCase,
-    private val postUseCase: PostUseCase,
-    private val validation: IValidation
+    postUseCase: PostUseCase,
 ) : ViewModel() {
 
-    private val _profileData = MutableLiveData<Result<Profile>>()
-    val profileData: LiveData<Result<Profile>> get() = _profileData
+    private val _uiState = MutableStateFlow(ProfileUiState())
+    val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    private val _accountDeleteResult = MutableLiveData<Result<Unit>>()
-    val accountDeleteResult: LiveData<Result<Unit>> get() = _accountDeleteResult
+    private val postLoader = PagedListLoader(viewModelScope, Post::id) { lastId ->
+        val userId = _uiState.value.profile?.user?.id
+            ?: return@PagedListLoader Result.Failure("Profile not loaded")
+        postUseCase.loadUserPosts(userId, lastId)
+    }
+    val posts: StateFlow<PagedState<Post>> = postLoader.state
 
-    private val _usernameUpdatedData = MutableLiveData<Result<UserUpdated>>()
-    val usernameUpdatedData: LiveData<Result<UserUpdated>>
-        get() = _usernameUpdatedData
-
-    private val _profileNameUpdatedData = MutableLiveData<Result<UserUpdated>>()
-    val profileNameUpdatedData: LiveData<Result<UserUpdated>>
-        get() = _profileNameUpdatedData
-
-    private val _userBioUpdatedData = MutableLiveData<Result<UserUpdated>>()
-    val userBioUpdatedData: LiveData<Result<UserUpdated>>
-        get() = _userBioUpdatedData
-
-    private val _userImageUpdatedData = MutableLiveData<Result<UserUpdated>>()
-    val userImageUpdatedData: LiveData<Result<UserUpdated>>
-        get() = _userImageUpdatedData
-
-    private val _posts = MutableLiveData<List<Post>?>()
-    val posts: LiveData<List<Post>?> get() = _posts
-
-    var canLoadMore = true // Default to true for initial load
-
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
-
-    private val _isRefreshing = MutableLiveData<Boolean>()
-    val isRefreshing: LiveData<Boolean> get() = _isRefreshing
-
-    fun fetchProfile() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = userUseCase.profile()
-            _profileData.value = result
-            _isLoading.value = false
-        }
+    init {
+        refresh(showIndicator = false)
     }
 
-    fun updateProfileName(name: String){
+    /** Reloads the profile, then the user's posts. */
+    fun refresh(showIndicator: Boolean = true) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = userUseCase.changeProfileName(name)
-            _profileNameUpdatedData.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun refreshProfile(userId : Int) {
-        canLoadMore = true
-        _posts.value = emptyList() }
-
-    fun updateBioOfUser(bio: String){
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = userUseCase.changeProfileBio(bio)
-            _userBioUpdatedData.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun updateProfileImage(id: Int){
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = userUseCase.changeProfileImage(id)
-            _userImageUpdatedData.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun updateUsernameOfUser(username: String){
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = userUseCase.changeProfileUsername(username)
-            _usernameUpdatedData.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun loadPosts(userId : Int, lastPostId: Int?){
-        if (!canLoadMore) return
-
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = postUseCase.loadUserPosts(userId, lastPostId)
-            if (result is Result.Success) {
-                val posts = result.data ?: emptyList()
-                if (posts.size < 10) {
-                    canLoadMore = false
+            _uiState.update { it.copy(isLoading = true, isRefreshing = showIndicator, error = null) }
+            when (val result = userUseCase.profile()) {
+                is Result.Success -> {
+                    _uiState.value = ProfileUiState(profile = result.data, isLoading = false)
+                    postLoader.refresh()
                 }
-                _posts.value = _posts.value.orEmpty() + posts
-            } else {
-                _posts.value = emptyList()
+                is Result.Failure -> _uiState.update {
+                    it.copy(isLoading = false, isRefreshing = false, error = result.message)
+                }
             }
-            _isLoading.value = false
         }
     }
 
-    fun deleteAccount() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _accountDeleteResult.value = userUseCase.deleteAccount()
-            _isLoading.value = false
-        }
-    }
-
-    fun isValidUsername(username: String): Boolean {
-        return validation.isValidUsername(username)
-    }
+    fun loadMorePosts() = postLoader.loadNext()
 }

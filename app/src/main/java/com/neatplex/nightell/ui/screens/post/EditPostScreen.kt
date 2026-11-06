@@ -12,7 +12,6 @@ import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,7 +29,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
-import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.domain.util.Result
+import androidx.compose.runtime.LaunchedEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun EditPostScreen(
@@ -43,7 +44,10 @@ fun EditPostScreen(
     var editedDescription by remember { mutableStateOf(postDescription) }
     var titleError by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
-    val postViewModel: PostViewModel = hiltViewModel()
+    val editPostViewModel: EditPostViewModel = hiltViewModel()
+    val isSaving by editPostViewModel.isLoading.collectAsStateWithLifecycle()
+    val postUpdateResult by editPostViewModel.updateResult.collectAsStateWithLifecycle()
+    var saveError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = Modifier
@@ -125,23 +129,30 @@ fun EditPostScreen(
                 } else {
                     titleError = false
                     if (editedTitle != postTitle || editedDescription != postDescription) {
-                        postViewModel.updatePost(postId, editedTitle, editedDescription)
+                        // Stay on screen until the save finishes, so leaving doesn't cancel it.
+                        editPostViewModel.updatePost(postId, editedTitle, editedDescription)
+                    } else {
+                        navController.popBackStack()
                     }
-
-                    navController.popBackStack()
-
                 }
             },
-            text = "Save Changes"
+            text = if (isSaving) "Saving..." else "Save Changes"
         )
+
+        saveError?.let {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = it, color = Color.Red, fontSize = 12.sp)
+        }
     }
 
-    // Handle update result
-    val postUpdateResult by postViewModel.postUpdateResult.observeAsState()
-    postUpdateResult?.let {
-        if (it is Result.Success) {
-            // Close editing mode if update is successful
-            navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
+    LaunchedEffect(postUpdateResult) {
+        when (val result = postUpdateResult) {
+            is Result.Success -> {
+                navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
+                navController.popBackStack()
+            }
+            is Result.Failure -> saveError = result.message
+            null -> Unit
         }
     }
 }

@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -30,41 +29,40 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.ui.component.post.RecentPostCard
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.post.HomePostCard
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.theme.feelFree
+import com.neatplex.nightell.ui.navigation.Routes
 
 @Composable
 fun HomeScreen(
     navController: NavController,
     homeViewModel: HomeViewModel = hiltViewModel(),
-    sharedViewModel: SharedViewModel,
+    sessionViewModel: SessionViewModel,
 ) {
-    val feed by homeViewModel.feed.observeAsState(emptyList())
-    val isLoading by homeViewModel.isLoading.observeAsState(false)
-    val profileResult by homeViewModel.profileData.observeAsState()
+    val feedState by homeViewModel.feed.collectAsStateWithLifecycle()
+    val feed = feedState.items
+    val isLoading = feedState.isLoading
 
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry
         ?.savedStateHandle
-        ?.getLiveData<Boolean>("postChanged")?.observeAsState()
+        ?.getStateFlow("postChanged", false)
+        ?.collectAsStateWithLifecycle()
 
     LaunchedEffect(postChanged?.value) {
         if (postChanged?.value == true) {
-            navController.navigate("feed") {
-                popUpTo("feed") { inclusive = true }
-            }
+            homeViewModel.refresh(showIndicator = false)
             navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
         }
     }
 
     LaunchedEffect(Unit) {
-        homeViewModel.loadFeed()
-        homeViewModel.fetchProfile()
+        sessionViewModel.refreshCurrentUser()
     }
 
     AppTheme {
@@ -83,27 +81,20 @@ fun HomeScreen(
                     }
                 } else {
                     HomeContent(
-                        space,
-                        feed,
-                        isLoading,
-                        navController,
-                        sharedViewModel,
-                        homeViewModel
+                        space = space,
+                        feed = feed,
+                        isLoading = isLoading,
+                        isRefreshing = feedState.isRefreshing,
+                        canLoadMore = feedState.canLoadMore,
+                        navController = navController,
+                        onRefresh = { homeViewModel.refresh() },
+                        onLoadMore = homeViewModel::loadMore,
                     )
                 }
             }
         )
     }
 
-    profileResult?.let { result ->
-        when (result) {
-            is Result.Success -> {
-                result.data?.user?.let { sharedViewModel.setUser(it) }
-            }
-            else -> {
-            }
-        }
-    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -125,7 +116,7 @@ fun HomeTopBar(navController: NavController) {
                 )
             },
             actions = {
-                IconButton(onClick = { navController.navigate("bookmark") }) {
+                IconButton(onClick = { navController.navigate(Routes.BOOKMARKS) }) {
                     Icon(
                         painter = painterResource(R.drawable.bookmark),
                         contentDescription = "saved audio",
@@ -149,22 +140,15 @@ fun HomeContent(
     space: PaddingValues,
     feed: List<Post>,
     isLoading: Boolean,
+    isRefreshing: Boolean,
+    canLoadMore: Boolean,
     navController: NavController,
-    sharedViewModel: SharedViewModel,
-    homeViewModel: HomeViewModel,
+    onRefresh: () -> Unit,
+    onLoadMore: () -> Unit,
 ) {
-
-    var isRefreshing by remember { mutableStateOf(false) }
-
     val refreshState = rememberPullRefreshState(
         refreshing = isRefreshing,
-        onRefresh = {
-            isRefreshing = true
-            navController.navigate("feed") {
-                popUpTo("feed") { inclusive = true }
-            }
-            isRefreshing = false
-        }
+        onRefresh = onRefresh,
     )
 
     val lazyColumnState = rememberLazyListState()
@@ -204,8 +188,7 @@ fun HomeContent(
                 ) {
                     itemsIndexed(feed.take(3)) { _, post ->
                         RecentPostCard(post = post, isLoading = isLoading) { selectedPost ->
-                            sharedViewModel.setPost(selectedPost)
-                            navController.navigate("postScreen/${post.id}")
+                            navController.navigate(Routes.post(selectedPost.id))
                         }
                     }
                 }
@@ -217,11 +200,10 @@ fun HomeContent(
                 content = {
                     itemsIndexed(feed.drop(3)) { index, post ->
                         HomePostCard(post = post, isLoading = isLoading) { selectedPost ->
-                            sharedViewModel.setPost(selectedPost)
-                            navController.navigate("postScreen/${selectedPost.id}")
+                            navController.navigate(Routes.post(selectedPost.id))
                         }
-                        if (index == feed.drop(3).size - 1 && !isLoading && homeViewModel.canLoadMore) {
-                            homeViewModel.loadFeed()
+                        if (index == feed.drop(3).size - 1 && !isLoading && canLoadMore) {
+                            onLoadMore()
                         }
                     }
                     if (isLoading) {

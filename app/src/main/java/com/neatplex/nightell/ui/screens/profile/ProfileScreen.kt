@@ -25,7 +25,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,46 +44,47 @@ import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
 import com.neatplex.nightell.ui.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.utils.Result
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 import com.neatplex.nightell.ui.theme.AppTheme
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
     profileViewModel: ProfileViewModel = hiltViewModel(),
-    sharedViewModel: SharedViewModel,
+    sessionViewModel: SessionViewModel,
 ) {
-    val profileResult by profileViewModel.profileData.observeAsState()
-    val user = sharedViewModel.user.value
-    val posts by profileViewModel.posts.observeAsState(emptyList())
-    val isLoading by profileViewModel.isLoading.observeAsState(false)
-    var lastPostId by remember { mutableStateOf<Int?>(null) }
-    val isRefreshing by profileViewModel.isRefreshing.observeAsState(false)
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    val postsState by profileViewModel.posts.collectAsStateWithLifecycle()
+    val profile = uiState.profile
+    val user = profile?.user ?: sessionViewModel.currentUser.collectAsStateWithLifecycle().value
+    val posts = postsState.items
+    val isLoading = postsState.isLoading
     val imageResource = getUserImagePainter(user)
+
+    // Keep the app-wide current user in sync with the freshly loaded profile.
+    LaunchedEffect(profile?.user) {
+        profile?.user?.let(sessionViewModel::setCurrentUser)
+    }
 
     // Observe changes in the savedStateHandle
     val postChanged = navController.currentBackStackEntry
         ?.savedStateHandle
-        ?.getLiveData<Boolean>("postChanged")?.observeAsState()
+        ?.getStateFlow("postChanged", false)
+        ?.collectAsStateWithLifecycle()
 
     LaunchedEffect(postChanged?.value) {
         if (postChanged?.value == true) {
-            navController.navigate("profile") {
-                popUpTo("profile") { inclusive = true }
-            }
+            profileViewModel.refresh(showIndicator = false)
             navController.currentBackStackEntry?.savedStateHandle?.set("postChanged", false)
         }
     }
 
     val refreshState = rememberPullRefreshState(
-        refreshing = isRefreshing,
-        onRefresh = {
-            navController.navigate("profile") {
-                popUpTo("profile") { inclusive = true }
-            }
-        }
+        refreshing = uiState.isRefreshing,
+        onRefresh = { profileViewModel.refresh() }
     )
 
     AppTheme {
@@ -112,52 +112,36 @@ fun ProfileScreen(
                         .padding(space)
                         .pullRefresh(refreshState)
                 ) {
-                    if (user == null) {
-                        profileViewModel.fetchProfile()
-                        Text(text = "Check your internet connection quality and go to home screen!",
+                    if (profile == null && !uiState.isLoading) {
+                        Text(text = "Check your internet connection quality and pull to refresh!",
                             modifier = Modifier.padding(16.dp))
                     } else {
-                        // trigger the profile loading
-                        LaunchedEffect(Unit) {
-                            profileViewModel.fetchProfile()
-                            profileViewModel.loadPosts(user.id, lastPostId)
-                        }
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
                         ) {
-                            when (val result = profileResult) {
-                                is Result.Success -> {
-                                    val responsedUser = result.data?.user
-                                    val followers = result.data?.followers_count
-                                    val followings = result.data?.followings_count
-                                    if (responsedUser != null) {
-                                        ShowMyProfile(navController, responsedUser, followers!!, followings!!, imageResource)
-                                    }
-                                }
-                                is Result.Failure -> {
-                                    Text(
-                                        text = "Please refresh page!")
-                                }
-
-                                else -> {}
+                            if (profile != null) {
+                                ShowMyProfile(
+                                    navController,
+                                    profile.user,
+                                    profile.followersCount,
+                                    profile.followingsCount,
+                                    imageResource,
+                                )
                             }
                             Spacer(modifier = Modifier.height(16.dp))
                             LazyVerticalGrid(
                                 columns = GridCells.Fixed(2), // Define the number of columns
                                 modifier = Modifier.fillMaxSize(),
                             ) {
-                                itemsIndexed(posts!!) { index, post ->
+                                itemsIndexed(posts) { index, post ->
                                     ProfilePostCard(post = post, isLoading = isLoading) { selectedPost ->
                                         if (!isLoading) {
-                                            sharedViewModel.setPost(selectedPost)
-                                            navController.navigate(
-                                                "postScreen/${post.id}"
-                                            )
+                                            navController.navigate(Routes.post(selectedPost.id))
                                         }
                                     }
-                                    if (index == posts!!.size - 1 && !isLoading && profileViewModel.canLoadMore) {
-                                        profileViewModel.loadPosts(user.id, post.id)
+                                    if (index == posts.size - 1 && !isLoading && postsState.canLoadMore) {
+                                        profileViewModel.loadMorePosts()
                                     }
                                 }
                                 if (isLoading) {
@@ -212,7 +196,7 @@ fun ShowMyProfile(navController: NavController,
             ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
-                    navController.navigate("followerScreen/${user.id}")
+                    navController.navigate(Routes.followers(user.id))
                 }) {
                     Text(text = "Followers")
                 }
@@ -229,7 +213,7 @@ fun ShowMyProfile(navController: NavController,
             ) {
                 Row(modifier = Modifier.clickable {
                     // Navigate to another page when "Followers" is clicked
-                    navController.navigate("followingScreen/${user.id}")
+                    navController.navigate(Routes.followings(user.id))
                 }) {
                     Text(text = "Followings")
                 }
@@ -267,7 +251,7 @@ fun ShowMyProfile(navController: NavController,
 
             CustomSimpleButton(
                 onClick = {
-                    navController.navigate("editProfile") {
+                    navController.navigate(Routes.EDIT_PROFILE) {
                         launchSingleTop = true
                     }
                 },

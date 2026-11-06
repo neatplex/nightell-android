@@ -1,108 +1,85 @@
 package com.neatplex.nightell.ui.screens.auth
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neatplex.nightell.data.dto.AuthResponse
-import com.neatplex.nightell.data.dto.OtpResponseTtl
+import com.neatplex.nightell.domain.model.AuthSession
 import com.neatplex.nightell.domain.usecase.AuthUseCase
-import com.neatplex.nightell.utils.IValidation
-import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.domain.util.Result
+import com.neatplex.nightell.domain.util.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/** Sign in, sign up and email one-time-password flows. */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authUseCase: AuthUseCase,
-    private val validation: IValidation
+    private val validator: Validator,
 ) : ViewModel() {
 
-    private val _authResult = MutableLiveData<Result<AuthResponse>>()
-    val authResult: LiveData<Result<AuthResponse>> get() = _authResult
+    /** Result of the last sign-in/sign-up attempt; null before the first one. */
+    private val _authResult = MutableStateFlow<Result<AuthSession>?>(null)
+    val authResult: StateFlow<Result<AuthSession>?> = _authResult.asStateFlow()
 
-    private val _getOtpResult = MutableLiveData<Result<OtpResponseTtl>>()
-    val getOtpResult: LiveData<Result<OtpResponseTtl>> get() = _getOtpResult
+    /** Result of the last OTP request (its value is the code's lifetime in seconds). */
+    private val _otpResult = MutableStateFlow<Result<Int>?>(null)
+    val otpResult: StateFlow<Result<Int>?> = _otpResult.asStateFlow()
 
-    private val _timeLeft = MutableLiveData<Int>()
-    val timeLeft: LiveData<Int> get() = _timeLeft
+    /** Seconds left before the user may request another code. */
+    private val _timeLeft = MutableStateFlow(0)
+    val timeLeft: StateFlow<Int> = _timeLeft.asStateFlow()
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    fun registerUser(username: String, email: String, password: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _authResult.value = authUseCase.register(username, email, password)
-            _isLoading.value = false
-        }
-    }
+    private var timerJob: Job? = null
 
-    fun loginUser(emailOrUsername: String, password: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _authResult.value = authUseCase.login(emailOrUsername, password)
-            _isLoading.value = false
-        }
-    }
+    fun registerUser(username: String, email: String, password: String) =
+        authenticate { authUseCase.register(username, email, password) }
 
-    fun signInWithGoogle(idToken: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                val result = authUseCase.signInWithGoogle(idToken)
-                _authResult.value = result
-            } catch (e: Exception) {
-                _authResult.value = Result.Failure(e.localizedMessage ?: "An error occurred", e)
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+    fun loginUser(emailOrUsername: String, password: String) =
+        authenticate { authUseCase.login(emailOrUsername, password) }
+
+    fun signInWithGoogle(idToken: String) = authenticate { authUseCase.signInWithGoogle(idToken) }
+
+    fun verifyOtp(email: String, otp: String) = authenticate { authUseCase.verifyOtp(email, otp) }
 
     fun sendOtp(email: String) {
         viewModelScope.launch {
             _isLoading.value = true
             val result = authUseCase.sendOtp(email)
-            _getOtpResult.value = result
+            _otpResult.value = result
             _isLoading.value = false
-
-            if (result is Result.Success) {
-                startTimer(result.data!!.ttl)
-            }
+            if (result is Result.Success) startTimer(result.data)
         }
     }
 
-    private fun startTimer(ttl: Int) {
-        _timeLeft.value = ttl
-        viewModelScope.launch {
-            for (i in ttl downTo 0) {
-                _timeLeft.value = i
-                delay(1000L)
-            }
-        }
-    }
+    fun isValidEmail(email: String) = validator.isValidEmail(email)
 
-    fun verifyOtp(email: String, otp: String) {
+    fun isValidPassword(password: String) = validator.isValidPassword(password)
+
+    fun isValidUsername(username: String) = validator.isValidUsername(username)
+
+    private fun authenticate(block: suspend () -> Result<AuthSession>) {
         viewModelScope.launch {
             _isLoading.value = true
-            val result = authUseCase.verifyOtp(email, otp)
-            _authResult.value = result
+            _authResult.value = block()
             _isLoading.value = false
         }
     }
 
-    fun isValidEmail(email: String): Boolean {
-        return validation.isValidEmail(email)
-    }
-
-    fun isValidPassword(password: String): Boolean {
-        return validation.isValidPassword(password)
-    }
-
-    fun isValidUsername(username: String): Boolean {
-        return validation.isValidUsername(username)
+    private fun startTimer(seconds: Int) {
+        timerJob?.cancel()
+        timerJob = viewModelScope.launch {
+            for (left in seconds downTo 0) {
+                _timeLeft.value = left
+                delay(1_000L)
+            }
+        }
     }
 }

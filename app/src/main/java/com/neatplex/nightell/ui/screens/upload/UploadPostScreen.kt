@@ -1,6 +1,5 @@
 package com.neatplex.nightell.ui.screens.upload
 
-import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResultLauncher
@@ -29,10 +28,8 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -57,78 +54,54 @@ import com.neatplex.nightell.ui.component.widget.CustomBorderedButton
 import com.neatplex.nightell.ui.component.widget.CustomLinkButton
 import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
 import com.neatplex.nightell.ui.screens.post.sanitizeDescription
-import com.neatplex.nightell.ui.viewmodel.SharedViewModel
-import com.neatplex.nightell.utils.FileHandler
-import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 import kotlinx.coroutines.delay
+import com.neatplex.nightell.domain.model.FileType
+import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.ui.util.activityViewModelStoreOwner
+import com.neatplex.nightell.ui.util.getFileNameAndUri
+import com.neatplex.nightell.ui.util.getFileSize
+import com.neatplex.nightell.ui.util.uriToFile
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.navigation.Routes
 
-@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun AddPostScreen(
     navController: NavController,
-    sharedViewModel: SharedViewModel,
-    uploadViewModel: UploadViewModel = hiltViewModel(),
+    uploadViewModel: UploadViewModel = hiltViewModel(activityViewModelStoreOwner()),
 ) {
-    // Restore the current step from the SharedViewModel
-    var currentStep by rememberSaveable {
-        mutableStateOf(
-            sharedViewModel.currentUploadStep.value ?: 1
-        )
-    }
-
-    val uploadFileResults by uploadViewModel.uploadState.observeAsState()
-    val uploadPostResult by uploadViewModel.storePostResult.observeAsState()
-    val uploadPostIsLoading by uploadViewModel.isLoading.observeAsState(false)
-    val uploadFileIsLoading by uploadViewModel.isLoading.observeAsState(false)
-
-    // Use stored file names and IDs from SharedViewModel, or fallback to defaults
-    var selectedAudioName by remember {
-        mutableStateOf(
-            sharedViewModel.audioFileState.value?.fileName ?: ""
-        )
-    }
-    var selectedImageName by remember {
-        mutableStateOf(
-            sharedViewModel.imageFileState.value?.fileName ?: ""
-        )
-    }
-    var audioId by remember { mutableStateOf(sharedViewModel.audioFileState.value?.fileId ?: 0) }
-    var imageId by remember { mutableStateOf(sharedViewModel.imageFileState.value?.fileId) }
-
-    var title by rememberSaveable { mutableStateOf(sharedViewModel.postTitle.value ?: "") }
-    var description by rememberSaveable {
-        mutableStateOf(
-            sharedViewModel.postDescription.value ?: ""
-        )
-    }
-    var errorMessage by rememberSaveable { mutableStateOf("") }
-
+    val uiState by uploadViewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val fileHandler = remember { FileHandler(context, uploadViewModel) }
+
+    // Validates a picked file, copies it into the cache and uploads it.
+    fun onFilePicked(uri: Uri, type: FileType) {
+        val (fileName, _) = getFileNameAndUri(context, uri)
+        val name = fileName.orEmpty()
+        val error = uploadViewModel.validate(name, getFileSize(context, uri), type)
+        val file = if (error == null) uriToFile(context, uri) else null
+        if (file != null) {
+            uploadViewModel.uploadFile(file, name, type)
+        } else {
+            uploadViewModel.showError(error ?: "Could not read the selected file")
+        }
+    }
 
     val chooseAudioLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
-            result?.let { uri ->
-                fileHandler.handleAudioFile(uri,
-                    onSuccess = { fileName ->
-                        selectedAudioName = fileName
-                    },
-                    onError = { message -> errorMessage = message }
-                )
-            }
+            result?.let { onFilePicked(it, FileType.AUDIO) }
         }
 
     val chooseImageLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
-            result?.let { uri ->
-                fileHandler.handleImageFile(uri,
-                    onSuccess = { fileName ->
-                        selectedImageName = fileName
-                    },
-                    onError = { message -> errorMessage = message }
-                )
-            }
+            result?.let { onFilePicked(it, FileType.IMAGE) }
         }
+
+    LaunchedEffect(uiState.isPublished) {
+        if (uiState.isPublished) {
+            uploadViewModel.onPublishedHandled()
+            resetState(navController)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -150,110 +123,54 @@ fun AddPostScreen(
                     )
                     .background(Color.White, shape = RoundedCornerShape(24.dp))
             ) {
-                when (currentStep) {
+                when (uiState.step) {
                     1 -> AudioUploadStep(
-                        selectedAudioName = selectedAudioName,
+                        selectedAudioName = uiState.audio?.name.orEmpty(),
                         chooseAudioLauncher = chooseAudioLauncher,
-                        audioId = audioId,
-                        onNext = {
-                            if (audioId != 0) {
-                                currentStep = 2
-                                sharedViewModel.setCurrentStep(currentStep)
-                            }
-                        }
+                        audioId = uiState.audio?.id ?: 0,
+                        onNext = uploadViewModel::nextStep,
                     )
 
                     2 -> ImageUploadStep(
-                        selectedImageName = selectedImageName,
+                        selectedImageName = uiState.image?.name.orEmpty(),
                         chooseImageLauncher = chooseImageLauncher,
-                        imageId = imageId,
-                        onNext = {
-                            currentStep = 3
-                            sharedViewModel.setCurrentStep(currentStep)
-                        }
+                        imageId = uiState.image?.id,
+                        onNext = uploadViewModel::nextStep,
                     )
 
                     3 -> TitleAndCaptionStep(
-                        title = title,
-                        description = description,
-                        onTitleChange = {
-                            title = it
-                            sharedViewModel.setPostTitle(it)  // Persist title
-                        },
-                        onDescriptionChange = {
-                            description = it
-                            sharedViewModel.setPostDescription(it)  // Persist description
-                        },
-                        onSubmit = {
-                            if (audioId != 0) {
-                                if (description != "") description =
-                                    sanitizeDescription(description)
-                                uploadViewModel.uploadPost(title, description, audioId, imageId)
-                            }
-                        }
+                        title = uiState.title,
+                        description = uiState.description,
+                        onTitleChange = uploadViewModel::setTitle,
+                        onDescriptionChange = uploadViewModel::setDescription,
+                        onSubmit = { uploadViewModel.publish(::sanitizeDescription) },
                     )
-                }
-
-                // Handle upload results
-                when (val result = uploadFileResults) {
-                    is Result.Success -> {
-                        result.data?.let {
-                            if (it.file.extension.equals("MP3", ignoreCase = true)) {
-                                audioId = it.file.id
-                                sharedViewModel.setAudioFileState(audioId, selectedAudioName)
-                            } else if (it.file.extension.equals("JPG", ignoreCase = true)) {
-                                imageId = it.file.id
-                                sharedViewModel.setImageFileState(imageId, selectedImageName)
-                            }
-                        }
-                    }
-
-                    is Result.Failure -> {
-                        errorMessage = result.message
-                    }
-
-                    else -> {}
-                }
-
-                uploadPostResult?.let { result ->
-                    when (result) {
-                        is Result.Success -> {
-                            currentStep = 1
-                            sharedViewModel.setCurrentStep(currentStep)
-                            sharedViewModel.resetPostData()
-                            resetState(navController)
-                        }
-
-                        is Result.Failure -> {
-                            errorMessage = result.message
-                        }
-                    }
                 }
             }
 
             Row {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    ShowLoadingIndicator(isLoading = uploadPostIsLoading || uploadFileIsLoading)
+                    ShowLoadingIndicator(isLoading = uiState.isLoading)
 
-                    ShowErrorMessage(errorMessage = errorMessage) {
-                        errorMessage = ""
+                    ShowErrorMessage(errorMessage = uiState.error.orEmpty()) {
+                        uploadViewModel.clearError()
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    if (audioId != 0) {
+                    uiState.audio?.let {
                         UploadedFileRow(
                             iconId = R.drawable.baseline_audio_file_48,
-                            fileName = selectedAudioName
+                            fileName = it.name
                         )
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    if (imageId != null) {
+                    uiState.image?.let {
                         UploadedFileRow(
                             iconId = R.drawable.baseline_image_48,
-                            fileName = selectedImageName
+                            fileName = it.name
                         )
                     }
                 }
@@ -264,8 +181,8 @@ fun AddPostScreen(
 
 private fun resetState(navController: NavController) {
     navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
-    navController.navigate("addPost") {
-        popUpTo("addPost") { inclusive = true }
+    navController.navigate(Routes.ADD_POST) {
+        popUpTo(Routes.ADD_POST) { inclusive = true }
     }
 }
 

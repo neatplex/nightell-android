@@ -26,7 +26,6 @@ import coil.compose.rememberAsyncImagePainter
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.screens.profile.getUserImagePainter
-import com.neatplex.nightell.utils.Constant
 
 @Composable
 fun RecentPostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit) {
@@ -83,7 +82,7 @@ fun RecentPostCard(post: Post, isLoading: Boolean, onPostClicked: (Post) -> Unit
 
             Row {
                 val imageResource = if (post.image != null) {
-                    rememberAsyncImagePainter(model = Constant.Files_URL + post.image.path)
+                    rememberAsyncImagePainter(model = post.image.url)
                 } else {
                     rememberAsyncImagePainter(model = R.drawable.slider)
                 }

@@ -1,155 +1,160 @@
 package com.neatplex.nightell.ui.screens.post
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.neatplex.nightell.data.dto.CommentDetailResponse
-import com.neatplex.nightell.data.dto.Likes
-import com.neatplex.nightell.data.dto.PostDetailResponse
-import com.neatplex.nightell.data.dto.StoreLike
 import com.neatplex.nightell.domain.model.Comment
+import com.neatplex.nightell.domain.model.Post
+import com.neatplex.nightell.domain.repository.SessionRepository
 import com.neatplex.nightell.domain.usecase.CommentUseCase
 import com.neatplex.nightell.domain.usecase.LikeUseCase
 import com.neatplex.nightell.domain.usecase.PostUseCase
-import com.neatplex.nightell.utils.Result
+import com.neatplex.nightell.domain.usecase.SavedPostUseCase
+import com.neatplex.nightell.domain.util.Result
+import com.neatplex.nightell.ui.common.PagedListLoader
+import com.neatplex.nightell.ui.common.PagedState
+import com.neatplex.nightell.ui.navigation.Routes
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class PostUiState(
+    val post: Post? = null,
+    val currentUserId: Int? = null,
+    val isLoading: Boolean = true,
+    /** Message to show when the post couldn't be loaded. */
+    val loadError: String? = null,
+    val isLiked: Boolean = false,
+    val likeId: Int? = null,
+    val likesCount: Int = 0,
+    val isSaved: Boolean = false,
+    val isSendingComment: Boolean = false,
+    /** True once the post has been deleted; the screen should close. */
+    val isDeleted: Boolean = false,
+) {
+    val isOwnPost: Boolean get() = post != null && post.user.id == currentUserId
+}
+
+/** A single post with its likes, comments and bookmark state. The post id comes from the route. */
 @HiltViewModel
 class PostViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    sessionRepository: SessionRepository,
     private val postUseCase: PostUseCase,
     private val likeUseCase: LikeUseCase,
-    private val commentUseCase: CommentUseCase
+    private val commentUseCase: CommentUseCase,
+    private val savedPostUseCase: SavedPostUseCase,
 ) : ViewModel() {
 
-    private val _postDeleteResult = MutableLiveData<Result<Unit>>()
-    val postDeleteResult: LiveData<Result<Unit>> get() = _postDeleteResult
+    private val postId: Int = checkNotNull(savedStateHandle[Routes.ARG_POST_ID])
 
-    private val _deleteCommentResult = MutableLiveData<Result<Int>>()
-    val deleteCommentResult: LiveData<Result<Int>> get() = _deleteCommentResult
+    private val _uiState = MutableStateFlow(PostUiState(currentUserId = sessionRepository.currentUserId()))
+    val uiState: StateFlow<PostUiState> = _uiState.asStateFlow()
 
-    private val _getCommentsResult = MutableLiveData<List<Comment>>()
-    val getCommentsResult: LiveData<List<Comment>> get() = _getCommentsResult
+    private val commentLoader = PagedListLoader(viewModelScope, Comment::id) { lastId ->
+        commentUseCase.getPostComments(postId, lastId)
+    }
+    val comments: StateFlow<PagedState<Comment>> = commentLoader.state
 
-    private val _sendCommentResult = MutableLiveData<Result<CommentDetailResponse>>()
-    val sendCommentResult: LiveData<Result<CommentDetailResponse>> get() = _sendCommentResult
-
-    private val _postDetailResult = MutableLiveData<Result<PostDetailResponse>>()
-    val postDetailResult: LiveData<Result<PostDetailResponse>> get() = _postDetailResult
-
-    private val _postUpdateResult = MutableLiveData<Result<PostDetailResponse>>()
-    val postUpdateResult: LiveData<Result<PostDetailResponse>> get() = _postUpdateResult
-
-    private val _likeResult = MutableLiveData<Result<StoreLike>>()
-    val likeResult: LiveData<Result<StoreLike>> get() = _likeResult
-
-    private val _unlikeResult = MutableLiveData<Result<Unit>>()
-    val unlikeResult: LiveData<Result<Unit>> get() = _unlikeResult
-
-    private val _showLikesResult = MutableLiveData<Result<Likes>>()
-    val showLikesResult: LiveData<Result<Likes>> get() = _showLikesResult
-
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> get() = _isLoading
-
-    private val _isCommentLoading = MutableLiveData<Boolean>()
-    val isCommentLoading: LiveData<Boolean> get() = _isCommentLoading
-
-    private val _isFetching = MutableLiveData<Boolean>()
-    val isFetching: LiveData<Boolean> get() = _isFetching
-
-    private var lastCommentId: Int? = null
-    var canLoadMore = true
-
-    fun updatePost(postId: Int, newTitle: String, newDescription: String) {
+    init {
+        loadPost()
+        loadLikes()
+        commentLoader.refresh()
         viewModelScope.launch {
-            _isLoading.value = true
-            _postUpdateResult.value = postUseCase.editPost(postId, newTitle, newDescription)
-            _isLoading.value = false
+            val saved = savedPostUseCase.isSaved(postId)
+            _uiState.update { it.copy(isSaved = saved) }
         }
     }
 
-    fun getPostDetail(postId: Int) {
+    fun loadPost() {
         viewModelScope.launch {
-            _isFetching.value = true
-            _postDetailResult.value = postUseCase.getPostDetail(postId)
-            _isFetching.value = false
-        }
-    }
-
-    fun deletePost(postId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            _postDeleteResult.value = postUseCase.deletePost(postId)
-            _isLoading.value = false
-        }
-    }
-
-    fun like(postId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = likeUseCase.like(postId)
-            _likeResult.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun showLikes(postId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = likeUseCase.showLikes(postId)
-            _showLikesResult.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun deleteLike(likeId: Int) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = likeUseCase.deleteLike(likeId)
-            _unlikeResult.value = result
-            _isLoading.value = false
-        }
-    }
-
-    fun getComments(postId: Int, lastCommentId: Int? = null) {
-        if (!canLoadMore) return
-        viewModelScope.launch {
-            _isCommentLoading.value = true
-            val result = commentUseCase.getPostComments(postId, lastCommentId)
-            if (result is Result.Success) {
-                val comments = result.data ?: emptyList()
-                _getCommentsResult.value = comments
-                if (comments.size < 10) {
-                    canLoadMore = false
+            _uiState.update { it.copy(isLoading = true, loadError = null) }
+            when (val result = postUseCase.getPostDetail(postId)) {
+                is Result.Success -> _uiState.update { it.copy(post = result.data, isLoading = false) }
+                is Result.Failure -> _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        loadError = if (result.code == 404) "Post not found" else "Something went wrong",
+                    )
                 }
-            } else {
-                _getCommentsResult.value = emptyList() // In case of error, clear the comments
             }
-            _isCommentLoading.value = false
+        }
+    }
+
+    private fun loadLikes() {
+        viewModelScope.launch {
+            val result = likeUseCase.getLikes(postId)
+            if (result is Result.Success) {
+                val myLike = result.data.find { it.userId == _uiState.value.currentUserId }
+                _uiState.update {
+                    it.copy(likesCount = result.data.size, isLiked = myLike != null, likeId = myLike?.id)
+                }
+            }
+        }
+    }
+
+    /** Likes or unlikes. The UI updates at once and rolls back if the request fails. */
+    fun toggleLike() {
+        val state = _uiState.value
+        if (state.isLiked) {
+            val likeId = state.likeId ?: return // the like request hasn't returned yet
+            _uiState.update { it.copy(isLiked = false, likeId = null, likesCount = it.likesCount - 1) }
+            viewModelScope.launch {
+                if (likeUseCase.unlike(likeId) is Result.Failure) {
+                    _uiState.update { it.copy(isLiked = true, likeId = likeId, likesCount = it.likesCount + 1) }
+                }
+            }
+        } else {
+            _uiState.update { it.copy(isLiked = true, likesCount = it.likesCount + 1) }
+            viewModelScope.launch {
+                when (val result = likeUseCase.like(postId)) {
+                    is Result.Success -> _uiState.update { it.copy(likeId = result.data.id) }
+                    is Result.Failure -> _uiState.update {
+                        it.copy(isLiked = false, likesCount = it.likesCount - 1)
+                    }
+                }
+            }
+        }
+    }
+
+    fun toggleSaved() {
+        val post = _uiState.value.post ?: return
+        val save = !_uiState.value.isSaved
+        _uiState.update { it.copy(isSaved = save) }
+        viewModelScope.launch {
+            if (save) savedPostUseCase.save(post) else savedPostUseCase.remove(post.id)
+        }
+    }
+
+    fun loadMoreComments() = commentLoader.loadNext()
+
+    fun sendComment(text: String) {
+        if (text.isBlank()) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSendingComment = true) }
+            val result = commentUseCase.postComment(postId, text)
+            if (result is Result.Success) commentLoader.updateItems { listOf(result.data) + it }
+            _uiState.update { it.copy(isSendingComment = false) }
         }
     }
 
     fun deleteComment(commentId: Int) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = commentUseCase.deleteComment(commentId)
-            if (result is Result.Success) {
-                _deleteCommentResult.value = Result.Success(commentId)
-            } else {
-                _deleteCommentResult.value = result as Result<Int>
+            if (commentUseCase.deleteComment(commentId) is Result.Success) {
+                commentLoader.updateItems { comments -> comments.filterNot { it.id == commentId } }
             }
-            _isLoading.value = false
         }
     }
 
-    fun sendComment(postId: Int, comment: String) {
+    fun deletePost() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _sendCommentResult.value = commentUseCase.postComment(postId, comment)
-            _isLoading.value = false
+            if (postUseCase.deletePost(postId) is Result.Success) {
+                _uiState.update { it.copy(isDeleted = true) }
+            }
         }
     }
 }
