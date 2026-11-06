@@ -94,6 +94,10 @@ class UploadViewModel @Inject constructor(
         }
     }
 
+    fun previousStep() {
+        _uiState.update { it.copy(step = (it.step - 1).coerceAtLeast(1), error = null) }
+    }
+
     fun setTitle(title: String) = _uiState.update { it.copy(title = title) }
 
     fun setDescription(description: String) = _uiState.update { it.copy(description = description) }

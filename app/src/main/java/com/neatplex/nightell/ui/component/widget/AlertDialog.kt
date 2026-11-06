@@ -4,44 +4,22 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 
+/** A confirmation dialog in the app theme. */
 @Composable
 fun AlertDialogCustom(
     onDismissRequest: () -> Unit,
     onConfirmation: () -> Unit,
     dialogTitle: String,
     dialogText: String,
+    confirmText: String = "Confirm",
+    dismissText: String = "Cancel",
 ) {
     AlertDialog(
-        title = {
-            Text(text = dialogTitle)
-        },
-        text = {
-            Text(text = dialogText)
-        },
-        onDismissRequest = {
-            onDismissRequest()
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirmation()
-                }
-            ) {
-                Text("Confirm")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onDismissRequest()
-                }
-            ) {
-                Text("Dismiss")
-            }
-        },
-        containerColor = Color.White
+        onDismissRequest = onDismissRequest,
+        title = { Text(dialogTitle) },
+        text = { Text(dialogText) },
+        confirmButton = { TextButton(onClick = onConfirmation) { Text(confirmText) } },
+        dismissButton = { TextButton(onClick = onDismissRequest) { Text(dismissText) } },
     )
 }
-

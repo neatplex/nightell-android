@@ -1,60 +1,48 @@
 package com.neatplex.nightell.ui.component.user
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Card
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.neatplex.nightell.domain.model.User
-import com.neatplex.nightell.ui.screens.profile.getUserImagePainter
+import com.neatplex.nightell.ui.component.common.UserAvatar
 
+/** A user row: avatar, display name and handle. */
 @Composable
 fun UserCard(user: User, onUserClicked: (User) -> Unit) {
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(all = 8.dp)
-            .clickable {
-                onUserClicked(user)
-            },
-        elevation = 0.dp
+            .clickable { onUserClicked(user) }
+            .padding(horizontal = 20.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(all = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val imageResource = getUserImagePainter(user)
-
-            Image(
-                painter = imageResource,
-                contentDescription = "Profile Image",
-                modifier = Modifier
-                    .size(46.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
+        UserAvatar(user, size = 48.dp)
+        Spacer(Modifier.width(14.dp))
+        Column {
+            Text(
+                text = user.name.ifBlank { user.username },
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-
-            Column(modifier = Modifier.padding(start = 16.dp)) {
-                Text(
-                    text = user.username
-                )
-                Text(
-                    text = user.name
-                )
-            }
+            Text(
+                text = "@${user.username}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
     }
 }

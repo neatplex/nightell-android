@@ -1,15 +1,23 @@
 package com.neatplex.nightell.ui.screens.profile
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import com.neatplex.nightell.ui.component.widget.ErrorBanner
+import androidx.compose.material.icons.automirrored.rounded.ExitToApp
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material3.MaterialTheme
+import com.neatplex.nightell.ui.component.common.AppTopBar
+import com.neatplex.nightell.ui.component.common.SectionHeader
+import com.neatplex.nightell.ui.component.widget.LoadingOverlay
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,18 +28,10 @@ import androidx.navigation.NavController
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.widget.AlertDialogCustom
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
@@ -101,199 +101,140 @@ fun EditProfileScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.my_profile)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {
-                        showSignOutDialog = true
-                    }) {
-                        Icon(
-                            painter = painterResource(R.drawable.logout),
-                            contentDescription = "saved audio",
-                            tint = Color.Black,
-                            modifier = Modifier
-                                .size(26.dp)
-                                .align(Alignment.CenterVertically) // Align icon vertically
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent, // Transparent to use the Box's background
-                )
+        topBar = { AppTopBar(title = stringResource(R.string.my_profile), onBack = { navController.popBackStack() }) },
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { space ->
+        Column(
+            modifier = Modifier
+                .padding(space)
+                .fillMaxSize()
+                .imePadding()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            ProfileImageWithUploadIcon(
+                user = user,
+                isUploading = ProfileField.IMAGE in uiState.saving,
+                onClick = { chooseImage("image/*") },
             )
-        },
-        content = { space ->
-            if (isSigningOut || uiState.isDeletingAccount) {
-                CustomCircularProgressIndicator()
-            } else {
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(space)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .padding(vertical = 16.dp, horizontal = 16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        ProfileImageWithUploadIcon(
-                            imageResource = imageResource, // Dummy resource
-                            chooseImageLauncher = {
-                                chooseImage("image/*")
-                            }
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        Text(resultErrorMessage, color = colorResource(id = R.color.purple_light), fontSize = 17.sp)
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        EditProfileTextFieldWithValidation(
-                            label = "Username",
-                            value = editedUsername,
-                            onValueChange = {
-                                editedUsername = it
-                                isUsernameChanged = true
-                            },
-                            isChanged = isUsernameChanged,
-                            errorText = getUserNameErrorMessage(editedUsername),
-                            isValid = editedUsername.isNotEmpty() && profileViewModel.isValidUsername(
-                                editedUsername
-                            ),
-                            onSaveClicked = {
-                                if (isUsernameChanged && editedUsername.length >= 5) {
-                                    profileViewModel.updateUsername(editedUsername)
-                                    isUsernameChanged = false
-                                } else {
-                                    errorMessage = "Username shouldn't be less than 5 characters."
-                                }
-                            },
-                            length = 75,
-                            singleLine = true,
-                            imeAction = ImeAction.Next,
-                            height = 65,
-                            isLoading = ProfileField.USERNAME in uiState.saving,
-                            isSuccess = false
-                        )
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Text fields to edit name, bio, and username
-                        EditProfileTextFieldWithValidation(
-                            label = "Name",
-                            value = editedName,
-                            onValueChange = {
-                                editedName = it
-                                isNameChanged = true
-                            },
-                            isChanged = isNameChanged,
-                            onSaveClicked = {
-                                if (isNameChanged) {
-                                    profileViewModel.updateName(editedName)
-                                    isNameChanged = false
-                                }
-                            },
-                            errorText = "",
-                            length = 75,
-                            singleLine = true,
-                            isValid = editedName.length <= 75,
-                            imeAction = ImeAction.Next,
-                            height = 65,
-                            isLoading = ProfileField.NAME in uiState.saving,
-                            isSuccess = false
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        EditProfileTextFieldWithValidation(
-                            label = "Bio",
-                            value = editedBio,
-                            onValueChange = {
-                                editedBio = it
-                                isBioChanged = true
-                            },
-                            isChanged = isBioChanged,
-                            onSaveClicked = {
-                                if (isBioChanged) {
-                                    val sanitizedBio = sanitizeDescription(editedBio)
-                                    profileViewModel.updateBio(sanitizedBio)
-                                    isBioChanged = false
-                                }
-                            },
-                            errorText = "",
-                            length = 156,
-                            singleLine = false,
-                            isValid = editedBio.length <= 156,
-                            imeAction = ImeAction.Default,
-                            height = 200,
-                            isLoading = ProfileField.BIO in uiState.saving,
-                            isSuccess = false
-                        )
-
-                        Spacer(modifier = Modifier.height(32.dp))
-
-                        Text(
-                            buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color.DarkGray
-                                    )
-                                ) {
-                                    append("Do you want to delete your account? ")
-                                }
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = colorResource(id = R.color.blue_light),
-                                        textDecoration = TextDecoration.Underline
-                                    )
-                                ) {
-                                    append("Delete Account")
-                                }
-                            },
-                            modifier = Modifier
-                                .clickable {
-                                    showDeleteAccountDialog = true
-                                },
-                            fontSize = 13.sp
-                        )
-
-                        if (showSignOutDialog) {
-                            AlertDialogCustom(
-                                onDismissRequest = {
-                                    showSignOutDialog = false
-                                },
-                                dialogTitle = "Sign Out!",
-                                dialogText = "Are you sure you want to sign out?",
-                                onConfirmation = {
-                                    // MainActivity restarts into sign-in once the session is cleared.
-                                    isSigningOut = true
-                                    showSignOutDialog = false
-                                    sessionViewModel.signOut()
-                                })
-                        }
-
-                        if (showDeleteAccountDialog) {
-                            AlertDialogCustom(
-                                onDismissRequest = {
-                                    showDeleteAccountDialog = false
-                                },
-                                dialogTitle = "Delete Account!",
-                                dialogText = "Are you sure you want to delete your account?",
-                                onConfirmation = {
-                                    showDeleteAccountDialog = false
-                                    profileViewModel.deleteAccount()
-                                })
-                        }
-                    }
-                }
+            Spacer(Modifier.height(24.dp))
+            if (resultErrorMessage.isNotEmpty()) {
+                ErrorBanner(resultErrorMessage, modifier = Modifier.padding(bottom = 16.dp))
             }
+
+            EditProfileTextFieldWithValidation(
+                label = "Username",
+                value = editedUsername,
+                onValueChange = {
+                    editedUsername = it
+                    isUsernameChanged = true
+                },
+                isChanged = isUsernameChanged,
+                errorText = getUserNameErrorMessage(editedUsername),
+                isValid = editedUsername.isNotEmpty() && profileViewModel.isValidUsername(editedUsername),
+                onSaveClicked = {
+                    profileViewModel.updateUsername(editedUsername)
+                    isUsernameChanged = false
+                },
+                length = 75,
+                singleLine = true,
+                imeAction = ImeAction.Next,
+                height = 56,
+                isLoading = ProfileField.USERNAME in uiState.saving,
+                isSuccess = false
+            )
+            Spacer(Modifier.height(8.dp))
+            EditProfileTextFieldWithValidation(
+                label = "Name",
+                value = editedName,
+                onValueChange = {
+                    editedName = it
+                    isNameChanged = true
+                },
+                isChanged = isNameChanged,
+                onSaveClicked = {
+                    profileViewModel.updateName(editedName)
+                    isNameChanged = false
+                },
+                errorText = "",
+                length = 75,
+                singleLine = true,
+                isValid = editedName.length <= 75,
+                imeAction = ImeAction.Next,
+                height = 56,
+                isLoading = ProfileField.NAME in uiState.saving,
+                isSuccess = false
+            )
+            Spacer(Modifier.height(8.dp))
+            EditProfileTextFieldWithValidation(
+                label = "Bio",
+                value = editedBio,
+                onValueChange = {
+                    editedBio = it
+                    isBioChanged = true
+                },
+                isChanged = isBioChanged,
+                onSaveClicked = {
+                    profileViewModel.updateBio(sanitizeDescription(editedBio))
+                    isBioChanged = false
+                },
+                errorText = "",
+                length = 156,
+                singleLine = false,
+                isValid = editedBio.length <= 156,
+                imeAction = ImeAction.Default,
+                height = 140,
+                isLoading = ProfileField.BIO in uiState.saving,
+                isSuccess = false
+            )
+
+            SectionHeader("Account", Modifier.align(Alignment.Start).padding(start = 0.dp))
+            AccountAction(
+                icon = Icons.AutoMirrored.Rounded.ExitToApp,
+                title = "Sign out",
+                onClick = { showSignOutDialog = true },
+            )
+            AccountAction(
+                icon = Icons.Rounded.Delete,
+                title = "Delete account",
+                subtitle = "Permanently remove your account and stories",
+                isDestructive = true,
+                onClick = { showDeleteAccountDialog = true },
+            )
+            Spacer(Modifier.height(24.dp))
         }
-    )
+    }
+
+    if (isSigningOut || uiState.isDeletingAccount) {
+        LoadingOverlay()
+    }
+
+    if (showSignOutDialog) {
+        AlertDialogCustom(
+            onDismissRequest = { showSignOutDialog = false },
+            dialogTitle = "Sign out?",
+            dialogText = "You can sign back in any time.",
+            confirmText = "Sign out",
+            onConfirmation = {
+                // MainActivity restarts into sign-in once the session is cleared.
+                isSigningOut = true
+                showSignOutDialog = false
+                sessionViewModel.signOut()
+            },
+        )
+    }
+
+    if (showDeleteAccountDialog) {
+        AlertDialogCustom(
+            onDismissRequest = { showDeleteAccountDialog = false },
+            dialogTitle = "Delete your account?",
+            dialogText = "Your profile and stories will be removed for good. This can't be undone.",
+            confirmText = "Delete",
+            onConfirmation = {
+                showDeleteAccountDialog = false
+                profileViewModel.deleteAccount()
+            },
+        )
+    }
 }

@@ -1,15 +1,27 @@
 package com.neatplex.nightell.ui.screens.post
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextButton
+import com.neatplex.nightell.ui.component.common.SectionHeader
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Icon
+import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -24,15 +36,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Send
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.domain.model.Comment
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.ui.component.comment.CommentCard
-import com.neatplex.nightell.ui.theme.AppTheme
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.common.PagedState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -94,90 +103,121 @@ fun PostContent(
     val menuExpanded = remember { mutableStateOf(false) }
     var commentText by remember { mutableStateOf("") }
 
-    AppTheme {
-        Scaffold(
-            topBar = {
-                PostTopBar(
+    Scaffold(
+        topBar = {
+            PostTopBar(
+                navController = navController,
+                post = post,
+                isOwnPost = uiState.isOwnPost,
+                isSaved = uiState.isSaved,
+                menuExpanded = menuExpanded,
+                onToggleSaved = postViewModel::toggleSaved,
+                onDelete = postViewModel::deletePost,
+            )
+        },
+        bottomBar = {
+            CommentComposer(
+                text = commentText,
+                onTextChange = { commentText = it },
+                isSending = uiState.isSendingComment,
+                onSend = {
+                    postViewModel.sendComment(commentText)
+                    commentText = ""
+                },
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background,
+    ) { space ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(top = space.calculateTopPadding(), bottom = space.calculateBottomPadding() + 16.dp),
+        ) {
+            item { PostImage(post) }
+            item {
+                PostDetails(
                     navController = navController,
                     post = post,
-                    isOwnPost = uiState.isOwnPost,
-                    isSaved = uiState.isSaved,
-                    menuExpanded = menuExpanded,
-                    onToggleSaved = postViewModel::toggleSaved,
-                    onDelete = postViewModel::deletePost,
+                    currentUserId = uiState.currentUserId,
+                    likesCount = uiState.likesCount,
+                    isLiked = uiState.isLiked,
+                    onLikeClick = postViewModel::toggleLike,
+                    mediaViewModel = mediaViewModel,
                 )
-            },
-            content = { space ->
-                Box(modifier = Modifier
-                    .padding(space)
-                    .verticalScroll(rememberScrollState())) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        PostImage(post)
-                        PostDetails(
-                            navController = navController,
-                            post = post,
-                            currentUserId = uiState.currentUserId,
-                            likesCount = uiState.likesCount,
-                            isLiked = uiState.isLiked,
-                            onLikeClick = postViewModel::toggleLike,
-                            mediaViewModel = mediaViewModel,
-                        )
-
-                        PostDescription(post.title, post.description ?: "")
-
-                        comments.items.forEach { comment ->
-                            CommentCard(
-                                comment = comment,
-                                userId = uiState.currentUserId ?: -1,
-                                onDeleteClick = postViewModel::deleteComment,
-                            )
-                        }
-
-                        if (comments.isLoading) {
-                            CustomCircularProgressIndicator()
-                        } else if (comments.canLoadMore && comments.items.isNotEmpty()) {
-                            Text(
-                                text = "Load more",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { postViewModel.loadMoreComments() }
-                                    .padding(16.dp),
-                                color = Color.Gray,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            },
-            bottomBar = {
-                Row {
-                    OutlinedTextField(
-                        value = commentText,
-                        onValueChange = { commentText = it },
-                        label = { Text("Add a comment") },
-                        trailingIcon = {
-                            IconButton(
-                                enabled = !uiState.isSendingComment,
-                                onClick = {
-                                    if (commentText.isNotBlank()) {
-                                        postViewModel.sendComment(commentText)
-                                        commentText = ""
-                                    }
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Rounded.Send,
-                                    contentDescription = "send message"
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
+            }
+            item { PostDescription(post.title, post.description.orEmpty()) }
+            item {
+                SectionHeader(
+                    if (post.commentsCount > 0) "Comments · ${post.commentsCount}" else "Comments",
+                )
+            }
+            if (comments.items.isEmpty() && !comments.isLoading) {
+                item {
+                    Text(
+                        "No comments yet. Be the first to say something nice.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                     )
                 }
             }
-        )
+            items(comments.items, key = { it.id }) { comment ->
+                CommentCard(
+                    comment = comment,
+                    userId = uiState.currentUserId ?: -1,
+                    onDeleteClick = postViewModel::deleteComment,
+                )
+            }
+            item {
+                if (comments.isLoading) {
+                    CustomCircularProgressIndicator()
+                } else if (comments.canLoadMore && comments.items.isNotEmpty()) {
+                    TextButton(
+                        onClick = postViewModel::loadMoreComments,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                    ) { Text("Show more comments") }
+                }
+            }
+        }
+    }
+}
+
+/** A rounded comment box pinned above the keyboard. */
+@Composable
+private fun CommentComposer(
+    text: String,
+    onTextChange: (String) -> Unit,
+    isSending: Boolean,
+    onSend: () -> Unit,
+) {
+    Surface(color = MaterialTheme.colorScheme.surfaceContainer, tonalElevation = 2.dp) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .imePadding()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextField(
+                value = text,
+                onValueChange = onTextChange,
+                placeholder = { Text("Add a comment…") },
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.extraLarge,
+                maxLines = 4,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+            )
+            Spacer(Modifier.width(8.dp))
+            FilledIconButton(onClick = onSend, enabled = text.isNotBlank() && !isSending) {
+                Icon(Icons.AutoMirrored.Rounded.Send, contentDescription = "Send comment")
+            }
+        }
     }
 }
