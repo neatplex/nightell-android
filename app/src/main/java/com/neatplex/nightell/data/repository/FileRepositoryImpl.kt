@@ -4,6 +4,7 @@ import com.neatplex.nightell.data.mapper.toDomain
 import com.neatplex.nightell.data.remote.api.ApiService
 import com.neatplex.nightell.data.remote.apiCall
 import com.neatplex.nightell.domain.model.FileType
+import com.neatplex.nightell.domain.model.LocalFile
 import com.neatplex.nightell.domain.model.MediaFile
 import com.neatplex.nightell.domain.repository.FileRepository
 import com.neatplex.nightell.domain.util.Result
@@ -16,8 +17,8 @@ import javax.inject.Inject
 
 class FileRepositoryImpl @Inject constructor(private val api: ApiService) : FileRepository {
 
-    override suspend fun upload(file: File, type: FileType): Result<MediaFile> {
-        val body = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+    override suspend fun upload(file: LocalFile, type: FileType): Result<MediaFile> {
+        val body = File(file.path).asRequestBody("multipart/form-data".toMediaTypeOrNull())
         val filePart = MultipartBody.Part.createFormData("file", file.name, body)
         val extensionPart = type.apiExtension.toRequestBody("text/plain".toMediaTypeOrNull())
         return apiCall({ api.uploadFile(filePart, extensionPart) }) { it.file.toDomain() }

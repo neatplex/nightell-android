@@ -15,10 +15,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import com.neatplex.nightell.domain.util.Result
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,11 +33,11 @@ import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.OtpTextField
 import com.neatplex.nightell.ui.component.widget.TextFieldWithValidation
 import com.neatplex.nightell.ui.navigation.MainDestinations
-import com.neatplex.nightell.ui.screens.profile.ProfileViewModel
 import com.neatplex.nightell.ui.theme.myLinearGradiant
 import com.neatplex.nightell.ui.screens.profile.EditProfileViewModel
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.screens.profile.EditProfileEvent
+import com.neatplex.nightell.ui.common.ObserveAsEvents
 
 @Composable
 fun OtpVerificationScreen(
@@ -88,11 +86,11 @@ fun Step1(
     onNext: () -> Unit
 ) {
     val isEmailValid = authViewModel.isValidEmail(email)
-    val getOtpResult by authViewModel.otpResult.collectAsStateWithLifecycle()
-    val isLoading by authViewModel.isLoading.collectAsStateWithLifecycle()
+    val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
 
-    LaunchedEffect(getOtpResult) {
-        if (getOtpResult is Result.Success) onNext()
+    ObserveAsEvents(authViewModel.events) { event ->
+        if (event is AuthEvent.OtpSent) onNext()
     }
 
     Column(
@@ -131,7 +129,7 @@ fun Step1(
             text = stringResource(R.string.send_code)
         )
 
-        if (getOtpResult is Result.Failure) {
+        if (uiState.otpSendFailed) {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 stringResource(id = R.string.something_went_wrong_please_try_again),
@@ -154,14 +152,15 @@ fun Step2(
     onNext: () -> Unit,
     onComplete: () -> Unit
 ) {
-    val isLoading by authViewModel.isLoading.collectAsStateWithLifecycle()
-    val timeLeft by authViewModel.timeLeft.collectAsStateWithLifecycle()
-    val authResult by authViewModel.authResult.collectAsStateWithLifecycle()
+    val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
+    val timeLeft = uiState.otpSecondsLeft
 
-    LaunchedEffect(authResult) {
-        val session = (authResult as? Result.Success)?.data ?: return@LaunchedEffect
-        // New accounts get their email as username; offer to change it.
-        if (session.user.username == email) onNext() else onComplete()
+    ObserveAsEvents(authViewModel.events) { event ->
+        if (event is AuthEvent.SignedIn) {
+            // New accounts get their email as username; offer to change it.
+            if (event.session.user.username == email) onNext() else onComplete()
+        }
     }
 
     Column(
@@ -206,7 +205,7 @@ fun Step2(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        if (authResult is Result.Failure) {
+        if (uiState.authError != null) {
             Spacer(modifier = Modifier.height(24.dp))
             Text(
                 text = stringResource(id = R.string.the_verification_code_is_invalid_or_has_expired),
@@ -227,11 +226,11 @@ fun Step3(
     onComplete: () -> Unit
 ) {
     var username by rememberSaveable { mutableStateOf("") }
-    val usernameUpdatedData by profileViewModel.usernameResult.collectAsStateWithLifecycle()
-    val isLoading by profileViewModel.isLoading.collectAsStateWithLifecycle()
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    val isLoading = uiState.isBusy
 
-    LaunchedEffect(usernameUpdatedData) {
-        if (usernameUpdatedData is Result.Success) onComplete()
+    ObserveAsEvents(profileViewModel.events) { event ->
+        if (event is EditProfileEvent.Saved) onComplete()
     }
 
     Column(
@@ -277,9 +276,9 @@ fun Step3(
             text = stringResource(R.string.skip_for_now)
         )
 
-        (usernameUpdatedData as? Result.Failure)?.let {
+        uiState.error?.let { message ->
             Spacer(modifier = Modifier.height(24.dp))
-            Text("Error: ${it.message}", color = colorResource(id = R.color.purple_light))
+            Text("Error: $message", color = colorResource(id = R.color.purple_light))
         }
     }
 

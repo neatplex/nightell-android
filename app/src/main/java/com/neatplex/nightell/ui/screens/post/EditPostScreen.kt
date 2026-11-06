@@ -29,9 +29,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.widget.CustomSimpleButton
-import com.neatplex.nightell.domain.util.Result
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.common.ObserveAsEvents
 
 @Composable
 fun EditPostScreen(
@@ -45,9 +44,16 @@ fun EditPostScreen(
     var titleError by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
     val editPostViewModel: EditPostViewModel = hiltViewModel()
-    val isSaving by editPostViewModel.isLoading.collectAsStateWithLifecycle()
-    val postUpdateResult by editPostViewModel.updateResult.collectAsStateWithLifecycle()
-    var saveError by remember { mutableStateOf<String?>(null) }
+    val uiState by editPostViewModel.uiState.collectAsStateWithLifecycle()
+
+    ObserveAsEvents(editPostViewModel.events) { event ->
+        when (event) {
+            EditPostEvent.Saved -> {
+                navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
+                navController.popBackStack()
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -136,23 +142,12 @@ fun EditPostScreen(
                     }
                 }
             },
-            text = if (isSaving) "Saving..." else "Save Changes"
+            text = if (uiState.isSaving) "Saving..." else "Save Changes"
         )
 
-        saveError?.let {
+        uiState.error?.let {
             Spacer(modifier = Modifier.height(8.dp))
             Text(text = it, color = Color.Red, fontSize = 12.sp)
-        }
-    }
-
-    LaunchedEffect(postUpdateResult) {
-        when (val result = postUpdateResult) {
-            is Result.Success -> {
-                navController.previousBackStackEntry?.savedStateHandle?.set("postChanged", true)
-                navController.popBackStack()
-            }
-            is Result.Failure -> saveError = result.message
-            null -> Unit
         }
     }
 }

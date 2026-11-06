@@ -55,12 +55,12 @@ fun SignUpScreen(
     navController: NavController,
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
-    val authResultState by authViewModel.authResult.collectAsStateWithLifecycle()
+    val uiState by authViewModel.uiState.collectAsStateWithLifecycle()
     var email by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    val isLoading by authViewModel.isLoading.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
 
 
     SignUpContent(
@@ -86,7 +86,7 @@ fun SignUpScreen(
         iSignUpInProgress = isLoading
     )
     // Handle authentication result
-    authResultState?.let { AuthResult(it, navController, isLoading) }
+    AuthResult(authViewModel, uiState, navController)
 }
 
 @Composable

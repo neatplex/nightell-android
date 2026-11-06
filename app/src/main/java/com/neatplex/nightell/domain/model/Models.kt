@@ -1,7 +1,5 @@
 package com.neatplex.nightell.domain.model
 
-import java.util.Date
-
 /**
  * Domain models. These are plain Kotlin classes with no dependency on the
  * network (Gson/Retrofit), the database (Room) or Android.
@@ -49,7 +47,8 @@ data class Comment(
     val postId: Int,
     val user: User,
     val text: String,
-    val createdAt: Date,
+    /** When the comment was written, in milliseconds since the epoch. */
+    val createdAtMillis: Long,
 )
 
 /** The signed-in user's own profile. */
@@ -79,6 +78,14 @@ data class SavedPost(
     val title: String,
     val ownerName: String,
     val imageUrl: String?,
+)
+
+/** A file on the device, ready to upload. */
+data class LocalFile(
+    /** Absolute path of a readable copy of the file. */
+    val path: String,
+    /** The original file name, e.g. "story.mp3". */
+    val name: String,
 )
 
 enum class FileType(val apiExtension: String) {

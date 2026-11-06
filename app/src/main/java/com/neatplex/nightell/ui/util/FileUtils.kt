@@ -6,7 +6,7 @@ import android.provider.OpenableColumns
 import java.io.File
 import java.io.FileOutputStream
 
-fun getFileNameAndUri(context: Context, uri: Uri): Pair<String?, Uri?> {
+internal fun getFileNameAndUri(context: Context, uri: Uri): Pair<String?, Uri?> {
     var fileName: String? = null
     var mainUri: Uri? = null
     context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
@@ -19,7 +19,7 @@ fun getFileNameAndUri(context: Context, uri: Uri): Pair<String?, Uri?> {
     return Pair(fileName, mainUri)
 }
 
-fun uriToFile(context: Context, uri: Uri): File? {
+internal fun uriToFile(context: Context, uri: Uri): File? {
     val inputStream = context.contentResolver.openInputStream(uri)
     val tempFile = File.createTempFile("temp_file", null, context.cacheDir)
     tempFile.deleteOnExit()
@@ -31,7 +31,7 @@ fun uriToFile(context: Context, uri: Uri): File? {
     return tempFile
 }
 
-fun getFileSize(context: Context, uri: Uri): Long {
+internal fun getFileSize(context: Context, uri: Uri): Long {
     var fileSize: Long = 0
     context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
         if (cursor.moveToFirst()) {

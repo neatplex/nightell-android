@@ -2,17 +2,17 @@ package com.neatplex.nightell.domain
 
 import com.google.common.truth.Truth.assertThat
 import com.neatplex.nightell.domain.model.FileType
+import com.neatplex.nightell.domain.model.LocalFile
 import com.neatplex.nightell.domain.model.MediaFile
 import com.neatplex.nightell.domain.repository.FileRepository
 import com.neatplex.nightell.domain.usecase.FileUseCase
 import com.neatplex.nightell.domain.util.Result
 import org.junit.Test
-import java.io.File
 
 class FileUseCaseTest {
 
     private val useCase = FileUseCase(object : FileRepository {
-        override suspend fun upload(file: File, type: FileType): Result<MediaFile> = error("not used")
+        override suspend fun upload(file: LocalFile, type: FileType): Result<MediaFile> = error("not used")
     })
     private val mb = 1024L * 1024
 

@@ -4,6 +4,7 @@ import com.neatplex.nightell.domain.model.AuthSession
 import com.neatplex.nightell.domain.model.Comment
 import com.neatplex.nightell.domain.model.FileType
 import com.neatplex.nightell.domain.model.Like
+import com.neatplex.nightell.domain.model.LocalFile
 import com.neatplex.nightell.domain.model.MediaFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.Profile
@@ -13,7 +14,6 @@ import com.neatplex.nightell.domain.model.UserProfile
 import com.neatplex.nightell.domain.util.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import java.io.File
 
 /*
  * Repository contracts. The domain layer owns these interfaces; the data layer
@@ -73,7 +73,7 @@ interface UserRepository {
 }
 
 interface FileRepository {
-    suspend fun upload(file: File, type: FileType): Result<MediaFile>
+    suspend fun upload(file: LocalFile, type: FileType): Result<MediaFile>
 }
 
 interface SavedPostRepository {

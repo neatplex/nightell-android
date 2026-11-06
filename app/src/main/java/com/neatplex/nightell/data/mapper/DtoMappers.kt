@@ -17,7 +17,6 @@ import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.Profile
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.model.UserProfile
-import java.util.Date
 
 /* Conversions from API DTOs to domain models. */
 
@@ -62,7 +61,7 @@ fun CommentDto.toDomain() = Comment(
     postId = postId ?: 0,
     user = user.toDomain(),
     text = text.orEmpty(),
-    createdAt = createdAt ?: Date(),
+    createdAtMillis = createdAt?.time ?: System.currentTimeMillis(),
 )
 
 fun AuthResponse.toDomain() = AuthSession(token = token, user = user.toDomain())

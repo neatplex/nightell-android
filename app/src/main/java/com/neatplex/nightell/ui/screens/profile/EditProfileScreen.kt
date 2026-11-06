@@ -1,14 +1,5 @@
 package com.neatplex.nightell.ui.screens.profile
 
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,10 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,9 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -46,24 +33,17 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberAsyncImagePainter
-import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
 import com.neatplex.nightell.ui.component.widget.AlertDialogCustom
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.EditProfileTextFieldWithValidation
-import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.ui.screens.auth.getUserNameErrorMessage
 import com.neatplex.nightell.ui.screens.post.sanitizeDescription
-import com.neatplex.nightell.ui.screens.upload.UploadViewModel
-import com.neatplex.nightell.domain.util.Result
 import com.neatplex.nightell.ui.viewmodel.SessionViewModel
-import com.neatplex.nightell.ui.util.getFileNameAndUri
-import com.neatplex.nightell.ui.util.getFileSize
-import com.neatplex.nightell.ui.util.uriToFile
 import kotlinx.coroutines.delay
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.common.ObserveAsEvents
+import com.neatplex.nightell.ui.util.rememberFilePicker
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,21 +54,8 @@ fun EditProfileScreen(
 ) {
     val currentUser by sessionViewModel.currentUser.collectAsStateWithLifecycle()
     val user = currentUser ?: return
-    val updateProfileNameResult by profileViewModel.nameResult.collectAsStateWithLifecycle()
-    val updateUsernameResult by profileViewModel.usernameResult.collectAsStateWithLifecycle()
-    val updateProfileBioResult by profileViewModel.bioResult.collectAsStateWithLifecycle()
-    val updateProfileImageResult by profileViewModel.imageResult.collectAsStateWithLifecycle()
-    val uploadFileResults by profileViewModel.imageUploadResult.collectAsStateWithLifecycle()
-    val deleteProfileResult by profileViewModel.deleteAccountResult.collectAsStateWithLifecycle()
-
-    var isNameLoading by remember { mutableStateOf(false) }
-    var isNameSuccess by remember { mutableStateOf(false) }
-
-    var isUsernameLoading by remember { mutableStateOf(false) }
-    var isUsernameSuccess by remember { mutableStateOf(false) }
-
-    var isBioLoading by remember { mutableStateOf(false) }
-    var isBioSuccess by remember { mutableStateOf(false) }
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+    val resultErrorMessage = uiState.error.orEmpty()
 
     // State for edited fields
     var editedName by remember { mutableStateOf(user.name) }
@@ -99,10 +66,7 @@ fun EditProfileScreen(
     var showSignOutDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
 
-    var resultErrorMessage by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf("") }
-
-    var selectedImage by remember { mutableStateOf<Uri?>(null) }
 
     // Track changes in fields
     var isNameChanged by remember { mutableStateOf(false) }
@@ -116,22 +80,27 @@ fun EditProfileScreen(
 
     val imageResource = getUserImagePainter(user)
 
-    val chooseImageLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { result: Uri? ->
-            result?.let { imageUri ->
-                val (fileName, mainUri) = getFileNameAndUri(context, imageUri)
-                selectedImage = mainUri
-                val fileSize = getFileSize(context, imageUri)
-                val error = profileViewModel.validateImage(fileName.orEmpty(), fileSize)
-                val file = if (error == null) uriToFile(context, imageUri) else null
-                if (file != null) {
-                    resultErrorMessage = ""
-                    profileViewModel.uploadProfileImage(file)
-                } else {
-                    resultErrorMessage = error ?: "Could not read the selected image"
-                }
+    val chooseImage = rememberFilePicker { picked ->
+        profileViewModel.onImageChosen(picked.name, picked.sizeBytes, picked::toLocalFile)
+    }
+
+    ObserveAsEvents(profileViewModel.events) { event ->
+        when (event) {
+            is EditProfileEvent.Saved -> sessionViewModel.setCurrentUser(event.user)
+            // Put back the value that is still saved on the server.
+            is EditProfileEvent.SaveFailed -> when (event.field) {
+                ProfileField.NAME -> editedName = user.name
+                ProfileField.BIO -> editedBio = user.bio
+                ProfileField.USERNAME -> editedUsername = user.username
+                ProfileField.IMAGE -> Unit
+            }
+            // The use case has already cleared the session.
+            EditProfileEvent.AccountDeleted -> {
+                sessionViewModel.signOut()
+                isTokenDeletionInProgress = true
             }
         }
+    }
 
     Scaffold(
         topBar = {
@@ -180,7 +149,7 @@ fun EditProfileScreen(
                         ProfileImageWithUploadIcon(
                             imageResource = imageResource, // Dummy resource
                             chooseImageLauncher = {
-                                chooseImageLauncher.launch("image/*")
+                                chooseImage("image/*")
                             }
                         )
 
@@ -204,7 +173,6 @@ fun EditProfileScreen(
                             ),
                             onSaveClicked = {
                                 if (isUsernameChanged && editedUsername.length >= 5) {
-                                    isUsernameLoading = true
                                     profileViewModel.updateUsername(editedUsername)
                                     isUsernameChanged = false
                                 } else {
@@ -215,8 +183,8 @@ fun EditProfileScreen(
                             singleLine = true,
                             imeAction = ImeAction.Next,
                             height = 65,
-                            isLoading = isUsernameLoading,
-                            isSuccess = isUsernameSuccess
+                            isLoading = ProfileField.USERNAME in uiState.saving,
+                            isSuccess = false
                         )
 
                         Spacer(modifier = Modifier.height(16.dp))
@@ -232,7 +200,6 @@ fun EditProfileScreen(
                             isChanged = isNameChanged,
                             onSaveClicked = {
                                 if (isNameChanged) {
-                                    isNameLoading = true
                                     profileViewModel.updateName(editedName)
                                     isNameChanged = false
                                 }
@@ -243,8 +210,8 @@ fun EditProfileScreen(
                             isValid = editedName.length <= 75,
                             imeAction = ImeAction.Next,
                             height = 65,
-                            isLoading = isNameLoading,
-                            isSuccess = isNameSuccess
+                            isLoading = ProfileField.NAME in uiState.saving,
+                            isSuccess = false
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         EditProfileTextFieldWithValidation(
@@ -257,7 +224,6 @@ fun EditProfileScreen(
                             isChanged = isBioChanged,
                             onSaveClicked = {
                                 if (isBioChanged) {
-                                    isBioLoading = true
                                     val sanitizedBio = sanitizeDescription(editedBio)
                                     profileViewModel.updateBio(sanitizedBio)
                                     isBioChanged = false
@@ -269,8 +235,8 @@ fun EditProfileScreen(
                             isValid = editedBio.length <= 156,
                             imeAction = ImeAction.Default,
                             height = 200,
-                            isLoading = isBioLoading,
-                            isSuccess = isBioSuccess
+                            isLoading = ProfileField.BIO in uiState.saving,
+                            isSuccess = false
                         )
 
                         Spacer(modifier = Modifier.height(32.dp))
@@ -331,77 +297,6 @@ fun EditProfileScreen(
         }
     )
 
-    // React to each action's result once, when it changes.
-    LaunchedEffect(uploadFileResults) {
-        (uploadFileResults as? Result.Failure)?.let { resultErrorMessage = it.message }
-    }
-
-    LaunchedEffect(updateProfileImageResult) {
-        when (val result = updateProfileImageResult) {
-            is Result.Success -> sessionViewModel.setCurrentUser(result.data)
-            is Result.Failure -> resultErrorMessage = result.message
-            null -> Unit
-        }
-    }
-
-    LaunchedEffect(updateProfileNameResult) {
-        val result = updateProfileNameResult ?: return@LaunchedEffect
-        isNameLoading = false
-        when (result) {
-            is Result.Success -> {
-                sessionViewModel.setCurrentUser(result.data)
-                resultErrorMessage = ""
-            }
-            is Result.Failure -> {
-                resultErrorMessage = result.message
-                editedName = user.name
-            }
-        }
-    }
-
-    LaunchedEffect(updateUsernameResult) {
-        val result = updateUsernameResult ?: return@LaunchedEffect
-        isUsernameLoading = false
-        when (result) {
-            is Result.Success -> {
-                sessionViewModel.setCurrentUser(result.data)
-                resultErrorMessage = ""
-            }
-            is Result.Failure -> {
-                resultErrorMessage = result.message
-                editedUsername = user.username
-            }
-        }
-    }
-
-    LaunchedEffect(updateProfileBioResult) {
-        val result = updateProfileBioResult ?: return@LaunchedEffect
-        isBioLoading = false
-        when (result) {
-            is Result.Success -> {
-                sessionViewModel.setCurrentUser(result.data)
-                resultErrorMessage = ""
-            }
-            is Result.Failure -> {
-                resultErrorMessage = result.message
-                editedBio = user.bio
-            }
-        }
-    }
-
-    LaunchedEffect(deleteProfileResult) {
-        when (val result = deleteProfileResult) {
-            // The use case has already cleared the session.
-            is Result.Success -> {
-                sessionViewModel.signOut()
-                isTokenDeletionInProgress = true
-                showSignOutDialog = false
-            }
-            is Result.Failure -> resultErrorMessage = result.message
-            null -> Unit
-        }
-    }
-
     // Restart the app once the token is gone.
     val token by sessionViewModel.token.collectAsStateWithLifecycle()
     LaunchedEffect(isTokenDeletionInProgress, token) {
@@ -409,69 +304,5 @@ fun EditProfileScreen(
             delay(2000)
             signOut(context)
         }
-    }
-}
-
-fun signOut(context: Context) {
-
-    // Restart the application
-    val intent = Intent(context, MainActivity::class.java)
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-    context.startActivity(intent)
-
-    if (context is ComponentActivity) {
-        context.finish()
-    }
-}
-
-
-@Composable
-fun ProfileImageWithUploadIcon(
-    imageResource: AsyncImagePainter,
-    chooseImageLauncher: () -> Unit
-) {
-    Box(
-        modifier = Modifier.size(120.dp).clickable {
-            chooseImageLauncher()
-        }
-    ) {
-        // Profile Image
-        Image(
-            painter = imageResource,
-            contentDescription = "Profile Image",
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-
-        // Upload Icon in a Circle at the Bottom Right
-        Box(
-            modifier = Modifier
-                .size(32.dp)  // Size of the circular icon container
-                .clip(CircleShape)
-                .background(Color.White)
-                .align(Alignment.BottomEnd)
-                .border(1.dp, Color.LightGray, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Create,
-                contentDescription = "Upload Icon",
-                tint = Color.Gray,  // Set the color of the upload icon
-                modifier = Modifier
-                    .size(20.dp) // Size of the upload icon itself
-                    .align(Alignment.Center)
-            )
-        }
-    }
-}
-
-
-@Composable
-fun getUserImagePainter(user: User?): AsyncImagePainter {
-    return if (user?.image == null) {
-        rememberAsyncImagePainter(model = R.drawable.default_profile_image)
-    } else {
-        rememberAsyncImagePainter(model = user.image?.url)
     }
 }

@@ -19,8 +19,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +36,6 @@ import com.neatplex.nightell.ui.component.post.ProfilePostCard
 import com.neatplex.nightell.domain.model.UserProfile
 import com.neatplex.nightell.ui.screens.profile.getUserImagePainter
 import com.neatplex.nightell.ui.theme.AppTheme
-import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neatplex.nightell.ui.navigation.Routes
 

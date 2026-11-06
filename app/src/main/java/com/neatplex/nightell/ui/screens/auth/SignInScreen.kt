@@ -47,12 +47,10 @@ import com.neatplex.nightell.ui.component.widget.CustomBorderedCircleButton
 import com.neatplex.nightell.ui.component.widget.CustomCircularProgressIndicator
 import com.neatplex.nightell.ui.component.widget.ErrorText
 import com.neatplex.nightell.ui.component.widget.OutlinedTextFieldWithIcon
-import com.neatplex.nightell.domain.model.AuthSession
 import com.neatplex.nightell.ui.theme.myLinearGradiant
-import com.neatplex.nightell.domain.util.Result
 import com.neatplex.nightell.ui.navigation.MainDestinations
-import androidx.compose.runtime.LaunchedEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.neatplex.nightell.ui.common.ObserveAsEvents
 
 @Composable
 fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltViewModel()) {
@@ -60,9 +58,9 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     var emailOrUsername by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    val authResultState by viewModel.authResult.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
+    val isLoading = uiState.isLoading
 
     val oneTapSignInClient = remember {
         Identity.getSignInClient(context)
@@ -134,7 +132,7 @@ fun SignInScreen(navController: NavController, viewModel: AuthViewModel = hiltVi
     )
 
     // Handle authentication result
-    authResultState?.let { AuthResult(it, navController, isLoading) }
+    AuthResult(viewModel, uiState, navController)
 }
 
 @Composable
@@ -237,29 +235,29 @@ fun SignInContent(
     }
 }
 
+/** Navigates on successful sign-in and shows the error after a failed one. */
 @Composable
 fun AuthResult(
-    authResultState: Result<AuthSession>,
+    viewModel: AuthViewModel,
+    uiState: AuthUiState,
     navController: NavController,
-    isLoading: Boolean
 ) {
-    // Navigate once per successful result, not on every recomposition.
-    LaunchedEffect(authResultState) {
-        if (authResultState is Result.Success) {
+    ObserveAsEvents(viewModel.events) { event ->
+        if (event is AuthEvent.SignedIn) {
             navController.navigate(MainDestinations.Main.route) {
                 popUpTo(0) { inclusive = true }
             }
         }
     }
 
-    val errorMessage = when (authResultState) {
-        is Result.Failure -> when (authResultState.code) {
-            401 -> stringResource(R.string.your_username_or_password_is_incorrect)
-            422 -> authResultState.message
-            else -> stringResource(R.string.something_went_wrong_please_try_again)
-        }
-        is Result.Success -> null
+    val error = uiState.authError
+    val errorMessage = when {
+        error == null -> null
+        error.code == 401 -> stringResource(R.string.your_username_or_password_is_incorrect)
+        error.code == 422 -> error.message
+        else -> stringResource(R.string.something_went_wrong_please_try_again)
     }
+    val isLoading = uiState.isLoading
 
     if (errorMessage != null && !isLoading) {
         Box(

@@ -1,10 +1,10 @@
 package com.neatplex.nightell.domain.usecase
 
 import com.neatplex.nightell.domain.model.FileType
+import com.neatplex.nightell.domain.model.LocalFile
 import com.neatplex.nightell.domain.model.MediaFile
 import com.neatplex.nightell.domain.repository.FileRepository
 import com.neatplex.nightell.domain.util.Result
-import java.io.File
 import javax.inject.Inject
 
 /** Checks a file against the upload rules, then uploads it. */
@@ -30,7 +30,7 @@ class FileUseCase @Inject constructor(private val fileRepository: FileRepository
         }
     }
 
-    suspend fun upload(file: File, type: FileType): Result<MediaFile> =
+    suspend fun upload(file: LocalFile, type: FileType): Result<MediaFile> =
         fileRepository.upload(file, type)
 
     private companion object {

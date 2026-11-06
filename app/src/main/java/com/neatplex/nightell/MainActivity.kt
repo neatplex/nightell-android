@@ -10,18 +10,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
-import com.neatplex.nightell.service.ServiceManager
 import com.neatplex.nightell.ui.navigation.AppNavHost
 import com.neatplex.nightell.ui.viewmodel.ConnectivityViewModel
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.SessionViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject lateinit var serviceManager: ServiceManager
 
     private val mediaViewModel: MediaViewModel by viewModels()
     private val connectivityViewModel: ConnectivityViewModel by viewModels()
@@ -65,6 +61,6 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         // onDestroy also runs on rotation; only stop playback when the activity is really closing.
-        if (isFinishing) serviceManager.stopMediaService()
+        if (isFinishing) mediaViewModel.stop()
     }
 }

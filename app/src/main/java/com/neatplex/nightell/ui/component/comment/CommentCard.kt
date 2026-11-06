@@ -76,7 +76,7 @@ fun CommentCard(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Text(
-                        text = getTimeAgo(comment.createdAt),
+                        text = getTimeAgo(comment.createdAtMillis),
                         color = Color.Gray,
                         fontSize = 12.sp
                     )

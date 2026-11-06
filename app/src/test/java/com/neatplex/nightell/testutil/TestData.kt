@@ -6,7 +6,6 @@ import com.neatplex.nightell.domain.model.MediaFile
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.model.UserProfile
-import java.util.Date
 
 fun user(id: Int = 1, username: String = "user$id", email: String = "user$id@example.com") = User(
     id = id,
@@ -35,7 +34,7 @@ fun posts(ids: IntRange, owner: User = user()) = ids.map { post(it, owner) }
 
 fun like(id: Int, userId: Int, postId: Int) = Like(id = id, userId = userId, postId = postId, createdAt = "")
 
-fun comment(id: Int, postId: Int = 1) = Comment(id = id, postId = postId, user = user(), text = "c$id", createdAt = Date(0))
+fun comment(id: Int, postId: Int = 1) = Comment(id = id, postId = postId, user = user(), text = "c$id", createdAtMillis = 0L)
 
 fun userProfile(userId: Int, followedByMe: Boolean = false, followers: Int = 10) = UserProfile(
     user = user(userId),

@@ -8,12 +8,36 @@ import com.neatplex.nightell.domain.util.Result
 import com.neatplex.nightell.domain.util.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+/** Why signing in failed, so the screen can pick the right wording. */
+data class AuthError(val message: String, val code: Int?)
+
+data class AuthUiState(
+    val isLoading: Boolean = false,
+    val authError: AuthError? = null,
+    /** True when sending the one-time code failed. */
+    val otpSendFailed: Boolean = false,
+    /** Seconds left before the user may request another code. */
+    val otpSecondsLeft: Int = 0,
+)
+
+sealed interface AuthEvent {
+    /** The user is signed in. */
+    data class SignedIn(val session: AuthSession) : AuthEvent
+
+    /** A one-time code was sent by email. */
+    data object OtpSent : AuthEvent
+}
 
 /** Sign in, sign up and email one-time-password flows. */
 @HiltViewModel
@@ -22,20 +46,11 @@ class AuthViewModel @Inject constructor(
     private val validator: Validator,
 ) : ViewModel() {
 
-    /** Result of the last sign-in/sign-up attempt; null before the first one. */
-    private val _authResult = MutableStateFlow<Result<AuthSession>?>(null)
-    val authResult: StateFlow<Result<AuthSession>?> = _authResult.asStateFlow()
+    private val _uiState = MutableStateFlow(AuthUiState())
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
-    /** Result of the last OTP request (its value is the code's lifetime in seconds). */
-    private val _otpResult = MutableStateFlow<Result<Int>?>(null)
-    val otpResult: StateFlow<Result<Int>?> = _otpResult.asStateFlow()
-
-    /** Seconds left before the user may request another code. */
-    private val _timeLeft = MutableStateFlow(0)
-    val timeLeft: StateFlow<Int> = _timeLeft.asStateFlow()
-
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val _events = Channel<AuthEvent>(Channel.BUFFERED)
+    val events: Flow<AuthEvent> = _events.receiveAsFlow()
 
     private var timerJob: Job? = null
 
@@ -51,11 +66,15 @@ class AuthViewModel @Inject constructor(
 
     fun sendOtp(email: String) {
         viewModelScope.launch {
-            _isLoading.value = true
-            val result = authUseCase.sendOtp(email)
-            _otpResult.value = result
-            _isLoading.value = false
-            if (result is Result.Success) startTimer(result.data)
+            _uiState.update { it.copy(isLoading = true, otpSendFailed = false) }
+            when (val result = authUseCase.sendOtp(email)) {
+                is Result.Success -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    _events.send(AuthEvent.OtpSent)
+                    startTimer(result.data)
+                }
+                is Result.Failure -> _uiState.update { it.copy(isLoading = false, otpSendFailed = true) }
+            }
         }
     }
 
@@ -67,9 +86,16 @@ class AuthViewModel @Inject constructor(
 
     private fun authenticate(block: suspend () -> Result<AuthSession>) {
         viewModelScope.launch {
-            _isLoading.value = true
-            _authResult.value = block()
-            _isLoading.value = false
+            _uiState.update { it.copy(isLoading = true, authError = null) }
+            when (val result = block()) {
+                is Result.Success -> {
+                    _uiState.update { it.copy(isLoading = false) }
+                    _events.send(AuthEvent.SignedIn(result.data))
+                }
+                is Result.Failure -> _uiState.update {
+                    it.copy(isLoading = false, authError = AuthError(result.message, result.code))
+                }
+            }
         }
     }
 
@@ -77,7 +103,7 @@ class AuthViewModel @Inject constructor(
         timerJob?.cancel()
         timerJob = viewModelScope.launch {
             for (left in seconds downTo 0) {
-                _timeLeft.value = left
+                _uiState.update { it.copy(otpSecondsLeft = left) }
                 delay(1_000L)
             }
         }

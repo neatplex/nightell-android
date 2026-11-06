@@ -1,14 +1,9 @@
 package com.neatplex.nightell.ui.util
 
 import java.time.Duration
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.util.Date
 
-fun getTimeAgo(date: Date): String {
-    val now = LocalDateTime.now()
-    val commentTime = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
-    val duration = Duration.between(commentTime, now)
+fun getTimeAgo(epochMillis: Long, nowMillis: Long = System.currentTimeMillis()): String {
+    val duration = Duration.ofMillis(nowMillis - epochMillis)
 
     return when {
         duration.toDays() > 0 -> "${duration.toDays()} days ago"

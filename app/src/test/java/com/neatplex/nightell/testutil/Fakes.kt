@@ -2,16 +2,22 @@ package com.neatplex.nightell.testutil
 
 import com.neatplex.nightell.domain.model.AuthSession
 import com.neatplex.nightell.domain.model.Comment
+import com.neatplex.nightell.domain.model.FileType
+import com.neatplex.nightell.domain.model.LocalFile
+import com.neatplex.nightell.domain.model.MediaFile
 import com.neatplex.nightell.domain.model.Like
 import com.neatplex.nightell.domain.model.Post
 import com.neatplex.nightell.domain.model.Profile
 import com.neatplex.nightell.domain.model.SavedPost
 import com.neatplex.nightell.domain.model.User
 import com.neatplex.nightell.domain.model.UserProfile
+import com.neatplex.nightell.domain.repository.AudioPlayer
 import com.neatplex.nightell.domain.repository.AuthRepository
 import com.neatplex.nightell.domain.repository.CommentRepository
+import com.neatplex.nightell.domain.repository.FileRepository
 import com.neatplex.nightell.domain.repository.FollowRepository
 import com.neatplex.nightell.domain.repository.LikeRepository
+import com.neatplex.nightell.domain.repository.PlaybackState
 import com.neatplex.nightell.domain.repository.PostRepository
 import com.neatplex.nightell.domain.repository.SavedPostRepository
 import com.neatplex.nightell.domain.repository.SessionRepository
@@ -138,4 +144,40 @@ class FakeSavedPostRepository : SavedPostRepository {
     override suspend fun isSaved(postId: Int) = postId in saved.value
     override suspend fun save(post: SavedPost) { saved.value = saved.value + (post.id to post) }
     override suspend fun remove(postId: Int) { saved.value = saved.value - postId }
+}
+
+class FakeFileRepository : FileRepository {
+    var result: Result<MediaFile> = Result.Success(MediaFile(id = 77, url = "https://files/x.jpg", extension = "JPG"))
+    val uploaded = mutableListOf<LocalFile>()
+
+    override suspend fun upload(file: LocalFile, type: FileType): Result<MediaFile> {
+        uploaded += file
+        return result
+    }
+}
+
+/** A configurable [UserRepository] for profile-editing tests. */
+class FakeEditableUserRepository : UserRepository by FakeUserRepository() {
+    var updateResult: Result<User> = Result.Success(user(1))
+    var imageIdSet: Int? = null
+
+    override suspend fun updateName(name: String) = updateResult
+    override suspend fun updateBio(bio: String) = updateResult
+    override suspend fun updateUsername(username: String) = updateResult
+    override suspend fun updateImage(imageId: Int) = updateResult.also { imageIdSet = imageId }
+}
+
+class FakeAudioPlayer : AudioPlayer {
+    private val _state = MutableStateFlow(PlaybackState())
+    override val state: StateFlow<PlaybackState> = _state
+    val calls = mutableListOf<String>()
+
+    fun emit(state: PlaybackState) { _state.value = state }
+
+    override fun play(post: Post) { calls += "play:${post.id}" }
+    override fun togglePlayPause() { calls += "toggle" }
+    override fun seekBack() { calls += "back" }
+    override fun seekForward() { calls += "forward" }
+    override fun seekTo(fraction: Float) { calls += "seek:$fraction" }
+    override fun stop() { calls += "stop" }
 }

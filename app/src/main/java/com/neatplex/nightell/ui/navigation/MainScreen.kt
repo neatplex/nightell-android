@@ -63,7 +63,6 @@ fun MainScreen(
     val navControllers = BottomNavScreens.entries.associateWith { rememberNavController() }
     val homeNavController = navControllers.getValue(BottomNavScreens.Home)
 
-    val isServiceRunning by mediaViewModel.isServiceRunning.collectAsStateWithLifecycle()
     val player by mediaViewModel.playerState.collectAsStateWithLifecycle()
 
     fun selectTab(tab: BottomNavScreens) {
@@ -105,7 +104,7 @@ fun MainScreen(
 
                     val isOnPostScreen = activeRoute.contains("postScreen")
                     val currentPostId = player.currentPostId
-                    if (isServiceRunning && !isOnPostScreen && currentPostId != null) {
+                    if (player.isActive && !isOnPostScreen && currentPostId != null) {
                         PlayerBox(
                             mediaViewModel = mediaViewModel,
                             modifier = Modifier
