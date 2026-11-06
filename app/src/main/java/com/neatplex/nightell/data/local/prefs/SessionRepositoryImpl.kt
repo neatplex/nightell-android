@@ -40,13 +40,18 @@ class SessionRepositoryImpl @Inject constructor(
     override fun currentUserId(): Int? = prefs.getInt(KEY_USER_ID, 0).takeIf { it != 0 }
 
     override fun clearSession() {
-        prefs.edit { remove(KEY_TOKEN) }
+        prefs.edit {
+            remove(KEY_TOKEN)
+            remove(KEY_USER_ID)
+            remove(KEY_EMAIL)
+        }
         _token.value = null
     }
 
     override fun expireSession() {
-        clearSession()
+        // Raise the flag first, so observers of the token see why it went away.
         _sessionExpired.value = true
+        clearSession()
     }
 
     override fun acknowledgeSessionExpired() {

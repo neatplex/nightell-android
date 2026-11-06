@@ -41,8 +41,6 @@ sealed interface EditProfileEvent {
 
     /** Saving [field] failed; the screen should restore the field's old value. */
     data class SaveFailed(val field: ProfileField) : EditProfileEvent
-
-    data object AccountDeleted : EditProfileEvent
 }
 
 /** Editing the signed-in user's profile, one field at a time. */
@@ -87,14 +85,17 @@ class EditProfileViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Deletes the account. On success the use case clears the session, and the
+     * app returns to sign-in from there.
+     */
     fun deleteAccount() {
         viewModelScope.launch {
             _uiState.update { it.copy(isDeletingAccount = true, error = null) }
-            when (val result = userUseCase.deleteAccount()) {
-                is Result.Success -> _events.send(EditProfileEvent.AccountDeleted)
-                is Result.Failure -> _uiState.update { it.copy(error = result.message) }
+            val result = userUseCase.deleteAccount()
+            if (result is Result.Failure) {
+                _uiState.update { it.copy(isDeletingAccount = false, error = result.message) }
             }
-            _uiState.update { it.copy(isDeletingAccount = false) }
         }
     }
 

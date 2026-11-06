@@ -18,7 +18,6 @@ import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.compose.material3.*
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +39,6 @@ import com.neatplex.nightell.ui.component.widget.EditProfileTextFieldWithValidat
 import com.neatplex.nightell.ui.screens.auth.getUserNameErrorMessage
 import com.neatplex.nightell.ui.screens.post.sanitizeDescription
 import com.neatplex.nightell.ui.viewmodel.SessionViewModel
-import kotlinx.coroutines.delay
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.neatplex.nightell.ui.common.ObserveAsEvents
 import com.neatplex.nightell.ui.util.rememberFilePicker
@@ -53,7 +51,12 @@ fun EditProfileScreen(
     profileViewModel: EditProfileViewModel = hiltViewModel(),
 ) {
     val currentUser by sessionViewModel.currentUser.collectAsStateWithLifecycle()
-    val user = currentUser ?: return
+    val user = currentUser
+    if (user == null) {
+        // Not loaded yet, or just signed out (the app is restarting into sign-in).
+        CustomCircularProgressIndicator()
+        return
+    }
     val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
     val resultErrorMessage = uiState.error.orEmpty()
 
@@ -74,7 +77,7 @@ fun EditProfileScreen(
     var isUsernameChanged by remember { mutableStateOf(false) }
 
     // State to track the token deletion process
-    var isTokenDeletionInProgress by remember { mutableStateOf(false) }
+    var isSigningOut by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
 
@@ -93,11 +96,6 @@ fun EditProfileScreen(
                 ProfileField.BIO -> editedBio = user.bio
                 ProfileField.USERNAME -> editedUsername = user.username
                 ProfileField.IMAGE -> Unit
-            }
-            // The use case has already cleared the session.
-            EditProfileEvent.AccountDeleted -> {
-                sessionViewModel.signOut()
-                isTokenDeletionInProgress = true
             }
         }
     }
@@ -131,7 +129,7 @@ fun EditProfileScreen(
             )
         },
         content = { space ->
-            if (isTokenDeletionInProgress) {
+            if (isSigningOut || uiState.isDeletingAccount) {
                 CustomCircularProgressIndicator()
             } else {
 
@@ -274,9 +272,10 @@ fun EditProfileScreen(
                                 dialogTitle = "Sign Out!",
                                 dialogText = "Are you sure you want to sign out?",
                                 onConfirmation = {
-                                    sessionViewModel.signOut()
-                                    isTokenDeletionInProgress = true
+                                    // MainActivity restarts into sign-in once the session is cleared.
+                                    isSigningOut = true
                                     showSignOutDialog = false
+                                    sessionViewModel.signOut()
                                 })
                         }
 
@@ -288,6 +287,7 @@ fun EditProfileScreen(
                                 dialogTitle = "Delete Account!",
                                 dialogText = "Are you sure you want to delete your account?",
                                 onConfirmation = {
+                                    showDeleteAccountDialog = false
                                     profileViewModel.deleteAccount()
                                 })
                         }
@@ -296,13 +296,4 @@ fun EditProfileScreen(
             }
         }
     )
-
-    // Restart the app once the token is gone.
-    val token by sessionViewModel.token.collectAsStateWithLifecycle()
-    LaunchedEffect(isTokenDeletionInProgress, token) {
-        if (isTokenDeletionInProgress && token.isNullOrEmpty()) {
-            delay(2000)
-            signOut(context)
-        }
-    }
 }

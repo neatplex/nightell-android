@@ -1,8 +1,5 @@
 package com.neatplex.nightell.ui.screens.profile
 
-import android.content.Context
-import android.content.Intent
-import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -24,22 +21,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
-import com.neatplex.nightell.MainActivity
 import com.neatplex.nightell.R
 import com.neatplex.nightell.domain.model.User
-
-fun signOut(context: Context) {
-
-    // Restart the application
-    val intent = Intent(context, MainActivity::class.java)
-    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-    context.startActivity(intent)
-
-    if (context is ComponentActivity) {
-        context.finish()
-    }
-}
-
 
 @Composable
 fun ProfileImageWithUploadIcon(

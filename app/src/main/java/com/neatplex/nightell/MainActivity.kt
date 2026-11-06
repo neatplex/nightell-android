@@ -14,6 +14,7 @@ import com.neatplex.nightell.ui.navigation.AppNavHost
 import com.neatplex.nightell.ui.viewmodel.ConnectivityViewModel
 import com.neatplex.nightell.ui.viewmodel.MediaViewModel
 import com.neatplex.nightell.ui.viewmodel.SessionViewModel
+import com.neatplex.nightell.ui.viewmodel.SignOutReason
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -29,19 +30,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val isOnline by connectivityViewModel.isOnline.collectAsStateWithLifecycle()
-            val sessionExpired by sessionViewModel.sessionExpired.collectAsStateWithLifecycle()
+            val signOutReason by sessionViewModel.signOutReason.collectAsStateWithLifecycle()
 
-            // The server rejected the token: restart so the user signs in again.
-            LaunchedEffect(sessionExpired) {
-                if (sessionExpired) {
+            // However the user stopped being signed in (sign out, account deleted,
+            // token rejected), start over on a fresh task so no screen, draft or
+            // playback from the old session survives.
+            LaunchedEffect(signOutReason) {
+                val reason = signOutReason ?: return@LaunchedEffect
+                if (reason == SignOutReason.SESSION_EXPIRED) {
                     sessionViewModel.onSessionExpiredHandled()
                     Toast.makeText(
                         this@MainActivity,
                         "Something is wrong! You need to login again",
                         Toast.LENGTH_SHORT
                     ).show()
-                    restartActivity()
                 }
+                restartActivity()
             }
 
             AppNavHost(
@@ -54,8 +58,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun restartActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        startActivity(intent)
         finish()
-        startActivity(Intent(this, MainActivity::class.java))
     }
 
     override fun onDestroy() {

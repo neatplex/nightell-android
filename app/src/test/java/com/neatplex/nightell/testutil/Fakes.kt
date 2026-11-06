@@ -50,7 +50,7 @@ class FakeSessionRepository(token: String? = null, private var userId: Int? = nu
 
     override fun currentUserId(): Int? = userId
     override fun clearSession() { _token.value = null }
-    override fun expireSession() { clearSession(); _expired.value = true }
+    override fun expireSession() { _expired.value = true; clearSession() }
     override fun acknowledgeSessionExpired() { _expired.value = false }
 }
 
